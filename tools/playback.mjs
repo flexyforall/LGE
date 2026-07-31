@@ -80,7 +80,7 @@ const scrub = await page.evaluate(
         if (elapsed < 2000) window.scrollTo(0, Math.round(travel * (elapsed / 2000)));
         out.push([Math.round(elapsed), video.currentTime]);
         if (elapsed < 3200) requestAnimationFrame(tick);
-        else resolve({ samples: out, duration: video.duration });
+        else resolve({ samples: out, end: +scene.dataset.cameraEnd });
       })();
     })
 );
@@ -93,11 +93,11 @@ const scrubDrop = worstDrop(scrub.samples);
 const atScrollEnd = scrub.samples.find((s) => s[0] >= 2000)[1];
 const afterHolding = scrub.samples[scrub.samples.length - 1][1];
 /*
- * Scrolled all the way, so it is asked for `duration` — but the frame holding
- * that moment starts a frame earlier, so landing up to ~1 frame short is the
- * correct outcome, not a miss. Anything beyond that is drift.
+ * Scrolled all the way, so it is asked for the camera's end mark — but the
+ * frame holding that moment starts up to a frame earlier, so landing slightly
+ * short is the correct outcome, not a miss. Anything beyond that is drift.
  */
-const expected = scrub.duration;
+const expected = scrub.end;
 const offTarget = Math.abs(afterHolding - expected);
 const ALLOWED_OFF_TARGET = FRAME * 1.5;
 

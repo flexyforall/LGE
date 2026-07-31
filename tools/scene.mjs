@@ -31,14 +31,12 @@ const read = () =>
   page.evaluate(() => {
     const video = document.querySelector('[data-scene-video]');
     const copy = document.querySelector('[data-scene-copy]');
-    const chrome = document.querySelector('[data-scene-chrome]');
     const scene = document.querySelector('[data-scene]');
     return {
       t: video.currentTime,
       duration: video.duration,
       paused: video.paused,
       copy: +getComputedStyle(copy).opacity,
-      chrome: +getComputedStyle(chrome).opacity,
       travel: scene.offsetHeight - window.innerHeight,
       y: window.scrollY,
     };
@@ -55,7 +53,7 @@ if (!intro.paused || intro.t === 0) {
   console.log('WARNING: the intro did not play and hold as expected.\n');
 }
 
-console.log('  scroll      y   camera    copy   nav');
+console.log('  scroll      y   camera    copy');
 for (const frac of STOPS) {
   await page.evaluate((y) => window.scrollTo(0, y), Math.round(intro.travel * frac));
   await page.waitForTimeout(600);
@@ -64,8 +62,7 @@ for (const frac of STOPS) {
     `${String(Math.round(frac * 100)).padStart(7)}% ` +
       `${String(Math.round(s.y)).padStart(6)} ` +
       `${s.t.toFixed(2).padStart(7)}s ` +
-      `${s.copy.toFixed(2).padStart(7)} ` +
-      `${s.chrome.toFixed(2).padStart(5)}` +
+      `${s.copy.toFixed(2).padStart(7)}` +
       `${s.paused ? '' : '   PLAYING — should be scroll-driven'}`
   );
   await page.screenshot({

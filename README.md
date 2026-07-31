@@ -22,22 +22,29 @@ tools/              optional checks, not needed to run the site
 The clip is one continuous move through orbit, so it is treated as a camera
 rather than a looping background:
 
-1. On load it plays forward for 2.5s and stops where it gets to.
+1. On load it plays forward for 1.2s and stops where it gets to.
 2. From then on the scroll position drives `currentTime`. Scrolling moves the
    camera, stopping stops it — it never plays on its own again.
-3. The copy clears out over the first stretch of that scroll, and the nav over
-   the last stretch, where the frame washes to white.
+3. The copy clears out over the first stretch of that scroll, so the move
+   carries the section on its own.
+
+The camera stops at 3.4s (`SCENE_END` in `js/scene.js`), not at the end of the
+clip. Measured off the framed shot, the planet completes its sweep from the
+bottom edge into the corner by about then, and from roughly 5.75s a flare grows
+until the frame is solid white. Running further would buy a couple of seconds of
+near-static space and then blow the frame out.
 
 The section is `--scene-length` tall (360vh) and the stage inside it is pinned;
-that surplus height is the scroll the move is mapped onto. The three constants
-at the top of `js/scene.js` control the intro length and both fades.
+that surplus height is the scroll the move is mapped onto. The constants at the
+top of `js/scene.js` control the intro length, where the camera stops, and the
+copy fade.
 
 The clip is turned a quarter turn and cropped to the frame, the way Figma
 places it, which stands the planet up as a horizon along the bottom and leaves
 the centred copy over open space. It plays at full opacity — no scrim, no tint.
 
-Scrolling to the end leaves the frame white: that is the end of the camera move
-and where the next section should pick up.
+Scrolling to the end leaves the planet parked in the corner — the end of the
+camera move, and where the next section should pick up.
 
 ## Design parity
 

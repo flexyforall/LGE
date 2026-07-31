@@ -306,16 +306,21 @@ img {
 
 /* --- Hero ----------------------------------------------------------------- */
 
-/* 201:3127 — x 40, 1360 wide, centred on the frame, 20 gap below the eyebrow */
+/*
+ * 201:3127 — x 40, 1360 wide, centred on the frame, 20 gap below the eyebrow.
+ * As with the header, the 40px inset is the designed value and the width
+ * follows from it, so the copy stays centred on the window rather than on the
+ * first 1440px of it. At 1440 that resolves to the 1360 in the design.
+ */
 .hero {
   position: absolute;
   top: 50%;
   left: 40px;
+  right: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  width: 1360px;
   transform: translateY(-50%);
 }
 
