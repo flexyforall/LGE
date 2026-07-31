@@ -48,31 +48,38 @@ committing it.
 clip. The source is not committed — it would cost every clone 30 MB — so keep a
 copy if it might need re-encoding.
 
-The encode does three things:
+The clip is placed the way Figma places it: turned a quarter turn anticlockwise
+and cropped to the frame, which stands the planet up as a horizon along the
+bottom. The rotation is done in CSS, not baked in, so the file stays in its
+original orientation.
 
-- **Mirrors the frame** (`hflip`). In the source the planet fills the left half,
-  exactly where the headline and buttons sit. Mirrored, it moves to the right
-  and the copy sits over open space — pure black under the copy for the whole
-  intro, measured, so the video needs no scrim or tint of any kind.
-- **Keeps the full 8s**, white-out included. It is the end of the camera move
+That drives the encode height. Rotated, the clip's **height** becomes the strip's
+width on screen, and the strip is as wide as the frame — so it is encoded at
+1444 tall to match the 1440 design, and the width follows from the aspect ratio.
+Wider windows scale it up a little; the source tops out at 2140 tall, so there
+is some headroom but not unlimited.
+
+Two other things:
+
+- **The full 8s is kept**, white-out included. It is the end of the camera move
   and the natural hand-off to whatever section comes next.
-- **Puts a keyframe every 8 frames.** The scroll drives `currentTime` directly,
-  and seeking is only as precise as the nearest keyframe.
+- **A keyframe every 8 frames.** The scroll drives `currentTime` directly, and
+  seeking is only as precise as the nearest keyframe.
 
 Both formats ship: browsers that take WebM use it, Safari and iOS take the MP4.
 
 ```bash
-VF="hflip,fps=24,scale=1920:-2,setsar=1"
+VF="fps=24,scale=-2:1444,setsar=1"
 
 ffmpeg -i src.mp4 -vf "$VF" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 28 -preset slow \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 29 -preset slow \
   -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart hero-scene.mp4
 
 ffmpeg -i src.mp4 -vf "$VF" \
-  -c:v libvpx-vp9 -crf 34 -b:v 0 -row-mt 1 -g 8 -keyint_min 8 \
+  -c:v libvpx-vp9 -crf 36 -b:v 0 -row-mt 1 -g 8 -keyint_min 8 \
   -pix_fmt yuv420p -an hero-scene.webm
 
-ffmpeg -i src.mp4 -frames:v 1 -vf "hflip,scale=1920:-2,setsar=1" -q:v 4 hero-scene-poster.jpg
+ffmpeg -i src.mp4 -frames:v 1 -vf "scale=-2:1444,setsar=1" -q:v 4 hero-scene-poster.jpg
 ```
 
 ## Notes on the exports that arrived
@@ -86,9 +93,22 @@ The PP Neue Montreal faces arrived as `.otf`. Only Medium is wired up — it is
 the one weight the hero uses. Converting the family to `.woff2` would cut it to
 roughly half the bytes, worth doing before launch.
 
-The button shapes arrived as `shaperec.svg` / `shaperec1.svg` in `images/` and
-were moved to `icons/` under the names the markup uses. `shaperec1.svg` is
-140x34, matching its Figma node exactly. `shaperec.svg` is 175x44 while Figma
-reports the node box as 175x50 — the export's own artwork is the one used, since
-stretching it to 50 would flatten the 45-degree corners. It stays centred on the
-same point, so the label sits where the design puts it either way.
+Vector uploads keep arriving in `images/` and get moved to `icons/` under the
+names the markup uses:
+
+| Uploaded as | Now | Figma node |
+| --- | --- | --- |
+| `shaperec1.svg` | `icons/btn-become-a-partner.svg` | `201:3095` — 140x34 |
+| `base.svg` | `icons/btn-explore-glow.svg` | `201:3133` — the glow inside the button |
+| `Ellipse 2510.svg` | `icons/glow-soft.svg` | `201:3135` |
+| `Ellipse 2511.svg` | `icons/glow-core.svg` | `201:3136` |
+
+`icons/btn-explore-base.svg` is the one asset not exported from Figma. It is the
+white 175x50 plate the glow sits on — Figma node `201:3078`
+("Rectangle 26102856"), which was not in the upload. The outline is taken
+verbatim from the path `btn-explore-glow.svg` masks itself with, so the two line
+up exactly; only the fill is assumed. Exporting `201:3078` and dropping it in at
+that path would replace it.
+
+`shaperec.svg` (175x44) belonged to the earlier left-aligned hero and is no
+longer used — the current design's button is 175x50.

@@ -59,7 +59,14 @@ const intro = await page.evaluate(
     })
 );
 
-/* 2. The scrub: ramp the scroll, then hold. It must not drift or lurch. */
+/*
+ * 2. The scrub: ramp the scroll to the end, then hold.
+ *
+ * It must not step backwards, and it must come to rest on the frame the scroll
+ * is asking for. Settling forwards after the scrolling stops is expected — the
+ * last seek is still in flight and lands a moment later — so what is checked is
+ * where it ends up, not that it stops moving instantly.
+ */
 const scrub = await page.evaluate(
   () =>
     new Promise((resolve) => {
@@ -73,31 +80,45 @@ const scrub = await page.evaluate(
         if (elapsed < 2000) window.scrollTo(0, Math.round(travel * (elapsed / 2000)));
         out.push([Math.round(elapsed), video.currentTime]);
         if (elapsed < 3200) requestAnimationFrame(tick);
-        else resolve(out);
+        else resolve({ samples: out, duration: video.duration });
       })();
     })
 );
 
 await browser.close();
 
+const FRAME = 1 / 24;
 const introDrop = worstDrop(intro);
-const scrubDrop = worstDrop(scrub);
-const atScrollEnd = scrub.find((s) => s[0] >= 2000)[1];
-const afterHolding = scrub[scrub.length - 1][1];
-const drift = afterHolding - atScrollEnd;
+const scrubDrop = worstDrop(scrub.samples);
+const atScrollEnd = scrub.samples.find((s) => s[0] >= 2000)[1];
+const afterHolding = scrub.samples[scrub.samples.length - 1][1];
+/*
+ * Scrolled all the way, so it is asked for `duration` — but the frame holding
+ * that moment starts a frame earlier, so landing up to ~1 frame short is the
+ * correct outcome, not a miss. Anything beyond that is drift.
+ */
+const expected = scrub.duration;
+const offTarget = Math.abs(afterHolding - expected);
+const ALLOWED_OFF_TARGET = FRAME * 1.5;
 
 console.log(`
 intro   settled at ${intro[intro.length - 1][1].toFixed(3)}s
         largest backward step ${introDrop.worst.toFixed(4)}s${introDrop.at !== null ? ` at ${introDrop.at}ms` : ''}
 
-scrub   ${atScrollEnd.toFixed(3)}s at the end of the scroll, ${afterHolding.toFixed(3)}s after holding (drift ${drift.toFixed(3)}s)
+scrub   ${atScrollEnd.toFixed(3)}s when the scroll stopped, settled at ${afterHolding.toFixed(3)}s
+        asked for ${expected.toFixed(3)}s — off by ${offTarget.toFixed(3)}s (${(offTarget / FRAME).toFixed(1)} frames)
         largest backward step ${scrubDrop.worst.toFixed(4)}s${scrubDrop.at !== null ? ` at ${scrubDrop.at}ms` : ''}
 `);
 
 const failures = [];
 if (introDrop.worst > TOLERANCE) failures.push('the intro rewinds as it stops');
 if (scrubDrop.worst > TOLERANCE) failures.push('the scrub steps backwards');
-if (Math.abs(drift) > TOLERANCE) failures.push('the camera drifts after the scroll stops');
+if (offTarget > ALLOWED_OFF_TARGET)
+  failures.push('the camera rests off the frame the scroll asked for');
 
-console.log(failures.length ? `FAIL — ${failures.join('; ')}\n` : 'The camera only ever moves forwards.\n');
+console.log(
+  failures.length
+    ? `FAIL — ${failures.join('; ')}\n`
+    : 'The camera only ever moves forwards, and rests where the scroll asks.\n'
+);
 process.exit(failures.length ? 1 : 0);

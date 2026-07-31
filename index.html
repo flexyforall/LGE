@@ -9,20 +9,24 @@
 <link rel="stylesheet" href="css/style.css">
 <script>
 /*
- * The design is drawn on a 1440x800 frame. The frame stretches to fill the
+ * The design is drawn on a 1440x810 frame. The frame stretches to fill the
  * window — the video and the nav go edge to edge, and the copy keeps its
- * designed inset — down to MIN_WIDTH. Below that there is no room left to
+ * designed measure — down to MIN_WIDTH. Below that there is no room left to
  * stretch into, so the whole frame is scaled down instead of re-laid out, which
  * holds every padding and margin at its designed ratio.
+ *
+ * `--frame-width` is published because the rotated video is sized off the frame
+ * width, and a rotated box cannot derive that from percentages.
  *
  * Runs before first paint so nothing jumps.
  */
 (function () {
   var MIN_WIDTH = 900;
   var set = function () {
-    document.documentElement.style.setProperty(
-      '--frame-scale', Math.min(1, window.innerWidth / MIN_WIDTH)
-    );
+    var width = Math.max(document.documentElement.clientWidth, MIN_WIDTH);
+    var style = document.documentElement.style;
+    style.setProperty('--frame-scale', Math.min(1, window.innerWidth / MIN_WIDTH));
+    style.setProperty('--frame-width', width + 'px');
   };
   set();
   addEventListener('resize', set);
@@ -31,7 +35,7 @@
 </head>
 <body>
 
-<!-- Figma: "Hero" (183:3165) — 1440 x 800.
+<!-- Figma: "Concept 17" (183:3313) — 1440 x 810.
      data-node-id on each element names the Figma node it came from.
 
      The section is taller than the window and the stage inside it is pinned;
@@ -39,62 +43,85 @@
      js/scene.js. -->
 <div class="scene" data-scene>
   <div class="scene__stage">
-    <div class="frame" data-node-id="183:3165" data-design-frame>
+    <div class="frame" data-node-id="183:3313" data-design-frame>
 
-      <!-- The clip is mirrored in the encode so the planet sits on the right,
-           leaving the black side of the frame under the copy. No overlay. -->
+      <!-- 201:3101 — the clip is turned a quarter turn and cropped to the
+           frame, which brings the planet up as a horizon along the bottom.
+           Plays at full opacity, no overlay. -->
       <div class="frame__bg" aria-hidden="true">
-        <video class="frame__video" data-scene-video muted playsinline preload="auto"
-               poster="assets/videos/hero-scene-poster.jpg">
-          <source src="assets/videos/hero-scene.webm" type="video/webm">
-          <source src="assets/videos/hero-scene.mp4" type="video/mp4">
-        </video>
+        <div class="frame__strip">
+          <video class="frame__video" data-scene-video muted playsinline preload="auto"
+                 poster="assets/videos/hero-scene-poster.jpg">
+            <source src="assets/videos/hero-scene.webm" type="video/webm">
+            <source src="assets/videos/hero-scene.mp4" type="video/mp4">
+          </video>
+        </div>
       </div>
 
-      <!-- Figma: "Frame 2147227336" (183:3224) — 1360 x 64, inset 40/20 -->
-      <header class="header" data-node-id="183:3224" data-scene-chrome>
-        <div class="header__leading" data-node-id="183:3193">
+      <!-- Figma: "Frame 2147227336" (201:3081) — 1360 x 64, inset 40/20 -->
+      <header class="header" data-node-id="201:3081" data-scene-chrome>
+        <div class="header__leading" data-node-id="201:3082">
 
-          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="183:3194">
+          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="201:3083">
             <img src="assets/logos/logo.svg" alt="" width="34" height="34">
           </a>
 
-          <nav class="nav" data-node-id="183:3199">
-            <a class="nav__link" href="#technology" data-node-id="183:3200">TECHNOLOGY</a>
-            <a class="nav__link" href="#company" data-node-id="183:3201">COMPANY</a>
-            <a class="nav__link" href="#newsroom" data-node-id="183:3202">NEWSROOM</a>
-            <a class="nav__link" href="#investors" data-node-id="183:3203">FOR INVESTORS</a>
-            <a class="nav__link" href="#contact" data-node-id="183:3204">CONTACT</a>
+          <nav class="nav" data-node-id="201:3088">
+            <a class="nav__link" href="#technology" data-node-id="201:3089">TECHNOLOGY</a>
+            <a class="nav__link" href="#company" data-node-id="201:3090">COMPANY</a>
+            <a class="nav__link" href="#newsroom" data-node-id="201:3091">NEWSROOM</a>
+            <a class="nav__link" href="#investors" data-node-id="201:3092">FOR INVESTORS</a>
+            <a class="nav__link" href="#contact" data-node-id="201:3093">CONTACT</a>
           </nav>
 
         </div>
 
-        <a class="partner" href="#partner" data-node-id="183:3190">
+        <a class="partner" href="#partner" data-node-id="201:3094">
           <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
-               alt="" width="140" height="34" data-node-id="183:3191">
-          <span class="partner__label" data-node-id="183:3192">BECOME A PARTNER</span>
+               alt="" width="140" height="34" data-node-id="201:3095">
+          <span class="partner__label" data-node-id="201:3096">BECOME A PARTNER</span>
         </a>
       </header>
 
-      <!-- Figma: "Frame 2147227335" (183:3223) — clears out as the scroll takes
+      <!-- Figma: "Frame 2147227351" (201:3127) — clears out as the scroll takes
            over the camera. -->
-      <div class="hero" data-node-id="183:3223" data-scene-copy>
+      <div class="hero" data-node-id="201:3127" data-scene-copy>
 
-        <div class="hero__copy" data-node-id="183:3216">
-          <h1 class="hero__headline" data-node-id="183:3207">The Enabling Technology Behind Orbital Data Centers</h1>
-          <p class="hero__subhead" data-node-id="183:3214">Plasma power and propulsion, connected by high-bandwidth laser links</p>
+        <p class="hero__eyebrow" data-node-id="201:3125">[NEXT-GENERATION ORBITAL SYSTEMS]</p>
+
+        <div class="hero__body" data-node-id="201:3098">
+
+          <div class="hero__headlineRow" data-node-id="201:3069">
+            <div data-node-id="201:3070">
+              <h1 class="hero__headline" data-node-id="201:3071">The enabling technology behind orbital data centers</h1>
+            </div>
+          </div>
+
+          <div class="hero__lede" data-node-id="201:3073">
+            <p class="hero__subhead" data-node-id="201:3074">Plasma power and propulsion, connected by high-bandwidth laser links</p>
+
+            <div class="hero__actions" data-node-id="201:3075">
+              <a class="explore" href="#technology" data-node-id="201:3076">
+                <span class="explore__inner" data-node-id="201:3077">
+                  <!-- 201:3135 / 201:3136 — the two blurred ellipses that pool
+                       light behind the button. -->
+                  <img class="explore__glowSoft" src="assets/icons/glow-soft.svg"
+                       alt="" width="214" height="160" data-node-id="201:3135">
+                  <img class="explore__glowCore" src="assets/icons/glow-core.svg"
+                       alt="" width="134" height="72" data-node-id="201:3136">
+
+                  <img class="explore__shape" src="assets/icons/btn-explore-base.svg"
+                       alt="" width="175" height="50" data-node-id="201:3078">
+                  <img class="explore__shape" src="assets/icons/btn-explore-glow.svg"
+                       alt="" width="175" height="50" data-node-id="201:3133">
+
+                  <span class="explore__label" data-node-id="201:3079">EXPLORE TECHNOLOGY</span>
+                </span>
+              </a>
+            </div>
+          </div>
+
         </div>
-
-        <div class="hero__actions" data-node-id="183:3217">
-          <a class="explore" href="#technology" data-node-id="183:3218">
-            <span class="explore__inner" data-node-id="183:3219">
-              <img class="explore__shape" src="assets/icons/btn-explore-technology.svg"
-                   alt="" width="175" height="44" data-node-id="183:3246">
-              <span class="explore__label" data-node-id="183:3221">EXPLORE TECHNOLOGY</span>
-            </span>
-          </a>
-        </div>
-
       </div>
 
     </div>

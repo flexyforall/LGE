@@ -18,21 +18,28 @@ const target =
 
 /** Boxes in frame coordinates: [nodeId, x, y, w, h, label]. */
 const BOXES = [
-  ['183:3224', 40, 20, 1360, 64, 'header'],
-  ['183:3193', 60, 35, 697, 34, 'header leading group'],
-  ['183:3194', 60, 35, 34, 34, 'logo'],
-  ['183:3190', 1240, 33, 140, 38, 'become-a-partner button'],
-  ['183:3191', 1240, 33, 140, 34, 'become-a-partner shape'],
-  ['183:3223', 60, 264, 653, 346, 'hero content'],
-  ['183:3216', 60, 264, 653, 240, 'hero copy'],
-  ['183:3207', 60, 264, 653, 192, 'headline'],
-  ['183:3214', 60, 480, 653, 24, 'subhead'],
-  ['183:3217', 60, 560, 173, 50, 'actions'],
-  ['183:3218', 60, 560, 171, 50, 'explore button'],
-  ['183:3219', 80, 570, 131, 30, 'explore label box'],
-  // The export's artwork is 175 x 44 inside Figma's 175 x 50 node box, so it
-  // sits centred on the same point rather than being stretched to fill it.
-  ['183:3246', 60, 563, 175, 44, 'explore shape'],
+  ['201:3081', 40, 20, 1360, 64, 'header'],
+  ['201:3082', 60, 35, 697, 34, 'header leading group'],
+  ['201:3083', 60, 35, 34, 34, 'logo'],
+  ['201:3094', 1240, 33, 140, 38, 'become-a-partner button'],
+  ['201:3095', 1240, 33, 140, 34, 'become-a-partner shape'],
+  ['201:3127', 40, 252, 1360, 306, 'hero block'],
+  ['201:3125', 40, 252, 1360, 20, 'eyebrow'],
+  ['201:3098', 40, 292, 1360, 266, 'hero body'],
+  ['201:3069', 40, 292, 1360, 128, 'headline row'],
+  ['201:3071', 167.5, 292, 1105, 128, 'headline'],
+  ['201:3073', 40, 460, 1360, 98, 'lede'],
+  ['201:3074', 40, 460, 1360, 24, 'subhead'],
+  ['201:3075', 634.5, 508, 171, 50, 'actions'],
+  ['201:3076', 634.5, 508, 171, 50, 'explore button'],
+  ['201:3077', 654.5, 518, 131, 30, 'explore label box'],
+  // 175 x 50 centred on the label box.
+  ['201:3078', 632.5, 508, 175, 50, 'explore plate'],
+  ['201:3133', 632.5, 508, 175, 50, 'explore glow'],
+  // Figma places these by a 94 x 40 / 94 x 32 box; each SVG carries its own
+  // blur, so it renders larger and is centred on that box.
+  ['201:3135', 649, 446, 214, 160, 'glow (soft)'],
+  ['201:3136', 689, 494, 134, 72, 'glow (core)'],
 ];
 
 /**
@@ -41,20 +48,21 @@ const BOXES = [
  * the spacing between them is covered by GAPS below.
  */
 const TEXT_ORIGINS = [
-  ['183:3200', 134, 45, 'nav: TECHNOLOGY'],
-  ['183:3192', 1258, 43, 'become-a-partner label'],
-  ['183:3221', 80, 578, 'explore label'],
+  ['201:3089', 134, 45, 'nav: TECHNOLOGY'],
+  ['201:3096', 1258, 43, 'become-a-partner label'],
+  ['201:3079', 654.5, 526, 'explore label'],
 ];
 
 /** [fromNodeId, toNodeId, expectedGap, label] — the paddings and margins themselves. */
 const GAPS = [
-  ['183:3194', '183:3199', 40, 'logo -> nav'],
-  ['183:3200', '183:3201', 30, 'nav: TECHNOLOGY -> COMPANY'],
-  ['183:3201', '183:3202', 30, 'nav: COMPANY -> NEWSROOM'],
-  ['183:3202', '183:3203', 30, 'nav: NEWSROOM -> FOR INVESTORS'],
-  ['183:3203', '183:3204', 30, 'nav: FOR INVESTORS -> CONTACT'],
-  ['183:3207', '183:3214', 24, 'headline -> subhead'],
-  ['183:3216', '183:3217', 56, 'copy -> actions'],
+  ['201:3083', '201:3088', 40, 'logo -> nav'],
+  ['201:3089', '201:3090', 30, 'nav: TECHNOLOGY -> COMPANY'],
+  ['201:3090', '201:3091', 30, 'nav: COMPANY -> NEWSROOM'],
+  ['201:3091', '201:3092', 30, 'nav: NEWSROOM -> FOR INVESTORS'],
+  ['201:3092', '201:3093', 30, 'nav: FOR INVESTORS -> CONTACT'],
+  ['201:3125', '201:3098', 20, 'eyebrow -> body'],
+  ['201:3069', '201:3073', 40, 'headline -> lede'],
+  ['201:3074', '201:3075', 24, 'subhead -> button'],
 ];
 
 const TOL = 0.5;
@@ -65,7 +73,7 @@ const browser = await chromium.launch({
 });
 // The Figma frame's own size — the frame stretches to fill the window, so this
 // is the one viewport where the rendered boxes should equal the design values.
-const page = await browser.newPage({ viewport: { width: 1440, height: 800 } });
+const page = await browser.newPage({ viewport: { width: 1440, height: 810 } });
 await page.goto(target, { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(300);

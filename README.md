@@ -32,15 +32,16 @@ The section is `--scene-length` tall (360vh) and the stage inside it is pinned;
 that surplus height is the scroll the move is mapped onto. The three constants
 at the top of `js/scene.js` control the intro length and both fades.
 
-The clip is mirrored in the encode so the planet sits on the right and the copy
-sits over open space. It plays at full opacity — no scrim, no tint.
+The clip is turned a quarter turn and cropped to the frame, the way Figma
+places it, which stands the planet up as a horizon along the bottom and leaves
+the centred copy over open space. It plays at full opacity — no scrim, no tint.
 
 Scrolling to the end leaves the frame white: that is the end of the camera move
 and where the next section should pick up.
 
 ## Design parity
 
-The hero reproduces Figma node `183:3165` at 1440x800. Elements carry a
+The hero reproduces Figma node `183:3313` at 1440x810. Elements carry a
 `data-node-id` attribute naming the Figma node they came from, and the CSS
 comments name the node each rule was read off, so any value can be traced back
 to the design.
@@ -51,12 +52,13 @@ numbers — all currently match exactly. See [`tools/README.md`](./tools/README.
 ## Sizing
 
 The frame fills the window rather than sitting as a 1440px box in the middle of
-it — the video and nav run edge to edge and the copy keeps its designed inset.
-At exactly 1440x800 every measurement equals the Figma frame.
+it — the video and nav run edge to edge and the copy keeps its designed measure.
+At exactly 1440x810 every measurement equals the Figma frame.
 
-- **Wider than 1440** — the frame stretches. Type stays at its designed size, so
-  the copy sits in a column on the left. To scale type up on very large
-  monitors instead, that is a change to `--frame-scale` in `index.html`.
+- **Wider than 1440** — the frame stretches and the video widens with it. Type
+  stays at its designed size, so the copy holds its measure in the middle. To
+  scale type up on very large monitors instead, that is a change to
+  `--frame-scale` in `index.html`.
 - **Any height** — the stage fills the window; the copy keeps its designed
   position relative to the frame's midline.
 - **Narrower than 900** (`--frame-min-width`) — nothing left to stretch into, so

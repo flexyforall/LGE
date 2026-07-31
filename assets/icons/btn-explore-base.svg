@@ -1,0 +1,8 @@
+<!-- The 175x50 button plate that btn-explore-glow.svg sits on top of.
+     The outline is the same path btn-explore-glow.svg masks itself with, so the
+     two line up exactly. Replace with the Figma export of node 201:3078
+     ("Rectangle 26102856") if its fill turns out to differ. -->
+<svg width="175" height="50" viewBox="0 0 175 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 0H167L175 6.25V12.5V25V37.5V43.75L167 50H8L0 43.75V37.5V25V12.5V6.25L8 0Z" fill="white"/>
+  <path d="M166.829 0.5L174.5 6.49316V43.5059L166.829 49.5H8.1709L0.5 43.5059V6.49316L8.1709 0.5H166.829Z" stroke="white" stroke-opacity="0.5"/>
+</svg>
