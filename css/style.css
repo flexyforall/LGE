@@ -106,29 +106,44 @@ img {
 
 
 /* --- Design frame --------------------------------------------------------
-   Holds the 1440 x 800 frame the design is drawn on, so everything inside can
-   use the exact px values from Figma.
+   Holds the frame the design is drawn on, so everything inside can use the
+   exact px values from Figma.
 
-   Below 1440px the frame scales down as a whole rather than re-flowing, which
-   keeps every padding and margin at its designed ratio. Replace this with real
-   breakpoints once tablet and mobile frames exist in Figma. `--frame-scale` is
-   set by the inline script in index.html.
+   The frame fills the window rather than sitting as a 1440px box in the middle
+   of it: the video and nav run edge to edge, the copy keeps its designed inset,
+   and at exactly 1440 x 800 every measurement is identical to the Figma frame.
+
+   Below MIN_WIDTH (900px, set in index.html) there is nothing left to stretch
+   into, so the frame scales down as a whole instead of re-flowing, which keeps
+   every padding and margin at its designed ratio. Replace that with real
+   breakpoints once tablet and mobile frames exist in Figma.
    ------------------------------------------------------------------------- */
+
+:root {
+  /*
+   * 800 is the design height; taller windows get a full-bleed hero. Dividing
+   * by the scale means the frame still fills the window once it is being
+   * scaled down, rather than leaving a strip of background below it.
+   */
+  --frame-height: max(800px, calc(100vh / var(--frame-scale, 1)));
+  --frame-height: max(800px, calc(100dvh / var(--frame-scale, 1)));
+  --frame-min-width: 900px;
+}
 
 .viewport {
   position: relative;
   display: flex;
   justify-content: center;
   width: 100%;
-  height: calc(800px * var(--frame-scale, 1));
+  height: calc(var(--frame-height) * var(--frame-scale, 1));
   overflow: hidden;
 }
 
 .frame {
   position: relative;
   flex: none;
-  width: 1440px;
-  height: 800px;
+  width: max(100%, var(--frame-min-width));
+  height: var(--frame-height);
   background: var(--color-bg);
   transform: scale(var(--frame-scale, 1));
   transform-origin: top center;
@@ -198,15 +213,20 @@ img {
 
 /* --- Header --------------------------------------------------------------- */
 
-/* 183:3224 — x 40, y 20, 1360 x 64, padding 20, backdrop blur 50 */
+/*
+ * 183:3224 — x 40, y 20, 1360 x 64, padding 20, backdrop blur 50.
+ * The 40px inset is the designed value; the width follows from it, so the bar
+ * spans the window and BECOME A PARTNER stays pinned to the right edge. At
+ * 1440 that resolves to the 1360 in the design.
+ */
 .header {
   position: absolute;
   top: 20px;
   left: 40px;
+  right: 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 1360px;
   height: 64px;
   padding: 20px;
   backdrop-filter: blur(50px);

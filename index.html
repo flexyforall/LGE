@@ -9,14 +9,19 @@
 <link rel="stylesheet" href="css/style.css">
 <script>
 /*
- * The design is drawn on a fixed 1440x800 frame. On narrower screens the whole
- * frame is scaled down rather than re-laid out, which holds every padding and
- * margin at its designed ratio. Runs before first paint so nothing jumps.
+ * The design is drawn on a 1440x800 frame. The frame stretches to fill the
+ * window — the video and the nav go edge to edge, and the copy keeps its
+ * designed inset — down to MIN_WIDTH. Below that there is no room left to
+ * stretch into, so the whole frame is scaled down instead of re-laid out, which
+ * holds every padding and margin at its designed ratio.
+ *
+ * Runs before first paint so nothing jumps.
  */
 (function () {
+  var MIN_WIDTH = 900;
   var set = function () {
     document.documentElement.style.setProperty(
-      '--frame-scale', Math.min(1, window.innerWidth / 1440)
+      '--frame-scale', Math.min(1, window.innerWidth / MIN_WIDTH)
     );
   };
   set();

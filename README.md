@@ -26,9 +26,21 @@ to the design.
 `tools/measure.mjs` diffs every box, text origin and gap against the design
 numbers — all currently match exactly. See [`tools/README.md`](./tools/README.md).
 
-Below 1440px the frame scales down as a whole rather than re-flowing, which
-holds every padding and margin at its designed ratio. That is a stopgap —
-replace it with real breakpoints once tablet and mobile frames exist in Figma.
+## Sizing
+
+The frame fills the window rather than sitting as a 1440px box in the middle of
+it — the video and nav run edge to edge and the copy keeps its designed inset.
+At exactly 1440x800 every measurement equals the Figma frame.
+
+- **Wider than 1440** — the frame stretches. Type stays at its designed size, so
+  the copy sits in a column on the left. To scale type up on very large
+  monitors instead, that is a change to `--frame-scale` in `index.html`.
+- **Taller than 800** — the hero goes full-bleed; the copy keeps its designed
+  position relative to the frame's midline.
+- **Narrower than 900** (`--frame-min-width`) — nothing left to stretch into, so
+  the whole frame scales down proportionally, holding every padding and margin
+  at its designed ratio. That is a stopgap — replace it with real breakpoints
+  once tablet and mobile frames exist in Figma.
 
 ## Publishing
 

@@ -61,7 +61,9 @@ const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
   args: ['--no-sandbox', '--allow-file-access-from-files'],
 });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+// The Figma frame's own size — the frame stretches to fill the window, so this
+// is the one viewport where the rendered boxes should equal the design values.
+const page = await browser.newPage({ viewport: { width: 1440, height: 800 } });
 await page.goto(target, { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(300);
