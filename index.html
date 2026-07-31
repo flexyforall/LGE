@@ -32,68 +32,76 @@
 <body>
 
 <!-- Figma: "Hero" (183:3165) — 1440 x 800.
-     data-node-id on each element names the Figma node it came from. -->
-<div class="viewport">
-  <div class="frame" data-node-id="183:3165" data-design-frame>
+     data-node-id on each element names the Figma node it came from.
 
-    <!-- Background video. Sits behind everything; the scrim keeps the white
-         copy readable while the planet is in frame. -->
-    <div class="frame__bg" aria-hidden="true">
-      <video class="frame__video" autoplay muted loop playsinline preload="metadata"
-             poster="assets/videos/hero-bg-poster.jpg">
-        <source src="assets/videos/hero-bg.webm" type="video/webm">
-        <source src="assets/videos/hero-bg.mp4" type="video/mp4">
-      </video>
-      <div class="frame__scrim"></div>
-    </div>
+     The section is taller than the window and the stage inside it is pinned;
+     that extra height is the scroll the camera move is mapped onto. See
+     js/scene.js. -->
+<div class="scene" data-scene>
+  <div class="scene__stage">
+    <div class="frame" data-node-id="183:3165" data-design-frame>
 
-    <!-- Figma: "Frame 2147227336" (183:3224) — 1360 x 64, inset 40/20 -->
-    <header class="header" data-node-id="183:3224">
-      <div class="header__leading" data-node-id="183:3193">
+      <!-- The clip is mirrored in the encode so the planet sits on the right,
+           leaving the black side of the frame under the copy. No overlay. -->
+      <div class="frame__bg" aria-hidden="true">
+        <video class="frame__video" data-scene-video muted playsinline preload="auto"
+               poster="assets/videos/hero-scene-poster.jpg">
+          <source src="assets/videos/hero-scene.webm" type="video/webm">
+          <source src="assets/videos/hero-scene.mp4" type="video/mp4">
+        </video>
+      </div>
 
-        <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="183:3194">
-          <img src="assets/logos/logo.svg" alt="" width="34" height="34">
+      <!-- Figma: "Frame 2147227336" (183:3224) — 1360 x 64, inset 40/20 -->
+      <header class="header" data-node-id="183:3224" data-scene-chrome>
+        <div class="header__leading" data-node-id="183:3193">
+
+          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="183:3194">
+            <img src="assets/logos/logo.svg" alt="" width="34" height="34">
+          </a>
+
+          <nav class="nav" data-node-id="183:3199">
+            <a class="nav__link" href="#technology" data-node-id="183:3200">TECHNOLOGY</a>
+            <a class="nav__link" href="#company" data-node-id="183:3201">COMPANY</a>
+            <a class="nav__link" href="#newsroom" data-node-id="183:3202">NEWSROOM</a>
+            <a class="nav__link" href="#investors" data-node-id="183:3203">FOR INVESTORS</a>
+            <a class="nav__link" href="#contact" data-node-id="183:3204">CONTACT</a>
+          </nav>
+
+        </div>
+
+        <a class="partner" href="#partner" data-node-id="183:3190">
+          <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
+               alt="" width="140" height="34" data-node-id="183:3191">
+          <span class="partner__label" data-node-id="183:3192">BECOME A PARTNER</span>
         </a>
+      </header>
 
-        <nav class="nav" data-node-id="183:3199">
-          <a class="nav__link" href="#technology" data-node-id="183:3200">TECHNOLOGY</a>
-          <a class="nav__link" href="#company" data-node-id="183:3201">COMPANY</a>
-          <a class="nav__link" href="#newsroom" data-node-id="183:3202">NEWSROOM</a>
-          <a class="nav__link" href="#investors" data-node-id="183:3203">FOR INVESTORS</a>
-          <a class="nav__link" href="#contact" data-node-id="183:3204">CONTACT</a>
-        </nav>
+      <!-- Figma: "Frame 2147227335" (183:3223) — clears out as the scroll takes
+           over the camera. -->
+      <div class="hero" data-node-id="183:3223" data-scene-copy>
 
-      </div>
+        <div class="hero__copy" data-node-id="183:3216">
+          <h1 class="hero__headline" data-node-id="183:3207">The Enabling Technology Behind Orbital Data Centers</h1>
+          <p class="hero__subhead" data-node-id="183:3214">Plasma power and propulsion, connected by high-bandwidth laser links</p>
+        </div>
 
-      <a class="partner" href="#partner" data-node-id="183:3190">
-        <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
-             alt="" width="140" height="34" data-node-id="183:3191">
-        <span class="partner__label" data-node-id="183:3192">BECOME A PARTNER</span>
-      </a>
-    </header>
+        <div class="hero__actions" data-node-id="183:3217">
+          <a class="explore" href="#technology" data-node-id="183:3218">
+            <span class="explore__inner" data-node-id="183:3219">
+              <img class="explore__shape" src="assets/icons/btn-explore-technology.svg"
+                   alt="" width="175" height="44" data-node-id="183:3246">
+              <span class="explore__label" data-node-id="183:3221">EXPLORE TECHNOLOGY</span>
+            </span>
+          </a>
+        </div>
 
-    <!-- Figma: "Frame 2147227335" (183:3223) -->
-    <div class="hero" data-node-id="183:3223">
-
-      <div class="hero__copy" data-node-id="183:3216">
-        <h1 class="hero__headline" data-node-id="183:3207">The Enabling Technology Behind Orbital Data Centers</h1>
-        <p class="hero__subhead" data-node-id="183:3214">Plasma power and propulsion, connected by high-bandwidth laser links</p>
-      </div>
-
-      <div class="hero__actions" data-node-id="183:3217">
-        <a class="explore" href="#technology" data-node-id="183:3218">
-          <span class="explore__inner" data-node-id="183:3219">
-            <img class="explore__shape" src="assets/icons/btn-explore-technology.svg"
-                 alt="" width="175" height="50" data-node-id="183:3246">
-            <span class="explore__label" data-node-id="183:3221">EXPLORE TECHNOLOGY</span>
-          </span>
-        </a>
       </div>
 
     </div>
-
   </div>
 </div>
+
+<script src="js/scene.js"></script>
 
 </body>
 </html>

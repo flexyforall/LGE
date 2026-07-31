@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Optional dev tooling. The site itself needs none of this.",
   "scripts": {
-    "check": "node measure.mjs"
+    "check": "node measure.mjs",
+    "scene": "node scene.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

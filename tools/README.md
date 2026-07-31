@@ -27,3 +27,16 @@ To check a running server instead of the local file:
 ```bash
 npm run check -- http://localhost:8000
 ```
+
+## Scene walkthrough
+
+`scene.mjs` steps through the hero's scroll and reports where the camera is,
+how far the copy and nav have faded, and whether playback is still scroll-driven
+— with a screenshot at each stop.
+
+```bash
+npm run scene
+```
+
+Playwright's Chromium ships without H.264, so it plays the WebM source. Real
+browsers pick whichever of the two they prefer.

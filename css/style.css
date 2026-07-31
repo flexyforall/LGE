@@ -121,21 +121,34 @@ img {
 
 :root {
   /*
-   * 800 is the design height; taller windows get a full-bleed hero. Dividing
-   * by the scale means the frame still fills the window once it is being
-   * scaled down, rather than leaving a strip of background below it.
+   * The frame fills the pinned stage. Dividing by the scale means it still
+   * fills it once it is being scaled down, rather than leaving a strip below.
    */
-  --frame-height: max(800px, calc(100vh / var(--frame-scale, 1)));
-  --frame-height: max(800px, calc(100dvh / var(--frame-scale, 1)));
+  --frame-height: calc(100vh / var(--frame-scale, 1));
+  --frame-height: calc(100dvh / var(--frame-scale, 1));
   --frame-min-width: 900px;
+
+  /* How much scroll the camera move is spread over. */
+  --scene-length: 360vh;
 }
 
-.viewport {
+/*
+ * The section is taller than the window; the stage inside it is pinned to the
+ * top. That surplus height is the scroll js/scene.js maps the camera onto.
+ */
+.scene {
   position: relative;
+  height: var(--scene-length);
+}
+
+.scene__stage {
+  position: sticky;
+  top: 0;
   display: flex;
   justify-content: center;
   width: 100%;
-  height: calc(var(--frame-height) * var(--frame-scale, 1));
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -150,11 +163,11 @@ img {
 }
 
 
-/* --- Background video ----------------------------------------------------
-   The clip is an orbital push-in: the planet fills the left half of the frame,
-   which is exactly where the hero copy sits, and it peaks bright around the
-   middle of the loop. The scrim below darkens that side enough for white text
-   while leaving the right half — space, stars, the flare — visible.
+/* --- Scene video ---------------------------------------------------------
+   The clip is mirrored in the encode, putting the planet on the right so the
+   copy sits over the black side of the frame. It plays at full opacity with no
+   overlay of any kind — under the copy the source is pure black anyway for the
+   whole intro, and by the time the frame brightens the copy has cleared out.
    ------------------------------------------------------------------------- */
 
 .frame__bg {
@@ -169,36 +182,6 @@ img {
   object-fit: cover;
 }
 
-.frame__scrim {
-  position: absolute;
-  inset: 0;
-  background:
-    /* darkens the left, where the headline and buttons sit */
-    linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.82) 0%,
-      rgba(0, 0, 0, 0.72) 40%,
-      rgba(0, 0, 0, 0.38) 62%,
-      rgba(0, 0, 0, 0.08) 85%,
-      rgba(0, 0, 0, 0) 100%
-    ),
-    /* keeps the nav bar readable when the planet rises into the top edge */
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.55) 0%,
-      rgba(0, 0, 0, 0.18) 16%,
-      rgba(0, 0, 0, 0) 34%
-    );
-}
-
-/*
- * The planet sits on the left in the source clip, competing with the copy.
- * Mirroring moves it to the empty right-hand side — enable if that reads
- * better, the scrim works either way.
- *
- * .frame__video { transform: scaleX(-1); }
- */
-
 /* Respect a reduced-motion preference: hold the poster frame instead. */
 @media (prefers-reduced-motion: reduce) {
   .frame__video {
@@ -206,7 +189,7 @@ img {
   }
 
   .frame__bg {
-    background: url('../assets/videos/hero-bg-poster.jpg') center / cover no-repeat;
+    background: url('../assets/videos/hero-scene-poster.jpg') center / cover no-repeat;
   }
 }
 
@@ -214,10 +197,14 @@ img {
 /* --- Header --------------------------------------------------------------- */
 
 /*
- * 183:3224 — x 40, y 20, 1360 x 64, padding 20, backdrop blur 50.
+ * 183:3224 — x 40, y 20, 1360 x 64, padding 20.
  * The 40px inset is the designed value; the width follows from it, so the bar
  * spans the window and BECOME A PARTNER stays pinned to the right edge. At
  * 1440 that resolves to the 1360 in the design.
+ *
+ * Figma also puts a 50px backdrop blur on this frame. It is left off: with the
+ * black background it was drawn against it was invisible, but over the video it
+ * showed up as a blurred panel across the top of the shot.
  */
 .header {
   position: absolute;
@@ -229,8 +216,6 @@ img {
   justify-content: space-between;
   height: 64px;
   padding: 20px;
-  backdrop-filter: blur(50px);
-  -webkit-backdrop-filter: blur(50px);
 }
 
 /* 183:3193 — 697 wide, 40 gap between logo and nav */
@@ -383,15 +368,17 @@ img {
 }
 
 /*
- * 183:3246 — the 175 x 50 shape is centred on the label box and nudged 2px
- * right, so it bleeds past the button's padding on every side.
+ * 183:3246 — the shape is centred on the label box and nudged 2px right, so it
+ * bleeds past the button's padding on every side. Figma reports the node box as
+ * 175 x 50; the export's own artwork is 175 x 44, and that is what is used —
+ * stretching it to 50 would flatten the 45-degree corners.
  */
 .explore__shape {
   position: absolute;
   top: 50%;
   left: calc(50% + 2px);
   width: 175px;
-  height: 50px;
+  height: 44px;
   max-width: none;
   transform: translate(-50%, -50%);
 }

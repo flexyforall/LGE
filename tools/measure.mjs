@@ -30,7 +30,9 @@ const BOXES = [
   ['183:3217', 60, 560, 173, 50, 'actions'],
   ['183:3218', 60, 560, 171, 50, 'explore button'],
   ['183:3219', 80, 570, 131, 30, 'explore label box'],
-  ['183:3246', 60, 560, 175, 50, 'explore shape'],
+  // The export's artwork is 175 x 44 inside Figma's 175 x 50 node box, so it
+  // sits centred on the same point rather than being stretched to fill it.
+  ['183:3246', 60, 563, 175, 44, 'explore shape'],
 ];
 
 /**
