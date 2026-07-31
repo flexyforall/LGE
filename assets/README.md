@@ -45,7 +45,7 @@ committing it.
 ## Still needed
 
 Three files the hero is waiting on. Each drops in at the exact path below and is
-picked up on the next `npm run dev` / `npm run build` — no code changes.
+picked up on the next page reload — no code changes.
 
 | File | Where it goes | What it is |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ Mozilla Text, so its letterforms differ from the design.
 
 ## Notes on the export that arrived
 
-`logos/logo.svg` exports with a viewBox shorter than the artwork
-(`0 0 600 352`), which crops and squashes the mark. `scripts/sync-assets.mjs`
-restores it from the mask bounds on the way into `public/`, so no re-export is
-needed — but worth knowing if the file gets used elsewhere.
+`logos/logo.svg` came out of Figma with a viewBox shorter than the artwork
+(`0 0 600 352`), so the mark rendered cropped and squashed. It has been
+corrected in place to `0 -248 600 600`, read off the mask bounds — nothing else
+in the file was touched. Worth re-checking if the logo is ever re-exported.

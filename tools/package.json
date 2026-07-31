@@ -1,0 +1,12 @@
+{
+  "name": "corespace-tools",
+  "private": true,
+  "type": "module",
+  "description": "Optional dev tooling. The site itself needs none of this.",
+  "scripts": {
+    "check": "node measure.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
+}

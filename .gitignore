@@ -1,23 +1,9 @@
-# dependencies
+# dependencies (only tools/ has any)
 node_modules/
-.pnp
-.pnp.js
-
-# build output
-dist/
-build/
-.next/
-out/
-
-# env
-.env
-.env.local
-.env.*.local
 
 # logs
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 
 # editor / OS
@@ -26,10 +12,3 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
-/node_modules
-/.next
-/out
-/public/assets
-/shot.mjs
-*.tsbuildinfo
-next-env.d.ts

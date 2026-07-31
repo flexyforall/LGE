@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core Space — The Enabling Technology Behind Orbital Data Centers</title>
+<meta name="description" content="Plasma power and propulsion, connected by high-bandwidth laser links.">
+<link rel="icon" href="assets/logos/logo.svg">
+<link rel="stylesheet" href="css/style.css">
+<script>
+/*
+ * The design is drawn on a fixed 1440x800 frame. On narrower screens the whole
+ * frame is scaled down rather than re-laid out, which holds every padding and
+ * margin at its designed ratio. Runs before first paint so nothing jumps.
+ */
+(function () {
+  var set = function () {
+    document.documentElement.style.setProperty(
+      '--frame-scale', Math.min(1, window.innerWidth / 1440)
+    );
+  };
+  set();
+  addEventListener('resize', set);
+})();
+</script>
+</head>
+<body>
+
+<!-- Figma: "Hero" (183:3165) — 1440 x 800.
+     data-node-id on each element names the Figma node it came from. -->
+<div class="viewport">
+  <div class="frame" data-node-id="183:3165" data-design-frame>
+
+    <!-- Figma: "Frame 2147227336" (183:3224) — 1360 x 64, inset 40/20 -->
+    <header class="header" data-node-id="183:3224">
+      <div class="header__leading" data-node-id="183:3193">
+
+        <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="183:3194">
+          <img src="assets/logos/logo.svg" alt="" width="34" height="34">
+        </a>
+
+        <nav class="nav" data-node-id="183:3199">
+          <a class="nav__link" href="#technology" data-node-id="183:3200">TECHNOLOGY</a>
+          <a class="nav__link" href="#company" data-node-id="183:3201">COMPANY</a>
+          <a class="nav__link" href="#newsroom" data-node-id="183:3202">NEWSROOM</a>
+          <a class="nav__link" href="#investors" data-node-id="183:3203">FOR INVESTORS</a>
+          <a class="nav__link" href="#contact" data-node-id="183:3204">CONTACT</a>
+        </nav>
+
+      </div>
+
+      <a class="partner" href="#partner" data-node-id="183:3190">
+        <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
+             alt="" width="140" height="34" data-node-id="183:3191">
+        <span class="partner__label" data-node-id="183:3192">BECOME A PARTNER</span>
+      </a>
+    </header>
+
+    <!-- Figma: "Frame 2147227335" (183:3223) -->
+    <div class="hero" data-node-id="183:3223">
+
+      <div class="hero__copy" data-node-id="183:3216">
+        <h1 class="hero__headline" data-node-id="183:3207">The Enabling Technology Behind Orbital Data Centers</h1>
+        <p class="hero__subhead" data-node-id="183:3214">Plasma power and propulsion, connected by high-bandwidth laser links</p>
+      </div>
+
+      <div class="hero__actions" data-node-id="183:3217">
+        <a class="explore" href="#technology" data-node-id="183:3218">
+          <span class="explore__inner" data-node-id="183:3219">
+            <img class="explore__shape" src="assets/icons/btn-explore-technology.svg"
+                 alt="" width="175" height="50" data-node-id="183:3246">
+            <span class="explore__label" data-node-id="183:3221">EXPLORE TECHNOLOGY</span>
+          </span>
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

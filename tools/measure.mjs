@@ -1,14 +1,22 @@
 /**
  * Diffs the rendered hero against the Figma frame.
  *
- * Elements carry `data-node-id` matching their Figma node, so every box can be
- * looked up and compared with the numbers read off the design.
+ * Elements in index.html carry a `data-node-id` matching their Figma node, so
+ * every box can be looked up and compared with the numbers read off the design.
  *
- * Usage: start the app on :3100, then `node measure.mjs`.
+ *   cd tools && npm install && npm run check
+ *
+ * Optional tooling — the site itself needs none of this.
  */
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 
-/** Boxes in frame coordinates: [nodeId, x, y, w, h]. */
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const target =
+  process.argv[2] ?? pathToFileURL(path.join(root, 'index.html')).href;
+
+/** Boxes in frame coordinates: [nodeId, x, y, w, h, label]. */
 const BOXES = [
   ['183:3224', 40, 20, 1360, 64, 'header'],
   ['183:3193', 60, 35, 697, 34, 'header leading group'],
@@ -50,12 +58,13 @@ const GAPS = [
 const TOL = 0.5;
 
 const browser = await chromium.launch({
-  executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
-  args: ['--no-sandbox'],
+  executablePath: process.env.CHROME_PATH || undefined,
+  args: ['--no-sandbox', '--allow-file-access-from-files'],
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await page.goto('http://127.0.0.1:3100/', { waitUntil: 'networkidle' });
-await page.waitForTimeout(500);
+await page.goto(target, { waitUntil: 'networkidle' });
+await page.evaluate(() => document.fonts.ready);
+await page.waitForTimeout(300);
 
 const rects = await page.evaluate(() => {
   const origin = document
@@ -84,12 +93,12 @@ const check = (label, got, want) => {
   const ok = deltas.every((d) => Math.abs(d) <= TOL);
   if (!ok) failures++;
   console.log(
-    `${ok ? 'ok  ' : 'FAIL'}  ${label.padEnd(30)}` +
-      ` figma[${want.map(n).join(' ')} ]  dom[${got.map(n).join(' ')} ]  Δ[${deltas.map(n).join(' ')} ]`
+    `${ok ? 'ok  ' : 'FAIL'}  ${label.padEnd(34)}` +
+      ` figma[${want.map(n).join(' ')} ]  dom[${got.map(n).join(' ')} ]  d[${deltas.map(n).join(' ')} ]`
   );
 };
 
-console.log('\nBOXES  (x, y, width, height)');
+console.log(`\nchecking ${target}\n\nBOXES  (x, y, width, height)`);
 for (const [id, x, y, w, h, label] of BOXES) {
   const r = rects[id];
   if (!r) {

@@ -1,0 +1,331 @@
+/* =========================================================================
+   Core Space — hero section
+   Built from Figma node 183:3165 ("Hero", 1440 x 800).
+
+   Every size, padding and gap below is read straight off that frame. The
+   `183:xxxx` comments name the Figma node each rule came from, so any value
+   can be checked against the design.
+   ========================================================================= */
+
+
+/* --- Fonts ---------------------------------------------------------------
+   Files live in assets/fonts/, uploaded from Figma.
+   ------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Mozilla Text';
+  src: url('../assets/fonts/MozillaText-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mozilla Text';
+  src: url('../assets/fonts/MozillaText-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mozilla Text';
+  src: url('../assets/fonts/MozillaText-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mozilla Text';
+  src: url('../assets/fonts/MozillaText-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * PP Neue Montreal is a licensed typeface and is not in the repo yet. Drop
+ * PPNeueMontreal-Medium.woff2 into assets/fonts/ and this picks it up on the
+ * next reload; until then the hero subheading falls back to Mozilla Text.
+ */
+@font-face {
+  font-family: 'PP Neue Montreal';
+  src: url('../assets/fonts/PPNeueMontreal-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* --- Tokens --------------------------------------------------------------
+   Figma has no published variables on this frame, so these mirror its raw
+   values.
+   ------------------------------------------------------------------------- */
+
+:root {
+  --color-bg: #000000;
+  --color-fg: #ffffff;
+  --color-fg-inverse: #000000;
+
+  --font-display: 'Mozilla Text', system-ui, sans-serif;
+  --font-body: 'PP Neue Montreal', 'Mozilla Text', system-ui, sans-serif;
+}
+
+
+/* --- Base ---------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+
+/* --- Design frame --------------------------------------------------------
+   Holds the 1440 x 800 frame the design is drawn on, so everything inside can
+   use the exact px values from Figma.
+
+   Below 1440px the frame scales down as a whole rather than re-flowing, which
+   keeps every padding and margin at its designed ratio. Replace this with real
+   breakpoints once tablet and mobile frames exist in Figma. `--frame-scale` is
+   set by the inline script in index.html.
+   ------------------------------------------------------------------------- */
+
+.viewport {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: calc(800px * var(--frame-scale, 1));
+  overflow: hidden;
+}
+
+.frame {
+  position: relative;
+  flex: none;
+  width: 1440px;
+  height: 800px;
+  background: var(--color-bg);
+  transform: scale(var(--frame-scale, 1));
+  transform-origin: top center;
+}
+
+
+/* --- Header --------------------------------------------------------------- */
+
+/* 183:3224 — x 40, y 20, 1360 x 64, padding 20, backdrop blur 50 */
+.header {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1360px;
+  height: 64px;
+  padding: 20px;
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+}
+
+/* 183:3193 — 697 wide, 40 gap between logo and nav */
+.header__leading {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 40px;
+  width: 697px;
+}
+
+/* 183:3194 — 34 x 34 */
+.header__logo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 34px;
+  height: 34px;
+}
+
+.header__logo img {
+  width: 34px;
+  height: 34px;
+}
+
+/* 183:3199 — 30 gap between links */
+.nav {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 30px;
+}
+
+/* 183:3200-3204 — Mozilla Text Medium 11/1.3, tracking -0.22 */
+.nav__link {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: -0.22px;
+  color: var(--color-fg);
+  white-space: nowrap;
+}
+
+/* 183:3190 — 140 x 38, holding a 140 x 34 shape at the top */
+.partner {
+  position: relative;
+  flex: none;
+  width: 140px;
+  height: 38px;
+}
+
+/* 183:3191 */
+.partner__shape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 140px;
+  height: 34px;
+}
+
+/* 183:3192 — x 18, y 10 inside the button, Mozilla Text Medium 11/1.3, tracking -0.22 */
+.partner__label {
+  position: absolute;
+  top: 10px;
+  left: 18px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: -0.22px;
+  color: var(--color-fg-inverse);
+  white-space: nowrap;
+}
+
+
+/* --- Hero ----------------------------------------------------------------- */
+
+/*
+ * 183:3223 — x 60, y 264, 653 x 346, 56 gap between copy and button.
+ * Figma centres the block on the frame's midline shifted down 37px.
+ */
+.hero {
+  position: absolute;
+  top: calc(50% + 37px);
+  left: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 56px;
+  width: 653px;
+  transform: translateY(-50%);
+}
+
+/* 183:3216 — 24 gap between headline and subhead */
+.hero__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+}
+
+/* 183:3207 — Mozilla Text Light 64/64, tracking -2.56 */
+.hero__headline {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 64px;
+  line-height: 64px;
+  letter-spacing: -2.56px;
+  color: var(--color-fg);
+}
+
+/* 183:3214 — PP Neue Montreal Medium 18/24, tracking -0.18 */
+.hero__subhead {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.18px;
+  color: var(--color-fg);
+}
+
+/* 183:3217 */
+.hero__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 173px;
+}
+
+/* 183:3218 — padding 10 / 20 around a 131 x 30 label box */
+.explore {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  padding: 10px 20px;
+}
+
+/* 183:3219 */
+.explore__inner {
+  position: relative;
+  flex: none;
+  width: 131px;
+  height: 30px;
+}
+
+/*
+ * 183:3246 — the 175 x 50 shape is centred on the label box and nudged 2px
+ * right, so it bleeds past the button's padding on every side.
+ */
+.explore__shape {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 2px);
+  width: 175px;
+  height: 50px;
+  max-width: none;
+  transform: translate(-50%, -50%);
+}
+
+/* 183:3221 — Mozilla Text Bold 12, tracking -0.24 */
+.explore__label {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: normal;
+  letter-spacing: -0.24px;
+  color: var(--color-fg-inverse);
+  white-space: nowrap;
+}
