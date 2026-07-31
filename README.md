@@ -22,7 +22,7 @@ tools/              optional checks, not needed to run the site
 The clip is one continuous move through orbit, so it is treated as a camera
 rather than a looping background:
 
-1. On load it plays forward for 2.5s and holds there.
+1. On load it plays forward for 2.5s and stops where it gets to.
 2. From then on the scroll position drives `currentTime`. Scrolling moves the
    camera, stopping stops it — it never plays on its own again.
 3. The copy clears out over the first stretch of that scroll, and the nav over

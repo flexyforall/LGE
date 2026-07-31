@@ -40,3 +40,13 @@ npm run scene
 
 Playwright's Chromium ships without H.264, so it plays the WebM source. Real
 browsers pick whichever of the two they prefer.
+
+## Playback direction
+
+`playback.mjs` guards against the camera stepping backwards on its own — once
+through the intro as it stops, once through a scripted scroll ramp. Exits
+non-zero if it finds a backward step or any drift after the scroll stops.
+
+```bash
+npm run playback
+```
