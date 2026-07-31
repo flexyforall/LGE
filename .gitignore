@@ -26,3 +26,10 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+/node_modules
+/.next
+/out
+/public/assets
+/shot.mjs
+*.tsbuildinfo
+next-env.d.ts

@@ -42,7 +42,28 @@ assets under ~5 MB where possible — compress large photos before uploading. If
 video is bigger than that, tell me and we'll host it externally instead of
 committing it.
 
-## What I still need alongside the assets
+## Still needed
 
-1. The Figma file link (with view access), so I can pull exact spacing, colors and typography.
-2. A note on which screens are in scope and their breakpoints (desktop / tablet / mobile).
+Three files the hero is waiting on. Each drops in at the exact path below and is
+picked up on the next `npm run dev` / `npm run build` — no code changes.
+
+| File | Where it goes | What it is |
+| --- | --- | --- |
+| `btn-become-a-partner.svg` | `assets/icons/` | Figma node `183:3191` — the 140x34 shape behind BECOME A PARTNER |
+| `btn-explore-technology.svg` | `assets/icons/` | Figma node `183:3246` — the 175x50 shape behind EXPLORE TECHNOLOGY |
+| `PPNeueMontreal-Medium.woff2` | `assets/fonts/` | the hero subheading's typeface (licensed — needs a webfont licence) |
+
+The two button SVGs currently in `assets/icons/` are stand-ins with the right
+dimensions but guessed corner geometry: this environment's network policy blocks
+`figma.com`, so the real exports could not be pulled directly. Overwriting them
+with the Figma exports is the whole fix.
+
+Until the PP Neue Montreal webfont is in place, the subheading falls back to
+Mozilla Text, so its letterforms differ from the design.
+
+## Notes on the export that arrived
+
+`logos/logo.svg` exports with a viewBox shorter than the artwork
+(`0 0 600 352`), which crops and squashes the mark. `scripts/sync-assets.mjs`
+restores it from the mask bounds on the way into `public/`, so no re-export is
+needed — but worth knowing if the file gets used elsewhere.

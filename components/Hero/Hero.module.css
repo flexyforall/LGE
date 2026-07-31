@@ -1,0 +1,105 @@
+/*
+ * Every value below is read straight off the Figma frame. Node ids are noted so
+ * each rule can be checked against the design.
+ */
+
+/*
+ * 183:3223 — x 60, y 264, 653 x 346, 56 gap between copy and button.
+ * Figma centres the block on the frame's midline shifted down 37px.
+ */
+.content {
+  position: absolute;
+  top: calc(50% + 37px);
+  left: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 56px;
+  width: 653px;
+  transform: translateY(-50%);
+}
+
+/* 183:3216 — 24 gap between headline and subhead */
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+}
+
+/* 183:3207 — Mozilla Text Light 64/64, tracking -2.56 */
+.headline {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 64px;
+  line-height: 64px;
+  letter-spacing: -2.56px;
+  color: var(--color-fg);
+}
+
+/* 183:3214 — PP Neue Montreal Medium 18/24, tracking -0.18 */
+.subhead {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.18px;
+  color: var(--color-fg);
+}
+
+/* 183:3217 */
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 173px;
+}
+
+/* 183:3218 — padding 10 / 20 around a 131 x 30 label box */
+.exploreButton {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  padding: 10px 20px;
+}
+
+/* 183:3219 */
+.exploreInner {
+  position: relative;
+  flex: none;
+  width: 131px;
+  height: 30px;
+}
+
+/*
+ * 183:3246 — the 175 x 50 shape is centred on the label box and nudged 2px
+ * right, so it bleeds past the button's padding on every side.
+ */
+.exploreShape {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 2px);
+  width: 175px;
+  height: 50px;
+  max-width: none;
+  transform: translate(-50%, -50%);
+}
+
+/* 183:3221 — Mozilla Text Bold 12, tracking -0.24 */
+.exploreLabel {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: normal;
+  letter-spacing: -0.24px;
+  color: var(--color-fg-inverse);
+  white-space: nowrap;
+}

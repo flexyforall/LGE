@@ -1,0 +1,65 @@
+/*
+ * PP Neue Montreal is a licensed typeface and is not in the repo yet. Drop
+ * `PPNeueMontreal-Medium.woff2` into `assets/fonts/` and this picks it up on
+ * the next build; until then the browser falls back to the stack below and the
+ * hero subheading renders in a substitute face.
+ */
+@font-face {
+  font-family: 'PP Neue Montreal';
+  src: url('/assets/fonts/PPNeueMontreal-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Figma has no published variables on this frame, so these mirror its raw values. */
+  --color-bg: #000000;
+  --color-fg: #ffffff;
+  --color-fg-inverse: #000000;
+
+  --font-display: var(--font-mozilla-text), system-ui, sans-serif;
+  --font-body: 'PP Neue Montreal', var(--font-mozilla-text), system-ui, sans-serif;
+
+  /* The design is drawn on a 1440px frame; the hero reproduces it 1:1 at that width. */
+  --frame-width: 1440px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}

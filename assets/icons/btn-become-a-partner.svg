@@ -1,0 +1,5 @@
+<!-- STAND-IN. Replace with the Figma export of node 183:3191 ("Rectangle 26102865", 140x34).
+     Drop the export in at this exact path and the header button picks it up with no code change. -->
+<svg width="140" height="34" viewBox="0 0 140 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M10 0 H132 A8 8 0 0 1 140 8 V24 L130 34 H8 A8 8 0 0 1 0 26 V10 Z" fill="white"/>
+</svg>
