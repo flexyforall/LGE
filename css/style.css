@@ -45,13 +45,12 @@
 }
 
 /*
- * PP Neue Montreal is a licensed typeface and is not in the repo yet. Drop
- * PPNeueMontreal-Medium.woff2 into assets/fonts/ and this picks it up on the
- * next reload; until then the hero subheading falls back to Mozilla Text.
+ * Only Medium is wired up — it is the one weight the hero uses. Book, Bold,
+ * Thin and the italics are also in assets/fonts/ if later sections need them.
  */
 @font-face {
   font-family: 'PP Neue Montreal';
-  src: url('../assets/fonts/PPNeueMontreal-Medium.woff2') format('woff2');
+  src: url('../assets/fonts/PPNeueMontreal-Medium.otf') format('opentype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -133,6 +132,67 @@ img {
   background: var(--color-bg);
   transform: scale(var(--frame-scale, 1));
   transform-origin: top center;
+}
+
+
+/* --- Background video ----------------------------------------------------
+   The clip is an orbital push-in: the planet fills the left half of the frame,
+   which is exactly where the hero copy sits, and it peaks bright around the
+   middle of the loop. The scrim below darkens that side enough for white text
+   while leaving the right half — space, stars, the flare — visible.
+   ------------------------------------------------------------------------- */
+
+.frame__bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.frame__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.frame__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    /* darkens the left, where the headline and buttons sit */
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.82) 0%,
+      rgba(0, 0, 0, 0.72) 40%,
+      rgba(0, 0, 0, 0.38) 62%,
+      rgba(0, 0, 0, 0.08) 85%,
+      rgba(0, 0, 0, 0) 100%
+    ),
+    /* keeps the nav bar readable when the planet rises into the top edge */
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.18) 16%,
+      rgba(0, 0, 0, 0) 34%
+    );
+}
+
+/*
+ * The planet sits on the left in the source clip, competing with the copy.
+ * Mirroring moves it to the empty right-hand side — enable if that reads
+ * better, the scrim works either way.
+ *
+ * .frame__video { transform: scaleX(-1); }
+ */
+
+/* Respect a reduced-motion preference: hold the poster frame instead. */
+@media (prefers-reduced-motion: reduce) {
+  .frame__video {
+    display: none;
+  }
+
+  .frame__bg {
+    background: url('../assets/videos/hero-bg-poster.jpg') center / cover no-repeat;
+  }
 }
 
 
