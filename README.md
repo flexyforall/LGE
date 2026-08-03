@@ -12,7 +12,8 @@ Double-click `index.html`. That's it.
 ```
 index.html          the page
 css/style.css       all styles
-js/scene.js         the scroll-driven cameras and the reading fill
+js/scene.js         the scroll-driven cameras, the reading fill, the shrink
+js/smooth.js        eases wheel scrolling so the cameras glide
 assets/             Figma exports and video — see assets/README.md
 tools/              optional checks, not needed to run the site
 ```
@@ -35,15 +36,23 @@ Two sections, each pinned while its own stretch of scroll plays out.
    first stretch. The seam between them is white-on-white, so the flash and the
    drop into the tunnel read as one continuous shot.
 
-**Our role** — Figma `section 2` (238:2674) resolving into `section 2.1`
-(242:2673), with two requested departures: the header stays in this section
-too, and the statement sits at y160 instead of y60 to clear it.
+**Our role** — Figma `section 2` (238:2674) through `section 2.1` (242:2673)
+and into `section 3` (242:2681), all on one scroll.
 
 The first time the section pins, video 3 flies forward on its own for 1.5s —
 the tunnel is already rushing past as the white lifts — then stops, and from
-there the scroll has the camera. The statement fills in reading order over the
-same scroll once the flash is gone. Every character is its own span, so the
-edge lands mid-word exactly as the design has it.
+there the scroll has the camera. The statement (centred, per the updated frame)
+fills in reading order once the flash is gone; every character is its own span,
+so the edge lands mid-word exactly as the design has it.
+
+Once it is read, the scroll packs the whole shot into section 3's 478x626
+container: the box tightens onto its designed spot, the page behind it goes
+white, the bar takes its black plate, and the camera keeps scrubbing inside the
+shrinking frame. The constants for every phase sit at the top of
+`js/scene.js`.
+
+Both sections put a 30% veil over their media — the media-at-70% from the
+design, kept as a sheet.
 
 The constants at the top of `js/scene.js` control the intro length and both
 fades; `--scene-length-hero` and `--scene-length-role` in the CSS control how

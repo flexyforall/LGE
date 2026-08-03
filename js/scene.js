@@ -24,7 +24,12 @@
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
   var ROLE_INTRO = 1.5; // seconds of video 3 played on entering the section
   var TEXT_FILL_FROM = 0.16; // the statement starts filling once the flash is gone
-  var TEXT_FILL_BY = 0.72; // ...and is fully read by here
+  var TEXT_FILL_BY = 0.52; // ...and is fully read by here
+  var SHRINK_FROM = 0.6; // once read, the shot starts packing itself...
+  var SHRINK_BY = 0.95; // ...into section 3's container
+  var SHRINK_W = 478; // the container, from Figma 242:2689
+  var SHRINK_H = 626;
+  var SHRINK_BOTTOM = 50; // its designed gap to the frame's bottom edge
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -99,6 +104,7 @@
     var second = scene.querySelector('[data-hero-video="2"]');
     var copy = scene.querySelector('[data-scene-copy]');
     var flash = scene.querySelector('[data-hero-flash]');
+    var chrome = scene.querySelector('[data-hero-chrome]');
     if (!frame || !first || !second || !copy) return;
 
     if (reduced) {
@@ -131,20 +137,32 @@
      * on each change. Watched on the frame clock rather than `timeupdate`,
      * which fires about four times a second, far too coarse to cut on a mark.
      */
+    /*
+     * The hidden clip is rewound only after the 500ms cross has finished, and
+     * never while it is on stage. Rewinding it at the moment of the cut put a
+     * stray frame on screen — the incoming clip fading in on whatever frame it
+     * had been left showing.
+     */
+    function rewindWhenHidden(video, ofStage) {
+      setTimeout(function () {
+        if (handOver === null && stage !== ofStage) video.currentTime = 0;
+      }, 700);
+    }
+
     function watchLoop() {
       if (handOver !== null) return;
       if (stage === 1) {
         if (first.ended || (first.duration && first.currentTime >= first.duration - 0.05)) {
           show(2);
           second.play().catch(ignore);
+          /* Video 1 has faded out on its last frame — reset it off stage. */
+          rewindWhenHidden(first, 1);
         }
       } else if (second.currentTime >= HERO_LOOP_CUT || second.ended) {
         show(1);
         second.pause();
-        first.currentTime = 0;
-        /* Rewound while hidden, so the next pass starts clean. */
-        second.currentTime = 0;
         first.play().catch(ignore);
+        rewindWhenHidden(second, 2);
       }
       requestAnimationFrame(watchLoop);
     }
@@ -176,8 +194,12 @@
        * the white-out so the hand-off to the section below is pure white on
        * both sides of the seam.
        */
-      if (flash) {
-        flash.style.opacity = String(clamp01((p - FLASH_IN_FROM) / (1 - FLASH_IN_FROM)));
+      var flashIn = clamp01((p - FLASH_IN_FROM) / (1 - FLASH_IN_FROM));
+      if (flash) flash.style.opacity = String(flashIn);
+      /* The bar fades with the white-out, so nothing rides the flash. */
+      if (chrome) {
+        chrome.style.opacity = String(1 - flashIn);
+        chrome.style.visibility = flashIn === 1 ? 'hidden' : '';
       }
 
       /* Scrolling hands the camera over from wherever the intro had got to. */
@@ -224,9 +246,14 @@
     var scene = document.querySelector('[data-scene="role"]');
     if (!scene) return;
 
+    var frame = scene.querySelector('.frame');
     var video = scene.querySelector('[data-role-video]');
     var statement = scene.querySelector('[data-role-text]');
     var flash = scene.querySelector('[data-role-flash]');
+    var chrome = scene.querySelector('[data-role-chrome]');
+    var footer = scene.querySelector('[data-role-footer]');
+    var shrink = scene.querySelector('[data-role-shrink]');
+    var white = scene.querySelector('[data-role-white]');
     if (!video || !statement) return;
 
     var letters = splitCharacters(statement);
@@ -234,6 +261,7 @@
     if (reduced) {
       scene.style.height = 'auto';
       if (flash) flash.style.display = 'none';
+      if (chrome) chrome.style.opacity = '1';
       for (var i = 0; i < letters.length; i++) letters[i].className = 'is-read';
       return;
     }
@@ -277,11 +305,44 @@
       /*
        * The hero hands over on a frame of solid white; this lifts that white
        * off video 3, which reads as falling out of the flash into the tunnel.
+       * The bar surfaces with it, so it never rides the white either.
        */
+      var lift = clamp01(p / FLASH_FADE);
       if (flash) {
-        var lift = clamp01(p / FLASH_FADE);
         flash.style.opacity = String(1 - lift);
         flash.style.visibility = lift === 1 ? 'hidden' : '';
+      }
+      if (chrome) chrome.style.opacity = String(lift);
+
+      /*
+       * Once the statement is read, the scroll packs the whole shot into
+       * section 3's container: the box tightens onto its designed spot, the
+       * page behind it goes white, and the bar takes its black plate. The
+       * copy steps aside over the first stretch of the move.
+       */
+      var t = clamp01((p - SHRINK_FROM) / (SHRINK_BY - SHRINK_FROM));
+      if (shrink && frame) {
+        var fw = frame.clientWidth;
+        var fh = frame.clientHeight;
+        /* Fit the designed box into short frames rather than overflowing. */
+        var boxH = Math.min(SHRINK_H, fh - SHRINK_BOTTOM - 84);
+        var boxW = SHRINK_W * (boxH / SHRINK_H);
+        var w = fw + (boxW - fw) * t;
+        var h = fh + (boxH - fh) * t;
+        shrink.style.left = ((fw - w) / 2).toFixed(1) + 'px';
+        shrink.style.top = ((fh - SHRINK_BOTTOM - boxH) * t).toFixed(1) + 'px';
+        shrink.style.width = w.toFixed(1) + 'px';
+        shrink.style.height = h.toFixed(1) + 'px';
+      }
+      if (white) white.style.opacity = String(t);
+      if (chrome) chrome.style.backgroundColor = 'rgba(0, 0, 0, ' + t.toFixed(3) + ')';
+
+      var aside = clamp01((p - SHRINK_FROM) / 0.08);
+      statement.style.opacity = String(1 - aside);
+      statement.style.visibility = aside === 1 ? 'hidden' : '';
+      if (footer) {
+        footer.style.opacity = String(1 - aside);
+        footer.style.visibility = aside === 1 ? 'hidden' : '';
       }
 
       var fill = clamp01((p - TEXT_FILL_FROM) / (TEXT_FILL_BY - TEXT_FILL_FROM));

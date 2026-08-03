@@ -182,6 +182,17 @@ img {
 }
 
 /*
+ * 238:2673 runs its media at 70% opacity over black; this is the same 30%
+ * veil, kept as a sheet so it stacks the same way over every clip.
+ */
+.frame__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/*
  * Video 1 hands over to video 2 once its couple of seconds are up. The two
  * shots are unrelated, so they cross rather than cut.
  */
@@ -215,6 +226,28 @@ img {
   width: var(--video-strip-height);
   height: var(--video-strip-width);
   transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+/* 242:2689 — the container the shot packs itself into; js/scene.js drives its
+   box directly, so only the constants live here. */
+.role__shrink {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.role__shrink .frame__video {
+  position: absolute;
+  inset: 0;
+}
+
+/* 242:2681 — section 3's page colour, revealed as the shot shrinks. */
+.role__white {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /*
@@ -258,10 +291,10 @@ img {
 /* --- Header --------------------------------------------------------------- */
 
 /*
- * 235:2779 — x 40, y 20, 1360 x 64, padding 20.
- * The 40px inset is the designed value; the width follows from it, so the bar
- * spans the window and BECOME A PARTNER stays pinned to the right edge. At
- * 1440 that resolves to the 1360 in the design.
+ * 235:2779 — x 20, y 20, 1400 x 64, padding 20 (the updated frames pull the
+ * bar out to 20px insets). The inset is the designed value; the width follows
+ * from it, so the bar spans the window and BECOME A PARTNER stays pinned to
+ * the right edge. At 1440 that resolves to the 1400 in the design.
  *
  * Figma also puts a 50px backdrop blur on this frame. It is left off: with the
  * black background it was drawn against it was invisible, but over the video it
@@ -270,8 +303,8 @@ img {
 .header {
   position: absolute;
   top: 20px;
-  left: 40px;
-  right: 40px;
+  left: 20px;
+  right: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -383,7 +416,7 @@ img {
   position: absolute;
   top: 50%;
   left: 60px;
-  right: 20px;
+  right: 60px;
   display: flex;
   align-items: center;
   transform: translateY(-50%);
@@ -480,27 +513,22 @@ img {
 /* --- Our role ------------------------------------------------------------- */
 
 /*
- * 238:2675 — right edge at 1380, 764 wide, right-aligned.
- * Mozilla Text Regular 56/56, tracking -2.24.
- *
- * Figma puts it at y 60, but the section keeps the header (by request), so the
- * statement drops to y 160 — clear of the 84px-deep bar plus a beat of air.
- *
- * The 60px inset is the designed value and the measure is fixed, so the block
- * stays pinned to the right of the window as it widens.
+ * 238:2675 — centred: 764 wide on the frame's midline, its middle 84px above
+ * the frame's (321 on the 810 design). Mozilla Text Regular 56/56, -2.24.
  */
 .role__statement {
   position: absolute;
-  top: 160px;
-  right: 60px;
+  top: calc(50% - 84px);
+  left: 50%;
   margin: 0;
   width: 764px;
+  transform: translateX(-50%);
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 56px;
   line-height: 1;
   letter-spacing: -2.24px;
-  text-align: right;
+  text-align: center;
   color: var(--color-unread);
 }
 

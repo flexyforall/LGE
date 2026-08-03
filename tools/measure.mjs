@@ -19,12 +19,12 @@ const target =
 /** Boxes in frame coordinates: [nodeId, x, y, w, h, label]. */
 const BOXES = [
   // --- section 1 (hero), 235:2775 ---
-  ['235:2779', 40, 20, 1360, 64, 'header'],
-  ['235:2780', 60, 35, 697, 34, 'header leading group'],
-  ['235:2781', 60, 35, 34, 34, 'logo'],
-  ['235:2792', 1240, 33, 140, 38, 'become-a-partner button'],
-  ['235:2793', 1240, 33, 140, 34, 'become-a-partner shape'],
-  ['235:2807', 60, 285, 1360, 240, 'title block'],
+  ['235:2779', 20, 20, 1400, 64, 'header'],
+  ['235:2780', 40, 35, 697, 34, 'header leading group'],
+  ['235:2781', 40, 35, 34, 34, 'logo'],
+  ['235:2792', 1260, 33, 140, 38, 'become-a-partner button'],
+  ['235:2793', 1260, 33, 140, 34, 'become-a-partner shape'],
+  ['235:2807', 60, 285, 1320, 240, 'title block'],
   ['235:2816', 60, 710, 1320, 50, 'hero footer'],
   ['235:2802', 1209, 710, 171, 50, 'actions'],
   ['235:2803', 1209, 710, 171, 50, 'explore button'],
@@ -32,9 +32,7 @@ const BOXES = [
   ['235:2805', 1207, 710, 175, 50, 'explore plate'],
 
   // --- section 2 (our role), 238:2674 ---
-  // Figma has the statement at y 60; it sits at y 160 by request, because the
-  // section keeps the header.
-  ['238:2675', 616, 160, 764, 168, 'statement'],
+  ['238:2675', 338, 321, 764, 168, 'statement'],
   ['238:2680', 607, 763, 8, 8, 'dot (left)'],
 ];
 
@@ -46,8 +44,8 @@ const BOXES = [
 const TEXT_ORIGINS = [
   ['235:2808', 60, 285, 'headline'],
   ['235:2814', 60, 736, 'subhead'],
-  ['235:2787', 134, 45, 'nav: TECHNOLOGY'],
-  ['235:2794', 1258, 43, 'become-a-partner label'],
+  ['235:2787', 114, 45, 'nav: TECHNOLOGY'],
+  ['235:2794', 1278, 43, 'become-a-partner label'],
   ['235:2806', 1229, 728, 'explore label'],
   ['238:2679', 687, 760, 'our-role label'],
   ['238:2682', 607, 760, 'our-role row'],

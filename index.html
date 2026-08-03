@@ -62,10 +62,14 @@
             <source src="assets/videos/video-2.webm" type="video/webm">
           </video>
         </div>
+
+        <!-- 238:2673 runs its media at 70% over black; the same 30% veil here. -->
+        <div class="frame__overlay"></div>
       </div>
 
-      <!-- Figma: "Frame 2147227336" (235:2779) — 1360 x 64, inset 40/20 -->
-      <header class="header" data-node-id="235:2779">
+      <!-- Figma: "Frame 2147227336" (235:2779) — 1400 x 64, inset 20/20.
+           Fades with the white-out so nothing rides the flash. -->
+      <header class="header" data-node-id="235:2779" data-hero-chrome>
         <div class="header__leading" data-node-id="235:2780">
 
           <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="235:2781">
@@ -88,8 +92,6 @@
           <span class="partner__label" data-node-id="235:2794">BECOME A PARTNER</span>
         </a>
       </header>
-
-      <div class="hero__flash" data-hero-flash aria-hidden="true"></div>
 
       <!-- Both blocks clear out together as the scroll takes over the camera. -->
       <div data-scene-copy>
@@ -116,6 +118,8 @@
 
       </div>
 
+      <div class="hero__flash" data-hero-flash aria-hidden="true"></div>
+
     </div>
   </div>
 </div>
@@ -132,20 +136,34 @@
   <div class="scene__stage">
     <div class="frame" data-node-id="238:2674">
 
-      <div class="frame__bg" aria-hidden="true">
-        <!-- 238:2673 — video 3, full bleed -->
+      <!-- 242:2681 — section 3 is white; revealed as the shot shrinks. -->
+      <div class="role__white" data-role-white aria-hidden="true"></div>
+
+      <!-- The whole shot. Full-bleed through section 2, then the scroll packs
+           it into the 478 x 626 container of section 3 (242:2689). -->
+      <div class="role__shrink" data-role-shrink aria-hidden="true">
+        <!-- 238:2673 — video 3 -->
         <video class="frame__video" data-role-video muted playsinline preload="auto"
                poster="assets/videos/video-3-poster.jpg">
           <source src="assets/videos/video-3.mp4" type="video/mp4">
           <source src="assets/videos/video-3.webm" type="video/webm">
         </video>
+        <!-- 238:2673 runs at 70% over black — the same 30% veil. -->
+        <div class="frame__overlay"></div>
       </div>
 
-      <div class="role__flash" data-role-flash aria-hidden="true"></div>
+      <p class="role__statement" data-role-text data-node-id="238:2675">We don’t build orbital data centers. We enable the companies that do.</p>
 
-      <!-- The same header as section 1, kept here by request. No node ids —
-           its geometry is already checked once against the hero frame. -->
-      <header class="header">
+      <!-- Figma: "Frame 2147227361" (238:2682) -->
+      <div class="role__footer" data-role-footer data-node-id="238:2682">
+        <span class="role__dot" data-node-id="238:2680"></span>
+        <span class="role__label" data-node-id="238:2679">OUR ROLE</span>
+        <span class="role__dot" data-node-id="238:2681"></span>
+      </div>
+
+      <!-- The same header; fades in as the white lifts, and takes the black
+           plate of section 3 (242:2690) as the shot shrinks. -->
+      <header class="header" data-role-chrome>
         <div class="header__leading">
           <a class="header__logo" href="/" aria-label="Core Space — home">
             <img src="assets/logos/logo.svg" alt="" width="34" height="34">
@@ -165,20 +183,13 @@
         </a>
       </header>
 
-
-      <p class="role__statement" data-role-text data-node-id="238:2675">We don’t build orbital data centers. We enable the companies that do.</p>
-
-      <!-- Figma: "Frame 2147227361" (238:2682) -->
-      <div class="role__footer" data-node-id="238:2682">
-        <span class="role__dot" data-node-id="238:2680"></span>
-        <span class="role__label" data-node-id="238:2679">OUR ROLE</span>
-        <span class="role__dot" data-node-id="238:2681"></span>
-      </div>
+      <div class="role__flash" data-role-flash aria-hidden="true"></div>
 
     </div>
   </div>
 </div>
 
+<script src="js/smooth.js"></script>
 <script src="js/scene.js"></script>
 
 </body>
