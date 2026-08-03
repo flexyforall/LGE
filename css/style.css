@@ -72,11 +72,15 @@
   /*
    * Video 2 is turned a quarter turn, so the strip it lands in is as wide as
    * the frame and proportionally tall. Ratios come from the design: 1444 wide
-   * against a 1440 frame, 2589 tall, centred 205.5 below the middle.
+   * against a 1440 frame, 2589 tall.
+   *
+   * Figma also nudges the strip 205.5 below the middle; that offset is dropped
+   * (kept at 0) on request — centring the strip brings much more of the planet
+   * into frame while the copy still sits over dark sky.
    */
   --video-strip-width: calc(var(--frame-width, 1440px) * 1.002778);
   --video-strip-height: calc(var(--video-strip-width) * 1.793463);
-  --video-offset: calc(var(--video-strip-height) * 0.0793743);
+  --video-offset: 0px;
 }
 
 
@@ -476,15 +480,18 @@ img {
 /* --- Our role ------------------------------------------------------------- */
 
 /*
- * 238:2675 — right edge at 1380, y 60, 764 wide, right-aligned.
+ * 238:2675 — right edge at 1380, 764 wide, right-aligned.
  * Mozilla Text Regular 56/56, tracking -2.24.
+ *
+ * Figma puts it at y 60, but the section keeps the header (by request), so the
+ * statement drops to y 160 — clear of the 84px-deep bar plus a beat of air.
  *
  * The 60px inset is the designed value and the measure is fixed, so the block
  * stays pinned to the right of the window as it widens.
  */
 .role__statement {
   position: absolute;
-  top: 60px;
+  top: 160px;
   right: 60px;
   margin: 0;
   width: 764px;

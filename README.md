@@ -38,12 +38,14 @@ Scrolling during the intro cuts straight to video 2 at the same mark rather than
 holding the visitor there.
 
 **Our role** — Figma `section 2` (238:2674) resolving into `section 2.1`
-(242:2673).
+(242:2673), with two requested departures: the header stays in this section
+too, and the statement sits at y160 instead of y60 to clear it.
 
-Video 3 answers to the scroll from its first frame, and the statement fills in
-reading order over the same scroll, finishing by 70% of the way through. Every
-character is its own span, so the edge lands mid-word exactly as the design has
-it.
+The first time the section pins, video 3 flies forward on its own for 1.5s —
+the tunnel is already rushing past as the white lifts — then stops, and from
+there the scroll has the camera. The statement fills in reading order over the
+same scroll once the flash is gone. Every character is its own span, so the
+edge lands mid-word exactly as the design has it.
 
 The constants at the top of `js/scene.js` control the intro length and both
 fades; `--scene-length-hero` and `--scene-length-role` in the CSS control how

@@ -32,7 +32,9 @@ const BOXES = [
   ['235:2805', 1207, 710, 175, 50, 'explore plate'],
 
   // --- section 2 (our role), 238:2674 ---
-  ['238:2675', 616, 60, 764, 168, 'statement'],
+  // Figma has the statement at y 60; it sits at y 160 by request, because the
+  // section keeps the header.
+  ['238:2675', 616, 160, 764, 168, 'statement'],
   ['238:2680', 607, 763, 8, 8, 'dot (left)'],
 ];
 

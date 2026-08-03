@@ -22,6 +22,7 @@
   var COPY_RISE = 48; // px the copy drifts up as it goes
   var FLASH_IN_FROM = 0.86; // the hero whites out over its last stretch
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
+  var ROLE_INTRO = 1.5; // seconds of video 3 played on entering the section
   var TEXT_FILL_FROM = 0.16; // the statement starts filling once the flash is gone
   var TEXT_FILL_BY = 0.72; // ...and is fully read by here
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
@@ -245,6 +246,36 @@
     var seek = seeker(video);
     var read = 0;
 
+    /*
+     * The flight into the tunnel. The first time the section pins, video 3
+     * plays forward on its own for ROLE_INTRO seconds — so the tunnel is
+     * already rushing past as the white lifts — and stops where it gets to.
+     * From there the scroll has the camera, exactly like the hero.
+     */
+    var introStarted = false;
+    var handOver = null;
+
+    function endIntro() {
+      if (handOver !== null) return;
+      video.pause();
+      handOver = video.currentTime;
+    }
+
+    function watchIntro() {
+      if (handOver !== null) return;
+      if (video.currentTime >= ROLE_INTRO || video.ended) {
+        endIntro();
+        return;
+      }
+      requestAnimationFrame(watchIntro);
+    }
+
+    function startIntro() {
+      if (introStarted) return;
+      introStarted = true;
+      video.play().then(watchIntro).catch(endIntro);
+    }
+
     register(function () {
       var p = progressOf(scene);
 
@@ -268,8 +299,16 @@
       read = want;
 
       if (!video.duration) return;
+
+      /* The section pinning is what starts the flight. */
+      if (p > 0 && !introStarted) startIntro();
+
+      /* A fast scroller does not get held inside the intro. */
+      if (introStarted && handOver === null && p > 0.3) endIntro();
+
+      if (handOver === null) return;
       if (!video.paused) video.pause();
-      seek(p * video.duration);
+      seek(handOver + p * (video.duration - handOver));
       scene.dataset.cameraEnd = String(video.duration);
     });
   }
