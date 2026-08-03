@@ -1,141 +1,264 @@
 /*
- * Hero scene.
+ * Scene choreography.
  *
- * The clip is a single continuous move through orbit, so it is treated as a
- * camera rather than a looping background:
+ * Two pinned sections, each taller than the window. The surplus height is the
+ * scroll their cameras are mapped onto.
  *
- *   1. On load it plays forward for INTRO_SECONDS and stops where it gets to.
- *   2. From then on the scroll position drives `currentTime` — scrolling moves
- *      the camera, stopping stops it. It never plays on its own again.
- *   3. The hero copy clears out over the first stretch of that scroll, so the
- *      move carries the section on its own.
+ *   Hero    video 1 plays straight through on load, video 2 follows it for
+ *           HERO_TAIL seconds, then everything stops. From there the scroll
+ *           drives video 2 to its end, where the light fills the frame and
+ *           hands over to the section below.
  *
- * The page is `--scene-length` tall and the stage is pinned to the top of it;
- * that extra height is the scroll the camera is mapped onto.
+ *   Role    video 3 answers to the scroll from its first frame, and the
+ *           statement fills in reading order over the same scroll.
+ *
+ * Nothing ever plays on its own again once the scroll has taken over.
  */
 (function () {
-  var INTRO_SECONDS = 1.2; // plays on load, then holds
-  /*
-   * Where the camera stops, in seconds.
-   *
-   * Measured off the framed clip: the planet sweeps out of shot by about 3.4s,
-   * and from roughly 5.75s a flare grows until the frame is solid white. Ending
-   * on the planet's exit keeps the whole of that move and stops well short of
-   * the flare — going further would buy a couple of seconds of empty space and
-   * then blow the frame out.
-   */
-  var SCENE_END = 3.4;
-  var COPY_FADE = 0.28; // fraction of the scroll the copy fades over
+  'use strict';
+
+  var HERO_TAIL = 2; // seconds of video 2 played on load, after video 1 ends
+  var COPY_FADE = 0.22; // fraction of the hero scroll the copy fades over
   var COPY_RISE = 48; // px the copy drifts up as it goes
+  var TEXT_FILL_BY = 0.7; // fraction of the role scroll the statement fills over
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
 
-  var scene = document.querySelector('[data-scene]');
-  var video = document.querySelector('[data-scene-video]');
-  var copy = document.querySelector('[data-scene-copy]');
-  if (!scene || !video || !copy) return;
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Reduced motion: no pinning, no scrub — the poster carries the section. */
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    scene.style.height = 'auto';
-    return;
+  /* ------------------------------------------------------------------ *
+   * Shared plumbing
+   * ------------------------------------------------------------------ */
+
+  function clamp01(v) {
+    return v < 0 ? 0 : v > 1 ? 1 : v;
   }
 
-  /*
-   * Where the intro actually stopped. Null while it is still running.
-   *
-   * This is read off the video rather than assumed to be INTRO_SECONDS: the
-   * clip will always overshoot the cutoff by a frame or two, and rewinding it
-   * to a round number would show as a visible hitch backwards at the exact
-   * moment the motion settles.
-   */
-  var introEnd = null;
-  var queued = false;
-  var pendingSeek = null;
-
-  function cameraEnd() {
-    return video.duration ? Math.min(SCENE_END, video.duration) : SCENE_END;
-  }
-
-  function progress() {
+  /** How far through a pinned section the scroll has travelled, 0 to 1. */
+  function progressOf(scene) {
     var travel = scene.offsetHeight - window.innerHeight;
     if (travel <= 0) return 0;
-    return Math.min(1, Math.max(0, -scene.getBoundingClientRect().top / travel));
-  }
-
-  function endIntro() {
-    if (introEnd !== null) return;
-    video.pause();
-    introEnd = video.currentTime;
+    return clamp01(-scene.getBoundingClientRect().top / travel);
   }
 
   /*
    * Seeks are asynchronous, and issuing a new one while the last is still in
    * flight makes the browser drop frames. So only the most recent request is
-   * kept, and it goes out as soon as the video is free — re-fired on `seeked`
-   * so the final position always lands even after the scrolling has stopped.
+   * kept, it goes out as soon as the video is free, and it re-fires on `seeked`
+   * so the final position lands even after the scrolling has stopped.
    */
-  function flushSeek() {
-    if (pendingSeek === null || video.seeking) return;
-    var t = pendingSeek;
-    pendingSeek = null;
-    if (Math.abs(video.currentTime - t) > SEEK_EPSILON) video.currentTime = t;
+  function seeker(video) {
+    var pending = null;
+
+    function flush() {
+      if (pending === null || video.seeking) return;
+      var t = pending;
+      pending = null;
+      if (Math.abs(video.currentTime - t) > SEEK_EPSILON) video.currentTime = t;
+    }
+
+    video.addEventListener('seeked', flush);
+    return function (t) {
+      pending = t;
+      flush();
+    };
   }
 
-  function render() {
+  var painters = [];
+  var queued = false;
+
+  function paint() {
     queued = false;
-    var p = progress();
-
-    var fade = Math.min(1, p / COPY_FADE);
-    copy.style.opacity = String(1 - fade);
-    copy.style.transform =
-      'translateY(calc(-50% - ' + (fade * COPY_RISE).toFixed(1) + 'px))';
-    copy.style.pointerEvents = fade === 1 ? 'none' : '';
-
-    /* Scrolling during the intro hands the camera over from wherever it is. */
-    if (p > 0) endIntro();
-    if (introEnd === null || !video.duration) return;
-
-    /* Past the intro the camera answers to the scroll and nothing else. */
-    if (!video.paused) video.pause();
-    pendingSeek = introEnd + p * (cameraEnd() - introEnd);
-    flushSeek();
+    for (var i = 0; i < painters.length; i++) painters[i]();
   }
 
   function onScroll() {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(render);
+    requestAnimationFrame(paint);
   }
 
-  /*
-   * Watch the intro on the frame clock rather than `timeupdate`, which only
-   * fires about four times a second — far too coarse to stop on a mark.
-   */
-  function watchIntro() {
-    if (introEnd !== null) return;
-    if (video.currentTime >= INTRO_SECONDS || video.ended) {
-      endIntro();
+  function register(fn) {
+    painters.push(fn);
+    fn();
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Hero
+   * ------------------------------------------------------------------ */
+
+  function setUpHero() {
+    var scene = document.querySelector('[data-scene="hero"]');
+    if (!scene) return;
+
+    var frame = scene.querySelector('[data-design-frame]');
+    var first = scene.querySelector('[data-hero-video="1"]');
+    var second = scene.querySelector('[data-hero-video="2"]');
+    var copy = scene.querySelector('[data-scene-copy]');
+    if (!frame || !first || !second || !copy) return;
+
+    if (reduced) {
+      scene.style.height = 'auto';
       return;
     }
-    requestAnimationFrame(watchIntro);
+
+    var seek = seeker(second);
+    /*
+     * Where video 2 was when the scroll took over, and the origin the scrub
+     * runs from. Null while the intro is still running.
+     *
+     * It is read off the video rather than assumed to be HERO_TAIL: playback
+     * always overshoots the mark by a frame or two, and rewinding onto a round
+     * number shows as a hitch backwards just as the motion settles.
+     */
+    var handOver = null;
+
+    function showSecond() {
+      frame.dataset.heroStage = '2';
+    }
+
+    function endIntro() {
+      if (handOver !== null) return;
+      first.pause();
+      second.pause();
+      showSecond();
+      if (second.currentTime >= HERO_TAIL) {
+        handOver = second.currentTime;
+      } else {
+        /* Scrolled before video 2 had its turn — start the scrub at the mark. */
+        handOver = HERO_TAIL;
+        seek(HERO_TAIL);
+      }
+    }
+
+    function watchTail() {
+      if (handOver !== null) return;
+      if (second.currentTime >= HERO_TAIL || second.ended) {
+        endIntro();
+        return;
+      }
+      requestAnimationFrame(watchTail);
+    }
+
+    function startTail() {
+      if (handOver !== null) return;
+      showSecond();
+      second.play().then(watchTail).catch(endIntro);
+    }
+
+    /*
+     * Watch on the frame clock rather than `timeupdate`, which only fires about
+     * four times a second — far too coarse to change over on a mark.
+     */
+    function watchFirst() {
+      if (handOver !== null) return;
+      if (first.ended || (first.duration && first.currentTime >= first.duration - 0.05)) {
+        startTail();
+        return;
+      }
+      requestAnimationFrame(watchFirst);
+    }
+
+    first.addEventListener('ended', startTail);
+    first.play().then(watchFirst).catch(endIntro);
+
+    register(function () {
+      var p = progressOf(scene);
+
+      var fade = Math.min(1, p / COPY_FADE);
+      copy.style.opacity = String(1 - fade);
+      copy.style.transform = 'translateY(' + (-fade * COPY_RISE).toFixed(1) + 'px)';
+      /* Visibility cascades where pointer-events does not, so it also takes
+         the two blocks out of reach once they are gone. */
+      copy.style.visibility = fade === 1 ? 'hidden' : '';
+
+      /* Scrolling hands the camera over from wherever the intro had got to. */
+      if (p > 0) endIntro();
+      if (handOver === null || !second.duration) return;
+
+      if (!second.paused) second.pause();
+      seek(handOver + p * (second.duration - handOver));
+      scene.dataset.cameraEnd = String(second.duration);
+    });
   }
 
-  video.addEventListener('seeked', flushSeek);
-  video.addEventListener('loadedmetadata', function () {
-    /* Published for tools/playback.mjs, which checks where the camera rests. */
-    scene.dataset.cameraEnd = String(cameraEnd());
-    render();
-  });
+  /* ------------------------------------------------------------------ *
+   * Our role
+   * ------------------------------------------------------------------ */
 
-  video
-    .play()
-    .then(watchIntro)
-    .catch(function () {
-      /* Autoplay refused — hand straight over to the scroll from frame one. */
-      endIntro();
-      render();
+  /**
+   * Wraps every character in its own span so the statement can be filled one
+   * character at a time — which is what gives the mid-word edge the design
+   * shows. Spaces stay as bare text nodes so lines still break normally.
+   */
+  function splitCharacters(el) {
+    var text = el.textContent;
+    var frag = document.createDocumentFragment();
+    var spans = [];
+
+    for (var i = 0; i < text.length; i++) {
+      if (text[i] === ' ') {
+        frag.appendChild(document.createTextNode(' '));
+        continue;
+      }
+      var span = document.createElement('span');
+      span.textContent = text[i];
+      frag.appendChild(span);
+      spans.push(span);
+    }
+
+    el.textContent = '';
+    el.appendChild(frag);
+    return spans;
+  }
+
+  function setUpRole() {
+    var scene = document.querySelector('[data-scene="role"]');
+    if (!scene) return;
+
+    var video = scene.querySelector('[data-role-video]');
+    var statement = scene.querySelector('[data-role-text]');
+    if (!video || !statement) return;
+
+    var letters = splitCharacters(statement);
+
+    if (reduced) {
+      scene.style.height = 'auto';
+      for (var i = 0; i < letters.length; i++) letters[i].className = 'is-read';
+      return;
+    }
+
+    var seek = seeker(video);
+    var read = 0;
+
+    register(function () {
+      var p = progressOf(scene);
+
+      var want = Math.round(clamp01(p / TEXT_FILL_BY) * letters.length);
+      if (want > read) {
+        for (var i = read; i < want; i++) letters[i].className = 'is-read';
+      } else if (want < read) {
+        for (var j = read - 1; j >= want; j--) letters[j].className = '';
+      }
+      read = want;
+
+      if (!video.duration) return;
+      if (!video.paused) video.pause();
+      seek(p * video.duration);
+      scene.dataset.cameraEnd = String(video.duration);
     });
+  }
 
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
+  /* ------------------------------------------------------------------ */
+
+  setUpHero();
+  setUpRole();
+
+  if (!reduced) {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    /* Durations arrive late; repaint once they do so the maps are right. */
+    document.querySelectorAll('video').forEach(function (video) {
+      video.addEventListener('loadedmetadata', paint);
+    });
+  }
 })();

@@ -1,30 +1,26 @@
 /* =========================================================================
-   Core Space — hero section
-   Built from Figma node 183:3313 ("Concept 17", 1440 x 810).
+   Core Space
 
-   Every size, padding and gap below is read straight off that frame. The
-   `201:xxxx` comments name the Figma node each rule came from, so any value
-   can be checked against the design.
+   Built from Figma section "Section 1" (243:2739):
+     - "section 1"    235:2775 — the hero
+     - "section 2"    238:2674 — Our role, statement mostly dimmed
+     - "section 2.1"  242:2673 — the same frame with the statement filled in
+
+   Every size, padding and gap below is read straight off those frames. The
+   node id comments name where each rule came from, so any value can be checked
+   against the design.
    ========================================================================= */
 
 
 /* --- Fonts ---------------------------------------------------------------
-   Files live in assets/fonts/, uploaded from Figma. Only the weights the hero
-   uses are wired up; the rest of both families are in the folder.
+   Files live in assets/fonts/, uploaded from Figma. Only the weights the
+   sections use are wired up; the rest of both families are in the folder.
    ------------------------------------------------------------------------- */
 
 @font-face {
   font-family: 'Mozilla Text';
   src: url('../assets/fonts/MozillaText-Regular.ttf') format('truetype');
   font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Mozilla Text';
-  src: url('../assets/fonts/MozillaText-Medium.ttf') format('truetype');
-  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
@@ -45,17 +41,9 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'PP Neue Montreal';
-  src: url('../assets/fonts/PPNeueMontreal-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
 
 /* --- Tokens --------------------------------------------------------------
-   Figma has no published variables on this frame, so these mirror its raw
+   Figma has no published variables on these frames, so these mirror the raw
    values.
    ------------------------------------------------------------------------- */
 
@@ -63,26 +51,28 @@
   --color-bg: #000000;
   --color-fg: #ffffff;
   --color-fg-inverse: #000000;
-  --color-subhead-fade: #999999;
+  /* 238:2675 — the not-yet-read part of the statement */
+  --color-unread: rgba(255, 255, 255, 0.2);
 
   --font-display: 'Mozilla Text', system-ui, sans-serif;
   --font-body: 'PP Neue Montreal', 'Mozilla Text', system-ui, sans-serif;
 
   /*
-   * The frame fills the pinned stage. Dividing by the scale means it still
-   * fills it once it is being scaled down, rather than leaving a strip below.
+   * A frame fills its pinned stage. Dividing by the scale means it still fills
+   * it once it is being scaled down, rather than leaving a strip below.
    */
   --frame-height: calc(100vh / var(--frame-scale, 1));
   --frame-height: calc(100dvh / var(--frame-scale, 1));
   --frame-min-width: 900px;
 
-  /* How much scroll the camera move is spread over. */
-  --scene-length: 360vh;
+  /* How much scroll each camera move is spread over. */
+  --scene-length-hero: 420vh;
+  --scene-length-role: 380vh;
 
   /*
-   * 201:3101 — the clip is turned a quarter turn, so the strip it lands in is
-   * as wide as the frame and proportionally tall. Ratios come from the design:
-   * 1444 wide against a 1440 frame, 2589 tall, centred 205.5 below the middle.
+   * Video 2 is turned a quarter turn, so the strip it lands in is as wide as
+   * the frame and proportionally tall. Ratios come from the design: 1444 wide
+   * against a 1440 frame, 2589 tall, centred 205.5 below the middle.
    */
   --video-strip-width: calc(var(--frame-width, 1440px) * 1.002778);
   --video-strip-height: calc(var(--video-strip-width) * 1.793463);
@@ -123,13 +113,13 @@ img {
 }
 
 
-/* --- Scene ---------------------------------------------------------------
-   The section is taller than the window; the stage inside it is pinned to the
+/* --- Scenes --------------------------------------------------------------
+   Each section is taller than the window; the stage inside it is pinned to the
    top. That surplus height is the scroll js/scene.js maps the camera onto.
 
-   The frame fills the window rather than sitting as a 1440px box in the middle
-   of it: the video and nav run edge to edge, the copy keeps its designed
-   measure, and at exactly 1440 x 810 every measurement equals the Figma frame.
+   A frame fills the window rather than sitting as a 1440px box in the middle
+   of it: video runs edge to edge, the copy keeps its designed insets, and at
+   exactly 1440 x 810 every measurement equals the Figma frame.
 
    Below --frame-min-width there is nothing left to stretch into, so the frame
    scales down as a whole instead of re-flowing, which keeps every padding and
@@ -139,7 +129,14 @@ img {
 
 .scene {
   position: relative;
-  height: var(--scene-length);
+}
+
+[data-scene='hero'] {
+  height: var(--scene-length-hero);
+}
+
+[data-scene='role'] {
+  height: var(--scene-length-role);
 }
 
 .scene__stage {
@@ -164,13 +161,8 @@ img {
 }
 
 
-/* --- Scene video ---------------------------------------------------------
-   201:3101 — the clip is placed the way it is in Figma: turned a quarter turn
-   anticlockwise and cropped to the frame, which stands the planet up as a
-   horizon along the bottom. It plays at full opacity with no overlay.
-
-   The strip is sized before rotation, so its width and height are swapped here
-   relative to what ends up on screen.
+/* --- Backgrounds ---------------------------------------------------------
+   Videos play at full opacity, no overlay of any kind.
    ------------------------------------------------------------------------- */
 
 .frame__bg {
@@ -179,8 +171,41 @@ img {
   overflow: hidden;
 }
 
-.frame__strip {
+.frame__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * Video 1 hands over to video 2 once its couple of seconds are up. The two
+ * shots are unrelated, so they cross rather than cut.
+ */
+[data-hero-video='1'],
+[data-hero-layer='2'] {
   position: absolute;
+  inset: 0;
+  transition: opacity 500ms linear;
+}
+
+[data-hero-layer='2'] {
+  opacity: 0;
+}
+
+[data-hero-stage='2'] [data-hero-video='1'] {
+  opacity: 0;
+}
+
+[data-hero-stage='2'] [data-hero-layer='2'] {
+  opacity: 1;
+}
+
+/*
+ * 242:2707 / video 2 — sized before rotation, so its width and height are
+ * swapped here relative to what ends up on screen.
+ */
+[data-hero-layer='2'] {
+  inset: auto;
   top: calc(50% + var(--video-offset));
   left: 50%;
   width: var(--video-strip-height);
@@ -188,20 +213,18 @@ img {
   transform: translate(-50%, -50%) rotate(-90deg);
 }
 
-.frame__video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Respect a reduced-motion preference: hold the poster frame instead. */
+/* Reduced motion: hold a poster frame rather than pinning and scrubbing. */
 @media (prefers-reduced-motion: reduce) {
   .frame__video {
     display: none;
   }
 
-  .frame__strip {
-    background: url('../assets/videos/hero-scene-poster.jpg') center / cover no-repeat;
+  [data-hero-video='1'] {
+    background: url('../assets/videos/video-1-poster.jpg') center / cover no-repeat;
+  }
+
+  [data-role-video] {
+    background: url('../assets/videos/video-3-poster.jpg') center / cover no-repeat;
   }
 }
 
@@ -209,7 +232,7 @@ img {
 /* --- Header --------------------------------------------------------------- */
 
 /*
- * 201:3081 — x 40, y 20, 1360 x 64, padding 20.
+ * 235:2779 — x 40, y 20, 1360 x 64, padding 20.
  * The 40px inset is the designed value; the width follows from it, so the bar
  * spans the window and BECOME A PARTNER stays pinned to the right edge. At
  * 1440 that resolves to the 1360 in the design.
@@ -230,7 +253,7 @@ img {
   padding: 20px;
 }
 
-/* 201:3082 — 697 wide, 40 gap between logo and nav */
+/* 235:2780 — 697 wide, 40 gap between logo and nav */
 .header__leading {
   display: flex;
   flex: none;
@@ -239,7 +262,7 @@ img {
   width: 697px;
 }
 
-/* 201:3083 — 34 x 34 */
+/* 235:2781 — 34 x 34 */
 .header__logo {
   display: flex;
   flex: none;
@@ -253,7 +276,7 @@ img {
   height: 34px;
 }
 
-/* 201:3088 — 30 gap between links */
+/* 235:2786 — 30 gap between links */
 .nav {
   display: flex;
   flex: none;
@@ -261,7 +284,7 @@ img {
   gap: 30px;
 }
 
-/* 201:3089-3093 — Neue Montreal Regular 11/1.3, tracking -0.22 */
+/* 235:2787-2791 — Neue Montreal Regular 11/1.3, tracking -0.22 */
 .nav__link {
   font-family: var(--font-body);
   font-weight: 400;
@@ -272,7 +295,7 @@ img {
   white-space: nowrap;
 }
 
-/* 201:3094 — 140 x 38, holding a 140 x 34 shape at the top */
+/* 235:2792 — 140 x 38, holding a 140 x 34 shape at the top */
 .partner {
   position: relative;
   flex: none;
@@ -280,7 +303,7 @@ img {
   height: 38px;
 }
 
-/* 201:3095 */
+/* 235:2793 */
 .partner__shape {
   position: absolute;
   top: 0;
@@ -289,13 +312,13 @@ img {
   height: 34px;
 }
 
-/* 201:3096 — x 18, y 10 inside the button, Mozilla Text Medium 11/1.3 */
+/* 235:2794 — x 18, y 10 inside the button, Mozilla Text Bold 11/1.3 */
 .partner__label {
   position: absolute;
   top: 10px;
   left: 18px;
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 700;
   font-size: 11px;
   line-height: 1.3;
   letter-spacing: -0.22px;
@@ -307,103 +330,83 @@ img {
 /* --- Hero ----------------------------------------------------------------- */
 
 /*
- * 201:3127 — x 40, 1360 wide, centred on the frame, 20 gap below the eyebrow.
- * As with the header, the 40px inset is the designed value and the width
- * follows from it, so the copy stays centred on the window rather than on the
- * first 1440px of it. At 1440 that resolves to the 1360 in the design.
+ * The title and footer clear out together, so they share a wrapper. It spans
+ * the frame rather than collapsing around them: js/scene.js puts a transform on
+ * it, and a transformed box becomes the containing block for anything absolute
+ * inside it — on a collapsed wrapper that would drag both blocks off position.
+ *
+ * It only carries the fade, so it stays out of the way of pointers; the two
+ * blocks take them back.
  */
-.hero {
+[data-scene-copy] {
   position: absolute;
-  top: 50%;
-  left: 40px;
-  right: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  transform: translateY(-50%);
+  inset: 0;
+  pointer-events: none;
 }
 
-/* 201:3125 — Neue Montreal Regular 14/20, uppercase, centred */
-.hero__eyebrow {
-  margin: 0;
-  width: 100%;
-  font-family: var(--font-body);
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-  text-align: center;
-  text-transform: uppercase;
-  color: var(--color-fg);
-}
-
-/* 201:3098 — 40 gap between the headline and everything under it */
-.hero__body {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 40px;
-  width: 100%;
-}
-
-/* 201:3069 */
-.hero__headlineRow {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-/* 201:3071 — Mozilla Text Regular 64/64, tracking -3.84, uppercase, 1105 wide */
-.hero__headline {
-  margin: 0;
-  width: 1105px;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 64px;
-  line-height: 64px;
-  letter-spacing: -3.84px;
-  text-align: center;
-  text-transform: uppercase;
-  color: var(--color-fg);
-}
-
-/* 201:3073 — 24 gap between the subhead and the button */
-.hero__lede {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  width: 100%;
+[data-scene-copy] > * {
+  pointer-events: auto;
 }
 
 /*
- * 201:3074 — Neue Montreal Regular 18/24, tracking -0.18, centred, and washed
- * left to right from white into grey.
+ * 235:2807 — x 60, 1360 wide, centred on the frame. The headline is the only
+ * thing in it and sits left, so the box is anchored by its insets and stretches
+ * with the window. At 1440 that resolves to the 1360 in the design.
  */
+.hero__title {
+  position: absolute;
+  top: 50%;
+  left: 60px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  transform: translateY(-50%);
+}
+
+/* 235:2808 — Mozilla Text Regular 80/80, tracking -3.2 */
+.hero__headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 80px;
+  line-height: 1;
+  letter-spacing: -3.2px;
+  color: var(--color-fg);
+  white-space: nowrap;
+}
+
+/* 235:2816 — y 710, 1320 wide and centred, so 60 in from each side */
+.hero__footer {
+  position: absolute;
+  top: 710px;
+  left: 60px;
+  right: 60px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+/* 235:2814 — Neue Montreal Regular 18/24, tracking -0.18 */
 .hero__subhead {
   margin: 0;
-  width: 100%;
+  flex: none;
   font-family: var(--font-body);
   font-weight: 400;
   font-size: 18px;
   line-height: 24px;
   letter-spacing: -0.18px;
-  text-align: center;
-  background: linear-gradient(90deg, var(--color-fg), var(--color-subhead-fade));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-fg);
+  white-space: nowrap;
 }
 
-/* 201:3075 */
+/* 235:2802 */
 .hero__actions {
   display: flex;
   flex: none;
   align-items: center;
 }
 
-/* 201:3076 — padding 10 / 20 around a 131 x 30 label box */
+/* 235:2803 — padding 10 / 20 around a 131 x 30 label box */
 .explore {
   display: flex;
   flex: none;
@@ -411,7 +414,7 @@ img {
   padding: 10px 20px;
 }
 
-/* 201:3077 */
+/* 235:2804 */
 .explore__inner {
   position: relative;
   flex: none;
@@ -419,7 +422,7 @@ img {
   height: 30px;
 }
 
-/* 201:3078 the plate, 201:3133 the glow inside it — both 175 x 50, centred */
+/* 235:2805 — the 175 x 50 plate, centred on the label box */
 .explore__shape {
   position: absolute;
   top: 50%;
@@ -429,32 +432,7 @@ img {
   transform: translate(-50%, -50%);
 }
 
-/*
- * 201:3135 / 201:3136 — two blurred ellipses pooling light behind the plate,
- * sitting 36px right of the button's centre. Each SVG carries its own blur, so
- * it renders larger than the ellipse inside it and is placed by its centre.
- */
-.explore__glowSoft,
-.explore__glowCore {
-  position: absolute;
-  pointer-events: none;
-}
-
-.explore__glowSoft {
-  top: -72px;
-  left: -5.5px;
-  width: 214px;
-  height: 160px;
-}
-
-.explore__glowCore {
-  top: -24px;
-  left: 34.5px;
-  width: 134px;
-  height: 72px;
-}
-
-/* 201:3079 — Mozilla Text Bold 12, tracking -0.24 */
+/* 235:2806 — Mozilla Text Bold 12, tracking -0.24 */
 .explore__label {
   position: absolute;
   top: 8px;
@@ -465,5 +443,71 @@ img {
   line-height: normal;
   letter-spacing: -0.24px;
   color: var(--color-fg-inverse);
+  white-space: nowrap;
+}
+
+
+/* --- Our role ------------------------------------------------------------- */
+
+/*
+ * 238:2675 — right edge at 1380, y 60, 764 wide, right-aligned.
+ * Mozilla Text Regular 56/56, tracking -2.24.
+ *
+ * The 60px inset is the designed value and the measure is fixed, so the block
+ * stays pinned to the right of the window as it widens.
+ */
+.role__statement {
+  position: absolute;
+  top: 60px;
+  right: 60px;
+  margin: 0;
+  width: 764px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: -2.24px;
+  text-align: right;
+  color: var(--color-unread);
+}
+
+/*
+ * Filled in reading order as the section is scrolled. js/scene.js wraps every
+ * character in its own span and flips them one at a time, which is what gives
+ * the mid-word edge the design shows.
+ */
+.role__statement .is-read {
+  color: var(--color-fg);
+}
+
+/* 238:2682 — y 760, centred, 72 gap either side of the label */
+.role__footer {
+  position: absolute;
+  top: 760px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 72px;
+  transform: translateX(-50%);
+}
+
+/* 238:2680 / 238:2681 — 8 x 8 */
+.role__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--color-fg);
+}
+
+/* 238:2679 — Neue Montreal Regular 14, tracking -0.28 */
+.role__label {
+  flex: none;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: -0.28px;
+  color: var(--color-fg);
   white-space: nowrap;
 }

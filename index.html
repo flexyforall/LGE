@@ -9,14 +9,15 @@
 <link rel="stylesheet" href="css/style.css">
 <script>
 /*
- * The design is drawn on a 1440x810 frame. The frame stretches to fill the
- * window — the video and the nav go edge to edge, and the copy keeps its
- * designed measure — down to MIN_WIDTH. Below that there is no room left to
- * stretch into, so the whole frame is scaled down instead of re-laid out, which
- * holds every padding and margin at its designed ratio.
+ * The design is drawn on 1440x810 frames. A frame stretches to fill the window
+ * — video and nav go edge to edge, and the copy keeps its designed insets —
+ * down to MIN_WIDTH. Below that there is no room left to stretch into, so the
+ * whole frame is scaled down instead of re-laid out, which holds every padding
+ * and margin at its designed ratio.
  *
- * `--frame-width` is published because the rotated video is sized off the frame
- * width, and a rotated box cannot derive that from percentages.
+ * `--frame-width` is published because the quarter-turned video in the hero is
+ * sized off the frame width, and a rotated box cannot derive that from
+ * percentages.
  *
  * Runs before first paint so nothing jumps.
  */
@@ -35,93 +36,116 @@
 </head>
 <body>
 
-<!-- Figma: "Concept 17" (183:3313) — 1440 x 810.
-     data-node-id on each element names the Figma node it came from.
+<!-- =====================================================================
+     Figma: "section 1" (235:2775) — 1440 x 810.
 
-     The section is taller than the window and the stage inside it is pinned;
-     that extra height is the scroll the camera move is mapped onto. See
-     js/scene.js. -->
-<div class="scene" data-scene>
+     Video 1 plays on load, video 2 follows it for a couple of seconds, and
+     from there the scroll drives video 2 to its white-out, which is what hands
+     over to the section below. See js/scene.js.
+     ===================================================================== -->
+<div class="scene" data-scene="hero">
   <div class="scene__stage">
-    <div class="frame" data-node-id="183:3313" data-design-frame>
+    <div class="frame" data-node-id="235:2775" data-design-frame>
 
-      <!-- 201:3101 — the clip is turned a quarter turn and cropped to the
-           frame, which brings the planet up as a horizon along the bottom.
-           Plays at full opacity, no overlay. -->
       <div class="frame__bg" aria-hidden="true">
-        <div class="frame__strip">
-          <video class="frame__video" data-scene-video muted playsinline preload="auto"
-                 poster="assets/videos/hero-scene-poster.jpg">
-            <source src="assets/videos/hero-scene.webm" type="video/webm">
-            <source src="assets/videos/hero-scene.mp4" type="video/mp4">
+        <!-- 242:2707 — video 1, full bleed -->
+        <video class="frame__video" data-hero-video="1" muted playsinline preload="auto"
+               poster="assets/videos/video-1-poster.jpg">
+          <source src="assets/videos/video-1.mp4" type="video/mp4">
+          <source src="assets/videos/video-1.webm" type="video/webm">
+        </video>
+
+        <!-- Video 2, kept in the quarter-turned crop it was placed in. -->
+        <div class="frame__strip" data-hero-layer="2">
+          <video class="frame__video" data-hero-video="2" muted playsinline preload="auto">
+            <source src="assets/videos/video-2.mp4" type="video/mp4">
+            <source src="assets/videos/video-2.webm" type="video/webm">
           </video>
         </div>
       </div>
 
-      <!-- Figma: "Frame 2147227336" (201:3081) — 1360 x 64, inset 40/20 -->
-      <header class="header" data-node-id="201:3081">
-        <div class="header__leading" data-node-id="201:3082">
+      <!-- Figma: "Frame 2147227336" (235:2779) — 1360 x 64, inset 40/20 -->
+      <header class="header" data-node-id="235:2779">
+        <div class="header__leading" data-node-id="235:2780">
 
-          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="201:3083">
+          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="235:2781">
             <img src="assets/logos/logo.svg" alt="" width="34" height="34">
           </a>
 
-          <nav class="nav" data-node-id="201:3088">
-            <a class="nav__link" href="#technology" data-node-id="201:3089">TECHNOLOGY</a>
-            <a class="nav__link" href="#company" data-node-id="201:3090">COMPANY</a>
-            <a class="nav__link" href="#newsroom" data-node-id="201:3091">NEWSROOM</a>
-            <a class="nav__link" href="#investors" data-node-id="201:3092">FOR INVESTORS</a>
-            <a class="nav__link" href="#contact" data-node-id="201:3093">CONTACT</a>
+          <nav class="nav" data-node-id="235:2786">
+            <a class="nav__link" href="#technology" data-node-id="235:2787">TECHNOLOGY</a>
+            <a class="nav__link" href="#company" data-node-id="235:2788">COMPANY</a>
+            <a class="nav__link" href="#newsroom" data-node-id="235:2789">NEWSROOM</a>
+            <a class="nav__link" href="#investors" data-node-id="235:2790">FOR INVESTORS</a>
+            <a class="nav__link" href="#contact" data-node-id="235:2791">CONTACT</a>
           </nav>
 
         </div>
 
-        <a class="partner" href="#partner" data-node-id="201:3094">
+        <a class="partner" href="#partner" data-node-id="235:2792">
           <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
-               alt="" width="140" height="34" data-node-id="201:3095">
-          <span class="partner__label" data-node-id="201:3096">BECOME A PARTNER</span>
+               alt="" width="140" height="34" data-node-id="235:2793">
+          <span class="partner__label" data-node-id="235:2794">BECOME A PARTNER</span>
         </a>
       </header>
 
-      <!-- Figma: "Frame 2147227351" (201:3127) — clears out as the scroll takes
-           over the camera. -->
-      <div class="hero" data-node-id="201:3127" data-scene-copy>
+      <!-- Both blocks clear out together as the scroll takes over the camera. -->
+      <div data-scene-copy>
 
-        <p class="hero__eyebrow" data-node-id="201:3125">[NEXT-GENERATION ORBITAL SYSTEMS]</p>
-
-        <div class="hero__body" data-node-id="201:3098">
-
-          <div class="hero__headlineRow" data-node-id="201:3069">
-            <div data-node-id="201:3070">
-              <h1 class="hero__headline" data-node-id="201:3071">The enabling technology behind orbital data centers</h1>
-            </div>
-          </div>
-
-          <div class="hero__lede" data-node-id="201:3073">
-            <p class="hero__subhead" data-node-id="201:3074">Plasma power and propulsion, connected by high-bandwidth laser links</p>
-
-            <div class="hero__actions" data-node-id="201:3075">
-              <a class="explore" href="#technology" data-node-id="201:3076">
-                <span class="explore__inner" data-node-id="201:3077">
-                  <!-- 201:3135 / 201:3136 — the two blurred ellipses that pool
-                       light behind the button. -->
-                  <img class="explore__glowSoft" src="assets/icons/glow-soft.svg"
-                       alt="" width="214" height="160" data-node-id="201:3135">
-                  <img class="explore__glowCore" src="assets/icons/glow-core.svg"
-                       alt="" width="134" height="72" data-node-id="201:3136">
-
-                  <img class="explore__shape" src="assets/icons/btn-explore-base.svg"
-                       alt="" width="175" height="50" data-node-id="201:3078">
-                  <img class="explore__shape" src="assets/icons/btn-explore-glow.svg"
-                       alt="" width="175" height="50" data-node-id="201:3133">
-
-                  <span class="explore__label" data-node-id="201:3079">EXPLORE TECHNOLOGY</span>
-                </span>
-              </a>
-            </div>
-          </div>
-
+        <!-- Figma: "title" (235:2807) -->
+        <div class="hero__title" data-node-id="235:2807">
+          <h1 class="hero__headline" data-node-id="235:2808">The enabling<br>technology behind <br>orbital data centers</h1>
         </div>
+
+        <!-- Figma: "Frame 2147227359" (235:2816) -->
+        <div class="hero__footer" data-node-id="235:2816">
+          <p class="hero__subhead" data-node-id="235:2814">Plasma power and propulsion, connected by high-bandwidth laser links</p>
+
+          <div class="hero__actions" data-node-id="235:2802">
+            <a class="explore" href="#technology" data-node-id="235:2803">
+              <span class="explore__inner" data-node-id="235:2804">
+                <img class="explore__shape" src="assets/icons/btn-explore-base.svg"
+                     alt="" width="175" height="50" data-node-id="235:2805">
+                <span class="explore__label" data-node-id="235:2806">EXPLORE TECHNOLOGY</span>
+              </span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================================
+     Figma: "section 2" (238:2674) into "section 2.1" (242:2673) — 1440 x 810.
+
+     Same frame twice: the statement starts mostly dimmed and fills in reading
+     order as the section is scrolled, ending on the 2.1 state. Video 3 runs off
+     the same scroll.
+     ===================================================================== -->
+<div class="scene" data-scene="role">
+  <div class="scene__stage">
+    <div class="frame" data-node-id="238:2674">
+
+      <div class="frame__bg" aria-hidden="true">
+        <!-- 238:2673 — video 3, full bleed -->
+        <video class="frame__video" data-role-video muted playsinline preload="auto"
+               poster="assets/videos/video-3-poster.jpg">
+          <source src="assets/videos/video-3.mp4" type="video/mp4">
+          <source src="assets/videos/video-3.webm" type="video/webm">
+        </video>
+      </div>
+
+      <p class="role__statement" data-role-text data-node-id="238:2675">We don’t build orbital data centers. We enable the companies that do.</p>
+
+      <!-- Figma: "Frame 2147227361" (238:2682) -->
+      <div class="role__footer" data-node-id="238:2682">
+        <span class="role__dot" data-node-id="238:2680"></span>
+        <span class="role__label" data-node-id="238:2679">OUR ROLE</span>
+        <span class="role__dot" data-node-id="238:2681"></span>
       </div>
 
     </div>

@@ -1,7 +1,7 @@
 # CoreSpace
 
-Website built from the CoreSpace Figma design. Plain HTML and CSS — no build
-step, no dependencies, no install.
+Website built from the CoreSpace Figma design. Plain HTML, CSS and one script —
+no build step, no dependencies, no install.
 
 ## Viewing it
 
@@ -12,62 +12,60 @@ Double-click `index.html`. That's it.
 ```
 index.html          the page
 css/style.css       all styles
-js/scene.js         the hero's scroll-driven camera
-assets/             Figma exports — see assets/README.md
+js/scene.js         the scroll-driven cameras and the reading fill
+assets/             Figma exports and video — see assets/README.md
 tools/              optional checks, not needed to run the site
 ```
 
-## The hero scene
+## The sections
 
-The clip is one continuous move through orbit, so it is treated as a camera
-rather than a looping background:
+Two sections, each pinned while its own stretch of scroll plays out.
 
-1. On load it plays forward for 1.2s and stops where it gets to.
-2. From then on the scroll position drives `currentTime`. Scrolling moves the
-   camera, stopping stops it — it never plays on its own again.
-3. The copy clears out over the first stretch of that scroll, so the move
-   carries the section on its own.
+**Hero** — Figma `section 1` (235:2775).
 
-The camera stops at 3.4s (`SCENE_END` in `js/scene.js`), not at the end of the
-clip. Measured off the framed shot, the planet completes its sweep from the
-bottom edge into the corner by about then, and from roughly 5.75s a flare grows
-until the frame is solid white. Running further would buy a couple of seconds of
-near-static space and then blow the frame out.
+1. Video 1 plays straight through on load.
+2. Video 2 follows it for `HERO_TAIL` seconds (2s), crossing over as it does.
+   Then everything stops.
+3. From there the scroll drives video 2. Scrolling moves the camera, stopping
+   stops it — it never plays on its own again.
+4. The title and footer clear out over the first fifth of that scroll.
+5. The scroll ends where video 2's light fills the frame, which is what hands
+   over to the section below.
 
-The section is `--scene-length` tall (360vh) and the stage inside it is pinned;
-that surplus height is the scroll the move is mapped onto. The constants at the
-top of `js/scene.js` control the intro length, where the camera stops, and the
-copy fade.
+Scrolling during the intro cuts straight to video 2 at the same mark rather than
+holding the visitor there.
 
-The clip is turned a quarter turn and cropped to the frame, the way Figma
-places it, which stands the planet up as a horizon along the bottom and leaves
-the centred copy over open space. It plays at full opacity — no scrim, no tint.
+**Our role** — Figma `section 2` (238:2674) resolving into `section 2.1`
+(242:2673).
 
-Scrolling to the end leaves the planet parked in the corner — the end of the
-camera move, and where the next section should pick up.
+Video 3 answers to the scroll from its first frame, and the statement fills in
+reading order over the same scroll, finishing by 70% of the way through. Every
+character is its own span, so the edge lands mid-word exactly as the design has
+it.
+
+The constants at the top of `js/scene.js` control the intro length and both
+fades; `--scene-length-hero` and `--scene-length-role` in the CSS control how
+much scroll each move is spread over.
 
 ## Design parity
 
-The hero reproduces Figma node `183:3313` at 1440x810. Elements carry a
-`data-node-id` attribute naming the Figma node they came from, and the CSS
-comments name the node each rule was read off, so any value can be traced back
-to the design.
+The sections reproduce Figma nodes `235:2775`, `238:2674` and `242:2673` at
+1440x810. Elements carry a `data-node-id` attribute naming the Figma node they
+came from, and the CSS comments name the node each rule was read off, so any
+value can be traced back to the design.
 
 `tools/measure.mjs` diffs every box, text origin and gap against the design
 numbers — all currently match exactly. See [`tools/README.md`](./tools/README.md).
 
 ## Sizing
 
-The frame fills the window rather than sitting as a 1440px box in the middle of
-it — the video and nav run edge to edge and the copy keeps its designed measure.
-At exactly 1440x810 every measurement equals the Figma frame.
+A frame fills the window rather than sitting as a 1440px box in the middle of
+it — video runs edge to edge and the copy keeps its designed insets. At exactly
+1440x810 every measurement equals the Figma frame.
 
 - **Wider than 1440** — the frame stretches and the video widens with it. Type
-  stays at its designed size, so the copy holds its measure in the middle. To
-  scale type up on very large monitors instead, that is a change to
-  `--frame-scale` in `index.html`.
-- **Any height** — the stage fills the window; the copy keeps its designed
-  position relative to the frame's midline.
+  stays at its designed size.
+- **Any height** — the stage fills the window.
 - **Narrower than 900** (`--frame-min-width`) — nothing left to stretch into, so
   the whole frame scales down proportionally, holding every padding and margin
   at its designed ratio. That is a stopgap — replace it with real breakpoints
@@ -75,11 +73,11 @@ At exactly 1440x810 every measurement equals the Figma frame.
 
 ## Publishing
 
-Everything is static, so any host works — copy `index.html`, `css/` and
+Everything is static, so any host works — copy `index.html`, `css/`, `js/` and
 `assets/` to the server root. No configuration needed.
 
 ## Assets
 
-Every asset the hero uses is in place. See
-[`assets/README.md`](./assets/README.md) for where each one came from and the
-handful of notes on the exports.
+Every asset the sections use is in place. See
+[`assets/README.md`](./assets/README.md) for where each one came from, how the
+video is encoded, and the handful of notes on the exports.

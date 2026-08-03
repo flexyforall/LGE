@@ -42,44 +42,53 @@ assets under ~5 MB where possible — compress large photos before uploading. If
 video is bigger than that, tell me and we'll host it externally instead of
 committing it.
 
-## Scene video
+## Video
 
-`videos/hero-scene.mp4` / `.webm` are derived from a 3838x2140, 8s, 30 MB source
-clip. The source is not committed — it would cost every clone 30 MB — so keep a
-copy if it might need re-encoding.
+Three clips, named the way the brief names them. All are derived from ~30 MB
+sources that are **not committed** — keep copies if they might need re-encoding.
 
-The clip is placed the way Figma places it: turned a quarter turn anticlockwise
-and cropped to the frame, which stands the planet up as a horizon along the
-bottom. The rotation is done in CSS, not baked in, so the file stays in its
-original orientation.
+| File | Where | Source | Encoded |
+| --- | --- | --- | --- |
+| `video-1.*` | hero, plays on load | 3840x2160, 8s | 1920 wide, 24fps |
+| `video-2.*` | hero, scroll-driven | 3838x2140, 8s | 1444 **tall**, 24fps |
+| `video-3.*` | our role, scroll-driven | 3840x2160, 5s | 1600 wide, 20fps |
 
-That drives the encode height. Rotated, the clip's **height** becomes the strip's
-width on screen, and the strip is as wide as the frame — so it is encoded at
-1444 tall to match the 1440 design, and the width follows from the aspect ratio.
-Wider windows scale it up a little; the source tops out at 2140 tall, so there
-is some headroom but not unlimited.
+**MP4 is the primary source and WebM the fallback.** That order is deliberate:
+VP9 handles video 3's light streaks badly — the same quality costs 16 MB against
+H.264's 3 MB — so the WebM is a smaller, softer safety net for engines without
+H.264 rather than the preferred file.
 
-Two other things:
+Three things shape the encodes:
 
-- **The full 8s is kept**, white-out included. It is the end of the camera move
-  and the natural hand-off to whatever section comes next.
-- **A keyframe every 8 frames.** The scroll drives `currentTime` directly, and
-  seeking is only as precise as the nearest keyframe.
-
-Both formats ship: browsers that take WebM use it, Safari and iOS take the MP4.
+- **Video 2 is turned a quarter turn in CSS**, the way Figma places it, so its
+  *height* becomes the on-screen width. It is encoded 1444 tall to match the
+  1440 design rather than 1080 tall like the others.
+- **Anything the scroll drives gets a keyframe every 8 frames.** The scroll sets
+  `currentTime` directly, and seeking is only as precise as the nearest
+  keyframe. Video 1 just plays, so it keeps a normal GOP and stays smaller.
+- **Video 3 runs at 20fps.** The scroll sets its pace, so the frame rate only
+  bounds how finely it can be scrubbed — and its streaks are expensive to code.
 
 ```bash
-VF="fps=24,scale=-2:1444,setsar=1"
+# video 1 — plays straight through
+ffmpeg -i 1.mp4 -vf "fps=24,scale=1920:-2,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 29 -preset slow -g 24 \
+  -an -movflags +faststart video-1.mp4
 
-ffmpeg -i src.mp4 -vf "$VF" \
+# video 2 — quarter-turned in CSS, so encode to the height the rotation needs
+ffmpeg -i 2.mp4 -vf "fps=24,scale=-2:1444,setsar=1" \
   -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 29 -preset slow \
-  -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart hero-scene.mp4
+  -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-2.mp4
 
-ffmpeg -i src.mp4 -vf "$VF" \
-  -c:v libvpx-vp9 -crf 36 -b:v 0 -row-mt 1 -g 8 -keyint_min 8 \
-  -pix_fmt yuv420p -an hero-scene.webm
+# video 3 — scroll-driven, streak-heavy
+ffmpeg -i 3.mp4 -vf "fps=20,scale=1600:-2,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 32 -preset slow \
+  -g 10 -keyint_min 10 -sc_threshold 0 -an -movflags +faststart video-3.mp4
 
-ffmpeg -i src.mp4 -frames:v 1 -vf "scale=-2:1444,setsar=1" -q:v 4 hero-scene-poster.jpg
+# posters, and the WebM fallbacks (smaller and softer on purpose)
+ffmpeg -i 1.mp4 -frames:v 1 -vf "scale=1600:-2" -q:v 6 video-1-poster.jpg
+ffmpeg -i 1.mp4 -vf "fps=24,scale=1280:-2,setsar=1" -c:v libvpx-vp9 \
+  -crf 42 -b:v 0 -row-mt 1 -g 24 -pix_fmt yuv420p -an video-1.webm
 ```
 
 ## Notes on the exports that arrived
@@ -89,8 +98,8 @@ ffmpeg -i src.mp4 -frames:v 1 -vf "scale=-2:1444,setsar=1" -q:v 4 hero-scene-pos
 corrected in place to `0 -248 600 600`, read off the mask bounds — nothing else
 in the file was touched. Worth re-checking if the logo is ever re-exported.
 
-The PP Neue Montreal faces arrived as `.otf`. Only Medium is wired up — it is
-the one weight the hero uses. Converting the family to `.woff2` would cut it to
+The PP Neue Montreal faces arrived as `.otf`. Only Book is wired up — it is the
+one weight these sections use. Converting the family to `.woff2` would cut it to
 roughly half the bytes, worth doing before launch.
 
 Vector uploads keep arriving in `images/` and get moved to `icons/` under the
@@ -110,5 +119,9 @@ verbatim from the path `btn-explore-glow.svg` masks itself with, so the two line
 up exactly; only the fill is assumed. Exporting `201:3078` and dropping it in at
 that path would replace it.
 
-`shaperec.svg` (175x44) belonged to the earlier left-aligned hero and is no
-longer used — the current design's button is 175x50.
+`shaperec.svg` (175x44) belonged to an earlier hero and is no longer used — the
+current design's button is 175x50.
+
+The current hero's button has no glow behind it, so `glow-soft.svg`,
+`glow-core.svg` and `btn-explore-glow.svg` are unused for now. They are kept
+because they belong to a design that may come back.
