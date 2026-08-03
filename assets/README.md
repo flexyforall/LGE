@@ -49,9 +49,9 @@ sources that are **not committed** — keep copies if they might need re-encodin
 
 | File | Where | Source | Encoded |
 | --- | --- | --- | --- |
-| `video-1.*` | hero, plays on load | 3840x2160, 8s | 1920 wide, 24fps, crf 20 |
-| `video-2.*` | hero, scroll-driven | 3838x2140, 8s | 1920 **tall**, 24fps, crf 24 |
-| `video-3.*` | our role, intro + scroll | 3840x2160, 5s | 1920 wide, 24fps, crf 24 |
+| `video-1.*` | hero, idle loop | 3840x2160, 8s | source res, 24fps, crf 18 |
+| `video-2.*` | hero, loop tail + scroll | 3838x2140, 8s | source res, 24fps, crf 20 |
+| `video-3.*` | our role, intro + scroll | 3840x2160, 5s | 2560 wide, 24fps, crf 21 |
 
 **MP4 is the primary source and WebM the fallback.** That order is deliberate:
 VP9 handles video 3's light streaks badly — the same quality costs 16 MB against
@@ -60,31 +60,31 @@ H.264 rather than the preferred file.
 
 Three things shape the encodes:
 
-- **Video 2 is turned a quarter turn in CSS**, the way Figma places it, so its
-  *height* becomes the on-screen width. It is encoded 1920 tall so a 1920-wide
-  window gets true 1:1 pixels — encoding it to the design's 1440 meant a 1.33x
-  upscale on common screens, which is exactly the softness that got reported.
+- **Videos 1 and 2 keep their source resolution** and near-transparent crf, so
+  retina screens finally get the clip as delivered. Video 3 sits at 2560 — its
+  light streaks are brutally expensive to code, and the full-4K version came
+  out at 41 MB for five seconds; 2560 is the sane ceiling.
 - **Anything the scroll drives gets a keyframe every 8 frames.** The scroll sets
   `currentTime` directly, and seeking is only as precise as the nearest
-  keyframe. Video 1 just plays, so it keeps a normal GOP and stays smaller.
-- **Quality beats weight here.** These clips are the whole design, so they get
-  the bitrate they need (~25 MB of MP4 all told). Squeezing them below that is
-  what made the first pass look bad.
+  keyframe. Video 1 just plays, so it keeps a normal GOP.
+- **Quality beats weight here — and it now costs real weight.** ~74 MB of MP4
+  all told. If that ever matters, the crf 20-24 encodes of the previous pass
+  were the best quality-per-byte trade.
 
 ```bash
 # video 1 — plays straight through
-ffmpeg -i 1.mp4 -vf "fps=24,scale=1920:-2,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 20 -preset slow -g 24 \
+ffmpeg -i 1.mp4 -vf "fps=24,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 18 -preset slow -g 24 \
   -an -movflags +faststart video-1.mp4
 
 # video 2 — quarter-turned in CSS, so encode to the height the rotation needs
-ffmpeg -i 2.mp4 -vf "fps=24,scale=-2:1920,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 24 -preset slow \
+ffmpeg -i 2.mp4 -vf "fps=24,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 20 -preset medium \
   -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-2.mp4
 
 # video 3 — scroll-driven, streak-heavy
-ffmpeg -i 3.mp4 -vf "fps=24,scale=1920:-2,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 24 -preset slow \
+ffmpeg -i 3.mp4 -vf "fps=24,scale=2560:-2,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 21 -preset medium \
   -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-3.mp4
 
 # posters, and the WebM fallbacks (smaller and softer on purpose)

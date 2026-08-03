@@ -17,7 +17,7 @@
 (function () {
   'use strict';
 
-  var HERO_TAIL = 2; // seconds of video 2 played on load, after video 1 ends
+  var HERO_LOOP_CUT = 5.5; // video 2 loops back before its flare starts growing
   var COPY_FADE = 0.22; // fraction of the hero scroll the copy fades over
   var COPY_RISE = 48; // px the copy drifts up as it goes
   var FLASH_IN_FROM = 0.86; // the hero whites out over its last stretch
@@ -109,62 +109,57 @@
     var seek = seeker(second);
     /*
      * Where video 2 was when the scroll took over, and the origin the scrub
-     * runs from. Null while the intro is still running.
+     * runs from. Null while the idle loop still has the stage.
      *
-     * It is read off the video rather than assumed to be HERO_TAIL: playback
-     * always overshoots the mark by a frame or two, and rewinding onto a round
-     * number shows as a hitch backwards just as the motion settles.
+     * It is read off the video rather than assumed: playback always overshoots
+     * a mark by a frame or two, and rewinding onto a round number shows as a
+     * hitch backwards just as the motion settles.
      */
     var handOver = null;
+    var stage = 1;
 
-    function showSecond() {
-      frame.dataset.heroStage = '2';
+    function show(n) {
+      stage = n;
+      frame.dataset.heroStage = String(n);
     }
 
+    function ignore() {}
+
+    /*
+     * The idle loop: video 1 in full, video 2 up to HERO_LOOP_CUT — cutting
+     * away just before its flare starts to grow — then around again, crossing
+     * on each change. Watched on the frame clock rather than `timeupdate`,
+     * which fires about four times a second, far too coarse to cut on a mark.
+     */
+    function watchLoop() {
+      if (handOver !== null) return;
+      if (stage === 1) {
+        if (first.ended || (first.duration && first.currentTime >= first.duration - 0.05)) {
+          show(2);
+          second.play().catch(ignore);
+        }
+      } else if (second.currentTime >= HERO_LOOP_CUT || second.ended) {
+        show(1);
+        second.pause();
+        first.currentTime = 0;
+        /* Rewound while hidden, so the next pass starts clean. */
+        second.currentTime = 0;
+        first.play().catch(ignore);
+      }
+      requestAnimationFrame(watchLoop);
+    }
+
+    /* The first scroll breaks the loop and gives video 2 to the scrub. */
     function endIntro() {
       if (handOver !== null) return;
       first.pause();
       second.pause();
-      showSecond();
-      if (second.currentTime >= HERO_TAIL) {
-        handOver = second.currentTime;
-      } else {
-        /* Scrolled before video 2 had its turn — start the scrub at the mark. */
-        handOver = HERO_TAIL;
-        seek(HERO_TAIL);
-      }
+      if (stage === 1) show(2);
+      handOver = Math.min(second.currentTime, HERO_LOOP_CUT);
     }
 
-    function watchTail() {
-      if (handOver !== null) return;
-      if (second.currentTime >= HERO_TAIL || second.ended) {
-        endIntro();
-        return;
-      }
-      requestAnimationFrame(watchTail);
-    }
-
-    function startTail() {
-      if (handOver !== null) return;
-      showSecond();
-      second.play().then(watchTail).catch(endIntro);
-    }
-
-    /*
-     * Watch on the frame clock rather than `timeupdate`, which only fires about
-     * four times a second — far too coarse to change over on a mark.
-     */
-    function watchFirst() {
-      if (handOver !== null) return;
-      if (first.ended || (first.duration && first.currentTime >= first.duration - 0.05)) {
-        startTail();
-        return;
-      }
-      requestAnimationFrame(watchFirst);
-    }
-
-    first.addEventListener('ended', startTail);
-    first.play().then(watchFirst).catch(endIntro);
+    first.play().catch(ignore);
+    watchLoop();
 
     register(function () {
       var p = progressOf(scene);

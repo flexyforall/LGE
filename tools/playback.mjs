@@ -37,24 +37,36 @@ await page.goto(pathToFileURL(path.join(root, 'index.html')).href, {
   waitUntil: 'load',
 });
 
-function worstDrop(samples) {
+/*
+ * Largest backward step in a run of currentTime samples. The hero idles as a
+ * loop, so with `allowWraps` a drop that lands back near 0 is a loop wrap and
+ * not a rewind — only partial jumps backwards count.
+ */
+function worstDrop(samples, allowWraps) {
   let worst = 0;
   let at = null;
+  let wraps = 0;
   for (let i = 1; i < samples.length; i++) {
     const drop = samples[i - 1][1] - samples[i][1];
+    if (drop <= 0) continue;
+    if (allowWraps && samples[i][1] < 0.3) {
+      wraps++;
+      continue;
+    }
     if (drop > worst) {
       worst = drop;
       at = samples[i][0];
     }
   }
-  return { worst, at };
+  return { worst, at, wraps };
 }
 
 const failures = [];
 
 /*
- * 1. The hero intro: video 1 runs out, video 2 takes over for its couple of
- *    seconds, then both stop. Neither must snap back as it settles.
+ * 1. The hero idle loop: video 1 in full, video 2 up to its cut, and around
+ *    again. Wraps back to 0 are the loop working; anything else backwards is
+ *    a rewind. It must also actually cycle.
  */
 const intro = await page.evaluate(
   () =>
@@ -68,20 +80,21 @@ const intro = await page.evaluate(
         const elapsed = performance.now() - t0;
         a.push([Math.round(elapsed), first.currentTime]);
         b.push([Math.round(elapsed), second.currentTime]);
-        if (elapsed < 13000) requestAnimationFrame(tick);
+        if (elapsed < 16500) requestAnimationFrame(tick);
         else resolve({ a, b });
       })();
     })
 );
 
-const firstDrop = worstDrop(intro.a);
-const secondDrop = worstDrop(intro.b);
+const firstDrop = worstDrop(intro.a, true);
+const secondDrop = worstDrop(intro.b, true);
 console.log(`
-intro   video 1 settled at ${intro.a[intro.a.length - 1][1].toFixed(3)}s, largest backward step ${firstDrop.worst.toFixed(4)}s
-        video 2 settled at ${intro.b[intro.b.length - 1][1].toFixed(3)}s, largest backward step ${secondDrop.worst.toFixed(4)}s`);
+idle    video 1 wrapped ${firstDrop.wraps}x, largest non-wrap backward step ${firstDrop.worst.toFixed(4)}s
+        video 2 wrapped ${secondDrop.wraps}x, largest non-wrap backward step ${secondDrop.worst.toFixed(4)}s`);
 
-if (firstDrop.worst > TOLERANCE) failures.push('video 1 rewinds as it stops');
-if (secondDrop.worst > TOLERANCE) failures.push('video 2 rewinds as it stops');
+if (firstDrop.worst > TOLERANCE) failures.push('video 1 rewinds mid-loop');
+if (secondDrop.worst > TOLERANCE) failures.push('video 2 rewinds mid-loop');
+if (firstDrop.wraps + secondDrop.wraps === 0) failures.push('the idle loop never cycles');
 
 /*
  * 2. Each scrub: ramp the scroll across the section, then hold.
@@ -102,10 +115,20 @@ for (const scene of SCENES) {
         const travel = section.offsetHeight - window.innerHeight;
         const out = [];
         const t0 = performance.now();
+        let landed = false;
         (function tick() {
           const elapsed = performance.now() - t0;
           if (elapsed < 2000) {
             window.scrollTo(0, Math.round(top + travel * (elapsed / 2000)));
+          } else if (!landed) {
+            /*
+             * Under load the frame clock skips, so the ramp's last step can
+             * stop short of the section's end. Real scrolling has no such
+             * quantization — finish on the exact end before judging where
+             * the camera rests.
+             */
+            landed = true;
+            window.scrollTo(0, Math.round(top + travel));
           }
           out.push([Math.round(elapsed), el.currentTime]);
           if (elapsed < 3200) requestAnimationFrame(tick);
@@ -115,7 +138,7 @@ for (const scene of SCENES) {
     scene
   );
 
-  const drop = worstDrop(run.samples);
+  const drop = worstDrop(run.samples, false);
   const atScrollEnd = run.samples.find((s) => s[0] >= 2000)[1];
   const settled = run.samples[run.samples.length - 1][1];
   const offTarget = Math.abs(settled - run.end);

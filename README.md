@@ -23,19 +23,17 @@ Two sections, each pinned while its own stretch of scroll plays out.
 
 **Hero** — Figma `section 1` (235:2775).
 
-1. Video 1 plays straight through on load.
-2. Video 2 follows it for `HERO_TAIL` seconds (2s), crossing over as it does.
-   Then everything stops.
-3. From there the scroll drives video 2. Scrolling moves the camera, stopping
-   stops it — it never plays on its own again.
-4. The title and footer clear out over the first fifth of that scroll.
-5. Over the last stretch a white sheet finishes video 2's flash to pure white
+1. While nobody scrolls, the hero idles as a loop: video 1 in full, then
+   video 2 up to just before its flare starts growing (`HERO_LOOP_CUT`, 5.5s),
+   crossing over on each change, and around again.
+2. The first scroll breaks the loop wherever it happens to be and hands
+   video 2 to the scroll. Scrolling moves the camera, stopping stops it — it
+   never plays on its own again.
+3. The title and footer clear out over the first fifth of that scroll.
+4. Over the last stretch a white sheet finishes video 2's flash to pure white
    — and the next section starts under an identical sheet that lifts over its
    first stretch. The seam between them is white-on-white, so the flash and the
    drop into the tunnel read as one continuous shot.
-
-Scrolling during the intro cuts straight to video 2 at the same mark rather than
-holding the visitor there.
 
 **Our role** — Figma `section 2` (238:2674) resolving into `section 2.1`
 (242:2673), with two requested departures: the header stays in this section
