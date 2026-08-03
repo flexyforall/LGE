@@ -23,9 +23,16 @@ const TOLERANCE = 0.005; // seconds; below a tenth of a frame
 const FRAME = 1 / 24;
 const ALLOWED_OFF_TARGET = FRAME * 1.5;
 
+/*
+ * The hero's camera must come to rest exactly where the scroll asks. The role
+ * clip stops being a camera once it parks in the container — from there it
+ * loops free, exits, and the next container's clip takes the frame — so what
+ * is asserted instead is that the hand-off happened: the box1 clip may wrap
+ * but never partially rewinds, and the incoming clip is playing at the end.
+ */
 const SCENES = [
-  { name: 'hero', video: '[data-hero-video="2"]' },
-  { name: 'role', video: '[data-role-video]' },
+  { name: 'hero', video: '[data-hero-video="2"]', restsOnTarget: true },
+  { name: 'role', video: '[data-role-video]', restsOnTarget: false },
 ];
 
 const browser = await chromium.launch({
@@ -138,21 +145,34 @@ for (const scene of SCENES) {
     scene
   );
 
-  const drop = worstDrop(run.samples, false);
+  const drop = worstDrop(run.samples, !scene.restsOnTarget);
   const atScrollEnd = run.samples.find((s) => s[0] >= 2000)[1];
   const settled = run.samples[run.samples.length - 1][1];
   const offTarget = Math.abs(settled - run.end);
 
   console.log(`
 ${scene.name.padEnd(7)} ${atScrollEnd.toFixed(3)}s when the scroll stopped, settled at ${settled.toFixed(3)}s
-        asked for ${run.end.toFixed(3)}s — off by ${offTarget.toFixed(3)}s (${(offTarget / FRAME).toFixed(1)} frames)
         largest backward step ${drop.worst.toFixed(4)}s${drop.at !== null ? ` at ${drop.at}ms` : ''}`);
 
   if (drop.worst > TOLERANCE) failures.push(`the ${scene.name} scrub steps backwards`);
-  if (offTarget > ALLOWED_OFF_TARGET) {
-    failures.push(`the ${scene.name} camera rests off the frame the scroll asked for`);
+  if (scene.restsOnTarget) {
+    console.log(`        asked for ${run.end.toFixed(3)}s — off by ${offTarget.toFixed(3)}s (${(offTarget / FRAME).toFixed(1)} frames)`);
+    if (offTarget > ALLOWED_OFF_TARGET) {
+      failures.push(`the ${scene.name} camera rests off the frame the scroll asked for`);
+    }
   }
 }
+
+/* At the very end of the role scroll, the next chapter's clip owns the frame. */
+const handoff = await page.evaluate(() => {
+  const nextVideo = document.querySelector('[data-role-next-video]');
+  const exiting = document.querySelector('[data-role-video]');
+  return { nextPlaying: nextVideo && !nextVideo.paused, exitingPaused: exiting.paused };
+});
+console.log(`
+handoff next clip playing: ${handoff.nextPlaying}; exited clip paused: ${handoff.exitingPaused}`);
+if (!handoff.nextPlaying) failures.push('the incoming container clip is not playing at the end');
+if (!handoff.exitingPaused) failures.push('the exited clip is still running offscreen');
 
 await browser.close();
 

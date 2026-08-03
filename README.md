@@ -46,10 +46,13 @@ fills in reading order once the flash is gone; every character is its own span,
 so the edge lands mid-word exactly as the design has it.
 
 Once it is read, the scroll packs the whole shot into section 3's 478x626
-container: the box tightens onto its designed spot, the page behind it goes
-white, the bar takes its black plate, and the camera keeps scrubbing inside the
-shrinking frame. The constants for every phase sit at the top of
-`js/scene.js`.
+container — centred between the bar and the bottom edge, equal air above and
+below — where it drops its veil and simply plays, looping. Further scroll
+shrinks the box on and sends it out through the left edge while the next
+chapter's container (placeholder: the same tunnel, looping) comes in from the
+right at 0.4x, grows to the same spot, and finally opens up to the full frame —
+the shape of Figma's `section 3.1` reference. The constants for every phase sit
+at the top of `js/scene.js`.
 
 Both sections put a 30% veil over their media — the media-at-70% from the
 design, kept as a sheet.

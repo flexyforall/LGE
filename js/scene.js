@@ -23,13 +23,18 @@
   var FLASH_IN_FROM = 0.86; // the hero whites out over its last stretch
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
   var ROLE_INTRO = 1.5; // seconds of video 3 played on entering the section
-  var TEXT_FILL_FROM = 0.16; // the statement starts filling once the flash is gone
-  var TEXT_FILL_BY = 0.52; // ...and is fully read by here
-  var SHRINK_FROM = 0.6; // once read, the shot starts packing itself...
-  var SHRINK_BY = 0.95; // ...into section 3's container
+  var TEXT_FILL_FROM = 0.12; // the statement starts filling once the flash is gone
+  var TEXT_FILL_BY = 0.38; // ...and is fully read by here
+  var SHRINK_FROM = 0.44; // once read, the shot starts packing itself...
+  var SHRINK_BY = 0.58; // ...into section 3's container, where it plays free
+  var SWAP_FROM = 0.66; // then it shrinks on and exits left...
+  var SWAP_BY = 0.84; // ...while the next container comes in from the right
+  var OPEN_FROM = 0.87; // which then opens up...
+  var OPEN_BY = 1; // ...to the full frame
   var SHRINK_W = 478; // the container, from Figma 242:2689
   var SHRINK_H = 626;
-  var SHRINK_BOTTOM = 50; // its designed gap to the frame's bottom edge
+  var EXIT_SCALE = 0.81; // the leaving box's scale as it goes (251:2811)
+  var ENTER_SCALE = 0.4; // the incoming box's scale at the right edge (251:2833)
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -254,6 +259,9 @@
     var footer = scene.querySelector('[data-role-footer]');
     var shrink = scene.querySelector('[data-role-shrink]');
     var white = scene.querySelector('[data-role-white]');
+    var overlay = shrink ? shrink.querySelector('.frame__overlay') : null;
+    var next = scene.querySelector('[data-role-next]');
+    var nextVideo = scene.querySelector('[data-role-next-video]');
     if (!video || !statement) return;
 
     var letters = splitCharacters(statement);
@@ -316,28 +324,103 @@
 
       /*
        * Once the statement is read, the scroll packs the whole shot into
-       * section 3's container: the box tightens onto its designed spot, the
-       * page behind it goes white, and the bar takes its black plate. The
-       * copy steps aside over the first stretch of the move.
+       * section 3's container — centred between the bar and the bottom edge —
+       * where the clip drops its veil and just plays, looping. Further scroll
+       * shrinks the box on and sends it out left while the next container
+       * comes in from the right, grows to the same spot, and finally opens to
+       * the full frame. The copy steps aside as the packing starts.
        */
       var t = clamp01((p - SHRINK_FROM) / (SHRINK_BY - SHRINK_FROM));
+      var u = clamp01((p - SWAP_FROM) / (SWAP_BY - SWAP_FROM));
+      var o = clamp01((p - OPEN_FROM) / (OPEN_BY - OPEN_FROM));
+
+      var fw = frame ? frame.clientWidth : 0;
+      var fh = frame ? frame.clientHeight : 0;
+      /* The bar ends 84px down; the box centres in what is left below it. */
+      var below = fh - 84;
+      var boxH = Math.min(SHRINK_H, below - 100);
+      var boxW = SHRINK_W * (boxH / SHRINK_H);
+      var boxTop = 84 + (below - boxH) / 2;
+      var boxCy = boxTop + boxH / 2;
+
       if (shrink && frame) {
-        var fw = frame.clientWidth;
-        var fh = frame.clientHeight;
-        /* Fit the designed box into short frames rather than overflowing. */
-        var boxH = Math.min(SHRINK_H, fh - SHRINK_BOTTOM - 84);
-        var boxW = SHRINK_W * (boxH / SHRINK_H);
-        var w = fw + (boxW - fw) * t;
-        var h = fh + (boxH - fh) * t;
-        shrink.style.left = ((fw - w) / 2).toFixed(1) + 'px';
-        shrink.style.top = ((fh - SHRINK_BOTTOM - boxH) * t).toFixed(1) + 'px';
-        shrink.style.width = w.toFixed(1) + 'px';
-        shrink.style.height = h.toFixed(1) + 'px';
+        var w1;
+        var h1;
+        var left1;
+        var top1;
+        if (u <= 0) {
+          /* Packing in: full bleed down onto the parked spot. */
+          w1 = fw + (boxW - fw) * t;
+          h1 = fh + (boxH - fh) * t;
+          left1 = (fw - w1) / 2;
+          top1 = boxTop * t;
+        } else {
+          /* The hand-off: shrinking on and leaving through the left edge. */
+          var s1 = 1 - (1 - EXIT_SCALE) * u;
+          w1 = boxW * s1;
+          h1 = boxH * s1;
+          var cx1 = fw / 2 + (-boxW / 2 - fw / 2) * u;
+          left1 = cx1 - w1 / 2;
+          top1 = boxCy - h1 / 2;
+        }
+        shrink.style.left = left1.toFixed(1) + 'px';
+        shrink.style.top = top1.toFixed(1) + 'px';
+        shrink.style.width = w1.toFixed(1) + 'px';
+        shrink.style.height = h1.toFixed(1) + 'px';
       }
+
+      /* Inside the container the clip plays clean — the veil goes with t. */
+      if (overlay) overlay.style.opacity = String(1 - t);
       if (white) white.style.opacity = String(t);
       if (chrome) chrome.style.backgroundColor = 'rgba(0, 0, 0, ' + t.toFixed(3) + ')';
 
-      var aside = clamp01((p - SHRINK_FROM) / 0.08);
+      /*
+       * Parked, the clip stops being a camera and becomes a loop. It goes
+       * back to the scroll's hands the moment the box is pulled open again,
+       * and stops once it has left the frame entirely.
+       */
+      var parked = t >= 1;
+      if (parked && u < 1) {
+        video.loop = true;
+        if (video.paused) video.play().catch(function () {});
+      } else if (u >= 1) {
+        video.pause();
+      }
+
+      /* The next chapter's box: in from the right, grow, then open up. */
+      if (next && nextVideo) {
+        var visible = u > 0;
+        /* The stylesheet parks it hidden, so visible must be said outright. */
+        next.style.visibility = visible ? 'visible' : 'hidden';
+        if (visible) {
+          var w2;
+          var h2;
+          var left2;
+          var top2;
+          if (o > 0) {
+            w2 = boxW + (fw - boxW) * o;
+            h2 = boxH + (fh - boxH) * o;
+            left2 = (fw - w2) / 2;
+            top2 = boxTop * (1 - o);
+          } else {
+            var s2 = ENTER_SCALE + (1 - ENTER_SCALE) * u;
+            w2 = boxW * s2;
+            h2 = boxH * s2;
+            var cx2 = fw + w2 / 2 + (fw / 2 - fw - w2 / 2) * u;
+            left2 = cx2 - w2 / 2;
+            top2 = boxCy - h2 / 2;
+          }
+          next.style.left = left2.toFixed(1) + 'px';
+          next.style.top = top2.toFixed(1) + 'px';
+          next.style.width = w2.toFixed(1) + 'px';
+          next.style.height = h2.toFixed(1) + 'px';
+          if (nextVideo.paused) nextVideo.play().catch(function () {});
+        } else if (!nextVideo.paused) {
+          nextVideo.pause();
+        }
+      }
+
+      var aside = clamp01((p - SHRINK_FROM) / 0.06);
       statement.style.opacity = String(1 - aside);
       statement.style.visibility = aside === 1 ? 'hidden' : '';
       if (footer) {
@@ -362,9 +445,11 @@
       /* A fast scroller does not get held inside the intro. */
       if (introStarted && handOver === null && p > 0.3) endIntro();
 
-      if (handOver === null) return;
+      if (handOver === null || parked) return;
+      video.loop = false;
       if (!video.paused) video.pause();
-      seek(handOver + p * (video.duration - handOver));
+      var pv = clamp01(p / SHRINK_BY);
+      seek(handOver + pv * (video.duration - handOver));
       scene.dataset.cameraEnd = String(video.duration);
     });
   }

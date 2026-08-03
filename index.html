@@ -152,6 +152,17 @@
         <div class="frame__overlay"></div>
       </div>
 
+      <!-- 251:2833 — the next chapter's container. Enters from the right
+           edge during the swap, grows to centre, then opens full-bleed.
+           Placeholder media: the same tunnel, looping. -->
+      <div class="role__next" data-role-next aria-hidden="true">
+        <video class="frame__video" data-role-next-video muted playsinline loop
+               preload="metadata" poster="assets/videos/video-3-poster.jpg">
+          <source src="assets/videos/video-3.mp4" type="video/mp4">
+          <source src="assets/videos/video-3.webm" type="video/webm">
+        </video>
+      </div>
+
       <p class="role__statement" data-role-text data-node-id="238:2675">We don’t build orbital data centers. We enable the companies that do.</p>
 
       <!-- Figma: "Frame 2147227361" (238:2682) -->
