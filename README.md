@@ -29,8 +29,10 @@ Two sections, each pinned while its own stretch of scroll plays out.
 3. From there the scroll drives video 2. Scrolling moves the camera, stopping
    stops it — it never plays on its own again.
 4. The title and footer clear out over the first fifth of that scroll.
-5. The scroll ends where video 2's light fills the frame, which is what hands
-   over to the section below.
+5. Over the last stretch a white sheet finishes video 2's flash to pure white
+   — and the next section starts under an identical sheet that lifts over its
+   first stretch. The seam between them is white-on-white, so the flash and the
+   drop into the tunnel read as one continuous shot.
 
 Scrolling during the intro cuts straight to video 2 at the same mark rather than
 holding the visitor there.

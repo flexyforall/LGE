@@ -20,7 +20,10 @@
   var HERO_TAIL = 2; // seconds of video 2 played on load, after video 1 ends
   var COPY_FADE = 0.22; // fraction of the hero scroll the copy fades over
   var COPY_RISE = 48; // px the copy drifts up as it goes
-  var TEXT_FILL_BY = 0.7; // fraction of the role scroll the statement fills over
+  var FLASH_IN_FROM = 0.86; // the hero whites out over its last stretch
+  var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
+  var TEXT_FILL_FROM = 0.16; // the statement starts filling once the flash is gone
+  var TEXT_FILL_BY = 0.72; // ...and is fully read by here
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -94,6 +97,7 @@
     var first = scene.querySelector('[data-hero-video="1"]');
     var second = scene.querySelector('[data-hero-video="2"]');
     var copy = scene.querySelector('[data-scene-copy]');
+    var flash = scene.querySelector('[data-hero-flash]');
     if (!frame || !first || !second || !copy) return;
 
     if (reduced) {
@@ -171,6 +175,15 @@
          the two blocks out of reach once they are gone. */
       copy.style.visibility = fade === 1 ? 'hidden' : '';
 
+      /*
+       * Video 2's last frames are bright but faintly textured; this finishes
+       * the white-out so the hand-off to the section below is pure white on
+       * both sides of the seam.
+       */
+      if (flash) {
+        flash.style.opacity = String(clamp01((p - FLASH_IN_FROM) / (1 - FLASH_IN_FROM)));
+      }
+
       /* Scrolling hands the camera over from wherever the intro had got to. */
       if (p > 0) endIntro();
       if (handOver === null || !second.duration) return;
@@ -217,12 +230,14 @@
 
     var video = scene.querySelector('[data-role-video]');
     var statement = scene.querySelector('[data-role-text]');
+    var flash = scene.querySelector('[data-role-flash]');
     if (!video || !statement) return;
 
     var letters = splitCharacters(statement);
 
     if (reduced) {
       scene.style.height = 'auto';
+      if (flash) flash.style.display = 'none';
       for (var i = 0; i < letters.length; i++) letters[i].className = 'is-read';
       return;
     }
@@ -233,7 +248,18 @@
     register(function () {
       var p = progressOf(scene);
 
-      var want = Math.round(clamp01(p / TEXT_FILL_BY) * letters.length);
+      /*
+       * The hero hands over on a frame of solid white; this lifts that white
+       * off video 3, which reads as falling out of the flash into the tunnel.
+       */
+      if (flash) {
+        var lift = clamp01(p / FLASH_FADE);
+        flash.style.opacity = String(1 - lift);
+        flash.style.visibility = lift === 1 ? 'hidden' : '';
+      }
+
+      var fill = clamp01((p - TEXT_FILL_FROM) / (TEXT_FILL_BY - TEXT_FILL_FROM));
+      var want = Math.round(fill * letters.length);
       if (want > read) {
         for (var i = read; i < want; i++) letters[i].className = 'is-read';
       } else if (want < read) {

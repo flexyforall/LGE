@@ -213,6 +213,28 @@ img {
   transform: translate(-50%, -50%) rotate(-90deg);
 }
 
+/*
+ * The white hand-off between the sections.
+ *
+ * Video 2's final frames are bright but still faintly textured, so the hero's
+ * sheet fades IN over the last stretch of its scroll until the frame is pure
+ * white. The role section starts under its own pure-white sheet, which fades
+ * OUT over its first stretch. Between the two the seam is white-on-white —
+ * invisible — and the whole thing reads as one continuous shot: into the
+ * flash, out of the flash, inside the tunnel.
+ */
+.hero__flash,
+.role__flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  pointer-events: none;
+}
+
+.hero__flash {
+  opacity: 0;
+}
+
 /* Reduced motion: hold a poster frame rather than pinning and scrubbing. */
 @media (prefers-reduced-motion: reduce) {
   .frame__video {
@@ -375,10 +397,14 @@ img {
   white-space: nowrap;
 }
 
-/* 235:2816 — y 710, 1320 wide and centred, so 60 in from each side */
+/*
+ * 235:2816 — y 710 on the 810 frame, 1320 wide and centred, so 60 in from each
+ * side. Anchored to the bottom edge — the designed 50px gap below it — so it
+ * holds that gap on any window height instead of drifting up.
+ */
 .hero__footer {
   position: absolute;
-  top: 710px;
+  bottom: 50px;
   left: 60px;
   right: 60px;
   display: flex;
@@ -480,10 +506,13 @@ img {
   color: var(--color-fg);
 }
 
-/* 238:2682 — y 760, centred, 72 gap either side of the label */
+/*
+ * 238:2682 — y 760 on the 810 frame, centred, 72 gap either side of the label.
+ * Anchored to the bottom edge for the same reason as the hero footer.
+ */
 .role__footer {
   position: absolute;
-  top: 760px;
+  bottom: 36px;
   left: 50%;
   display: flex;
   align-items: center;

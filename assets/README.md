@@ -49,9 +49,9 @@ sources that are **not committed** — keep copies if they might need re-encodin
 
 | File | Where | Source | Encoded |
 | --- | --- | --- | --- |
-| `video-1.*` | hero, plays on load | 3840x2160, 8s | 1920 wide, 24fps |
-| `video-2.*` | hero, scroll-driven | 3838x2140, 8s | 1444 **tall**, 24fps |
-| `video-3.*` | our role, scroll-driven | 3840x2160, 5s | 1600 wide, 20fps |
+| `video-1.*` | hero, plays on load | 3840x2160, 8s | 1920 wide, 24fps, crf 23 |
+| `video-2.*` | hero, scroll-driven | 3838x2140, 8s | 1920 **tall**, 24fps, crf 27 |
+| `video-3.*` | our role, scroll-driven | 3840x2160, 5s | 1920 wide, 24fps, crf 27 |
 
 **MP4 is the primary source and WebM the fallback.** That order is deliberate:
 VP9 handles video 3's light streaks badly — the same quality costs 16 MB against
@@ -61,29 +61,31 @@ H.264 rather than the preferred file.
 Three things shape the encodes:
 
 - **Video 2 is turned a quarter turn in CSS**, the way Figma places it, so its
-  *height* becomes the on-screen width. It is encoded 1444 tall to match the
-  1440 design rather than 1080 tall like the others.
+  *height* becomes the on-screen width. It is encoded 1920 tall so a 1920-wide
+  window gets true 1:1 pixels — encoding it to the design's 1440 meant a 1.33x
+  upscale on common screens, which is exactly the softness that got reported.
 - **Anything the scroll drives gets a keyframe every 8 frames.** The scroll sets
   `currentTime` directly, and seeking is only as precise as the nearest
   keyframe. Video 1 just plays, so it keeps a normal GOP and stays smaller.
-- **Video 3 runs at 20fps.** The scroll sets its pace, so the frame rate only
-  bounds how finely it can be scrubbed — and its streaks are expensive to code.
+- **Quality beats weight here.** These clips are the whole design, so they get
+  the bitrate they need (~17 MB of MP4 all told). Squeezing them below that is
+  what made the first pass look bad.
 
 ```bash
 # video 1 — plays straight through
 ffmpeg -i 1.mp4 -vf "fps=24,scale=1920:-2,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 29 -preset slow -g 24 \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 23 -preset slow -g 24 \
   -an -movflags +faststart video-1.mp4
 
 # video 2 — quarter-turned in CSS, so encode to the height the rotation needs
-ffmpeg -i 2.mp4 -vf "fps=24,scale=-2:1444,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 29 -preset slow \
+ffmpeg -i 2.mp4 -vf "fps=24,scale=-2:1920,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 27 -preset medium \
   -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-2.mp4
 
 # video 3 — scroll-driven, streak-heavy
-ffmpeg -i 3.mp4 -vf "fps=20,scale=1600:-2,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 32 -preset slow \
-  -g 10 -keyint_min 10 -sc_threshold 0 -an -movflags +faststart video-3.mp4
+ffmpeg -i 3.mp4 -vf "fps=24,scale=1920:-2,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 27 -preset slow \
+  -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-3.mp4
 
 # posters, and the WebM fallbacks (smaller and softer on purpose)
 ffmpeg -i 1.mp4 -frames:v 1 -vf "scale=1600:-2" -q:v 6 video-1-poster.jpg
