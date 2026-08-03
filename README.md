@@ -39,11 +39,11 @@ Two sections, each pinned while its own stretch of scroll plays out.
 **Our role** — Figma `section 2` (238:2674) through `section 2.1` (242:2673)
 and into `section 3` (242:2681), all on one scroll.
 
-The first time the section pins, video 3 flies forward on its own for 1.5s —
-the tunnel is already rushing past as the white lifts — then stops, and from
-there the scroll has the camera. The statement (centred, per the updated frame)
-fills in reading order once the flash is gone; every character is its own span,
-so the edge lands mid-word exactly as the design has it.
+Video 3 loops on its own as the background — it is not scroll-driven. The
+scroll animates the statement's reading fill and the container moves only. The
+statement (centred, per the updated frame) fills once the flash is gone; every
+character is its own span, so the edge lands mid-word exactly as the design has
+it.
 
 Once it is read, the scroll packs the whole shot into section 3's 478x626
 container — centred between the bar and the bottom edge, equal air above and

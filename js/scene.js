@@ -22,7 +22,6 @@
   var COPY_RISE = 48; // px the copy drifts up as it goes
   var FLASH_IN_FROM = 0.86; // the hero whites out over its last stretch
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
-  var ROLE_INTRO = 1.5; // seconds of video 3 played on entering the section
   var TEXT_FILL_FROM = 0.12; // the statement starts filling once the flash is gone
   var TEXT_FILL_BY = 0.38; // ...and is fully read by here
   var SHRINK_FROM = 0.44; // once read, the shot starts packing itself...
@@ -274,38 +273,14 @@
       return;
     }
 
-    var seek = seeker(video);
-    var read = 0;
-
     /*
-     * The flight into the tunnel. The first time the section pins, video 3
-     * plays forward on its own for ROLE_INTRO seconds — so the tunnel is
-     * already rushing past as the white lifts — and stops where it gets to.
-     * From there the scroll has the camera, exactly like the hero.
+     * The tunnel is a background, not a camera: it loops on its own from the
+     * start, and the scroll animates only the text and the container moves.
      */
-    var introStarted = false;
-    var handOver = null;
+    video.loop = true;
+    video.play().catch(function () {});
 
-    function endIntro() {
-      if (handOver !== null) return;
-      video.pause();
-      handOver = video.currentTime;
-    }
-
-    function watchIntro() {
-      if (handOver !== null) return;
-      if (video.currentTime >= ROLE_INTRO || video.ended) {
-        endIntro();
-        return;
-      }
-      requestAnimationFrame(watchIntro);
-    }
-
-    function startIntro() {
-      if (introStarted) return;
-      introStarted = true;
-      video.play().then(watchIntro).catch(endIntro);
-    }
+    var read = 0;
 
     register(function () {
       var p = progressOf(scene);
@@ -374,17 +349,12 @@
       if (white) white.style.opacity = String(t);
       if (chrome) chrome.style.backgroundColor = 'rgba(0, 0, 0, ' + t.toFixed(3) + ')';
 
-      /*
-       * Parked, the clip stops being a camera and becomes a loop. It goes
-       * back to the scroll's hands the moment the box is pulled open again,
-       * and stops once it has left the frame entirely.
-       */
-      var parked = t >= 1;
-      if (parked && u < 1) {
-        video.loop = true;
-        if (video.paused) video.play().catch(function () {});
-      } else if (u >= 1) {
-        video.pause();
+      /* The loop rests once its box has left the frame, and picks back up
+         the moment scrolling brings it back. */
+      if (u >= 1) {
+        if (!video.paused) video.pause();
+      } else if (video.paused) {
+        video.play().catch(function () {});
       }
 
       /* The next chapter's box: in from the right, grow, then open up. */
@@ -437,20 +407,6 @@
       }
       read = want;
 
-      if (!video.duration) return;
-
-      /* The section pinning is what starts the flight. */
-      if (p > 0 && !introStarted) startIntro();
-
-      /* A fast scroller does not get held inside the intro. */
-      if (introStarted && handOver === null && p > 0.3) endIntro();
-
-      if (handOver === null || parked) return;
-      video.loop = false;
-      if (!video.paused) video.pause();
-      var pv = clamp01(p / SHRINK_BY);
-      seek(handOver + pv * (video.duration - handOver));
-      scene.dataset.cameraEnd = String(video.duration);
     });
   }
 

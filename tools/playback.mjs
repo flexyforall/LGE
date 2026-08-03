@@ -139,7 +139,7 @@ for (const scene of SCENES) {
           }
           out.push([Math.round(elapsed), el.currentTime]);
           if (elapsed < 3200) requestAnimationFrame(tick);
-          else resolve({ samples: out, end: +section.dataset.cameraEnd });
+          else resolve({ samples: out, end: +(section.dataset.cameraEnd || 0) });
         })();
       }),
     scene
