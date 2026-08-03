@@ -212,7 +212,9 @@
   <div class="scene__stage">
     <div class="frame frame--light" data-features-frame>
 
-      <div class="features__media" aria-hidden="true">
+      <!-- 254:3203 — the media, held on the right with the folder notches,
+           fixed while the copy marches past. Placeholder: the tunnel. -->
+      <div class="features__media" data-node-id="254:3203" aria-hidden="true">
         <video class="frame__video" data-features-video muted playsinline loop
                preload="metadata" poster="assets/videos/video-3-poster.jpg">
           <source src="assets/videos/video-3.mp4" type="video/mp4">
@@ -220,11 +222,10 @@
         </video>
       </div>
 
-      <div class="features__copy">
-        <p class="features__index" data-features-index>[01]</p>
-        <h2 class="features__title" data-features-title>Built to integrate</h2>
-        <p class="features__body" data-features-body>Designed to work with existing and next-generation orbital platforms.</p>
-      </div>
+      <!-- 254:3213 / 254:3217 — the points ride one track that the scroll
+           pushes upward through the active slot; js/scene.js builds a block
+           per FEATURE_POINTS entry. -->
+      <div class="features__track" data-features-track></div>
 
       <header class="header header--plate">
         <div class="header__leading">

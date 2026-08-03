@@ -27,6 +27,14 @@
 
 @font-face {
   font-family: 'Mozilla Text';
+  src: url('../assets/fonts/MozillaText-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mozilla Text';
   src: url('../assets/fonts/MozillaText-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
@@ -37,6 +45,14 @@
   font-family: 'PP Neue Montreal';
   src: url('../assets/fonts/PPNeueMontreal-Book.otf') format('opentype');
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Neue Montreal';
+  src: url('../assets/fonts/PPNeueMontreal-Medium.otf') format('opentype');
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
@@ -606,9 +622,11 @@ img {
 
 
 /* --- Features --------------------------------------------------------------
-   No Figma frame yet — built to the agreed reference. A white chapter: media
-   held on the right, the copy reading itself in on the left, the bar on its
-   black plate throughout. The left inset keeps the site's 60px column.
+   Figma "section 3.1" (251:2810). A white chapter: media held on the right
+   inside the notched folder shape (254:3203), the bar on its black plate, and
+   the points marching bottom-to-top through the active slot on the left. The
+   reading fill's leading edge runs blue — the design's accent — before the
+   characters settle to black.
    --------------------------------------------------------------------------- */
 
 .frame--light {
@@ -620,16 +638,29 @@ img {
   background: #000000;
 }
 
-/* Flush to the right edge, held clear of the bar and the bottom. */
+/*
+ * 254:3203 — x 820, y 116, 560 x 662 at 1440x810: anchored to the designed
+ * 60px right inset, spanning down to 32px off the bottom edge. The folder
+ * notches come from the design's Exclude shape, cut here with a clip-path.
+ */
 .features__media {
   position: absolute;
-  top: 104px;
-  right: 0;
-  bottom: 40px;
-  left: 50%;
+  top: 116px;
+  right: 60px;
+  bottom: 32px;
+  width: 560px;
   overflow: hidden;
-  border-radius: 16px 0 0 16px;
   background: var(--color-bg);
+  clip-path: polygon(
+    35% 0,
+    100% 0,
+    100% 92%,
+    83% 92%,
+    83% 100%,
+    0 100%,
+    0 8%,
+    35% 8%
+  );
 }
 
 .features__media .frame__video {
@@ -637,47 +668,83 @@ img {
   inset: 0;
 }
 
-.features__copy {
+/*
+ * 254:3213 — the active slot: x 60, block centre 41.5 below the frame's
+ * middle, 410 wide. The track holds every point 353px apart (254:3217 sits
+ * exactly that far below the first) and js/scene.js slides the whole thing
+ * upward through the slot.
+ */
+.features__track {
   position: absolute;
-  top: 50%;
+  top: calc(50% - 46px);
   left: 60px;
-  width: 560px;
-  max-width: calc(50% - 120px);
-  transform: translateY(-50%);
+  width: 410px;
+  will-change: transform;
 }
 
-.features__index {
-  margin: 0 0 20px;
-  font-family: var(--font-body);
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: -0.28px;
-  text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.4);
+.fpoint {
+  position: absolute;
+  left: 0;
+  width: 410px;
 }
 
-.features__title {
-  margin: 0 0 32px;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 48px;
-  line-height: 1.05;
-  letter-spacing: -1.92px;
-  color: var(--color-fg-inverse);
+/* 254:3212 — [01] and the title on one line, 20 apart, 48 tall */
+.fpoint__head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 48px;
+  margin: 0 0 31px;
 }
 
-/* Reads itself in, the same way the statement does — dark on white here. */
-.features__body {
+/* 254:3210 — Mozilla Text Medium 20, tracking -0.8 */
+.fpoint__index {
   margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: -0.8px;
+  color: rgba(33, 33, 33, 0.7);
+  white-space: nowrap;
+}
+
+/* 254:3204 — Mozilla Text Medium 48, tracking -1.92 */
+.fpoint__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: -1.92px;
+  color: #212121;
+  white-space: nowrap;
+}
+
+/* 254:3206 — PP Neue Montreal Medium 32/1, 401 wide */
+.fpoint__body {
+  margin: 0;
+  width: 401px;
   font-family: var(--font-body);
-  font-weight: 400;
-  font-size: 28px;
-  line-height: 36px;
-  letter-spacing: -0.28px;
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.15;
   color: rgba(0, 0, 0, 0.2);
 }
 
-.features__body .is-read {
-  color: #0a0a0a;
+/*
+ * The reading fill: grey ahead of the edge, the design's blue on the freshly
+ * read run, settling to black behind it. The colour transition is what makes
+ * the edge read as a gradient sweeping through the text.
+ */
+.fpoint__body span {
+  transition: color 0.35s ease;
+}
+
+.fpoint__body .is-fresh {
+  color: #2f5fe8;
+}
+
+.fpoint__body .is-read {
+  color: #000000;
 }

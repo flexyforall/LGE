@@ -411,7 +411,12 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * Features
+   * Features — Figma "section 3.1" (251:2810)
+   *
+   * The media holds still on the right; the points ride one track that the
+   * scroll pushes bottom-to-top through the active slot. A point fades up
+   * from the design's 0.2 as it arrives, its body reads itself in with a
+   * blue leading edge, and it dims again as it leaves upward.
    * ------------------------------------------------------------------ */
 
   var FEATURE_POINTS = [
@@ -428,22 +433,52 @@
       body: 'We extend the capabilities of partner platforms without competing with the companies that build and operate them.',
     },
   ];
-  var POINT_FILL_BY = 0.72; // fraction of a point's stretch its body reads over
+  var POINT_SPACING = 353; // 254:3217 sits exactly this far below 254:3213
+  var POINT_DIM = 0.2; // a waiting point's opacity, from the design
+  var POINT_LEAD = 0.35; // the track starts this much shy of the first slot
+  var FRESH_TRAIL = 7; // characters the blue edge covers before settling
 
   function setUpFeatures() {
     var scene = document.querySelector('[data-scene="features"]');
     if (!scene) return;
 
     var video = scene.querySelector('[data-features-video]');
-    var index = scene.querySelector('[data-features-index]');
-    var title = scene.querySelector('[data-features-title]');
-    var body = scene.querySelector('[data-features-body]');
-    if (!index || !title || !body) return;
+    var track = scene.querySelector('[data-features-track]');
+    if (!track) return;
+
+    /* Build a block per point. */
+    var blocks = FEATURE_POINTS.map(function (point, i) {
+      var el = document.createElement('div');
+      el.className = 'fpoint';
+      el.style.top = i * POINT_SPACING + 'px';
+
+      var head = document.createElement('div');
+      head.className = 'fpoint__head';
+      var index = document.createElement('p');
+      index.className = 'fpoint__index';
+      index.textContent = '[0' + (i + 1) + ']';
+      var title = document.createElement('p');
+      title.className = 'fpoint__title';
+      title.textContent = point.title;
+      head.appendChild(index);
+      head.appendChild(title);
+
+      var body = document.createElement('p');
+      body.className = 'fpoint__body';
+      body.textContent = point.body;
+
+      el.appendChild(head);
+      el.appendChild(body);
+      track.appendChild(el);
+
+      return { el: el, letters: splitCharacters(body), read: 0 };
+    });
 
     if (reduced) {
       scene.style.height = 'auto';
-      var spans = splitCharacters(body);
-      for (var i = 0; i < spans.length; i++) spans[i].className = 'is-read';
+      blocks.forEach(function (b) {
+        for (var i = 0; i < b.letters.length; i++) b.letters[i].className = 'is-read';
+      });
       return;
     }
 
@@ -452,40 +487,56 @@
       video.play().catch(function () {});
     }
 
-    var step = -1;
-    var letters = [];
-    var read = 0;
-
-    function showPoint(n) {
-      step = n;
-      var point = FEATURE_POINTS[n];
-      index.textContent = '[0' + (n + 1) + ']';
-      title.textContent = point.title;
-      body.textContent = point.body;
-      letters = splitCharacters(body);
-      read = 0;
-    }
-
     register(function () {
       var p = progressOf(scene);
 
-      /* The scroll walks the three points, each reading itself in. */
-      var slot = Math.min(
-        FEATURE_POINTS.length - 1,
-        Math.floor(p * FEATURE_POINTS.length)
-      );
-      if (slot !== step) showPoint(slot);
+      /*
+       * s is the reading clock in slot units: block i is centred in the
+       * active slot when s === i. It starts a little shy of the first slot so
+       * the opening scroll carries point one up into place, and runs a beat
+       * past the last so its body finishes reading. The track itself stops at
+       * the last slot — only the clock overshoots.
+       */
+      var s =
+        -POINT_LEAD +
+        p * (FEATURE_POINTS.length - 1 + POINT_LEAD + 0.15);
+      var sTrack = Math.min(s, FEATURE_POINTS.length - 1);
+      track.style.transform =
+        'translateY(' + (-sTrack * POINT_SPACING).toFixed(1) + 'px)';
 
-      var local = clamp01(
-        (p * FEATURE_POINTS.length - slot) / POINT_FILL_BY
-      );
-      var want = Math.round(local * letters.length);
-      if (want > read) {
-        for (var i = read; i < want; i++) letters[i].className = 'is-read';
-      } else if (want < read) {
-        for (var j = read - 1; j >= want; j--) letters[j].className = '';
+      for (var i = 0; i < blocks.length; i++) {
+        var block = blocks[i];
+        var away = Math.abs(i - sTrack);
+
+        /* At the slot a point is full; one slot out it waits at the dim. */
+        var presence = clamp01(1 - away);
+        block.el.style.opacity = String(
+          POINT_DIM + (1 - POINT_DIM) * presence
+        );
+
+        /*
+         * The body reads in as the point rides up into the slot: empty while
+         * it waits below, complete just after it arrives.
+         */
+        var fill = clamp01((s - i + POINT_LEAD) / (POINT_LEAD + 0.15));
+        var want = Math.round(fill * block.letters.length);
+        block.read = want;
+
+        /*
+         * Every character is one of three states — settled black, the blue
+         * edge, or unread grey — and the whole run is restated each paint so
+         * the edge really travels: what it leaves behind settles to black.
+         */
+        /* 0.995 rather than 1: float rounding must not hold the last few
+           characters blue forever at the very end of the travel. */
+        var settledTo = fill < 0.995 ? Math.max(0, want - FRESH_TRAIL) : want;
+        for (var j = 0; j < block.letters.length; j++) {
+          var cls = j < settledTo ? 'is-read' : j < want ? 'is-fresh' : '';
+          if (block.letters[j].className !== cls) {
+            block.letters[j].className = cls;
+          }
+        }
       }
-      read = want;
     });
   }
 
