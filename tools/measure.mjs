@@ -18,20 +18,26 @@ const target =
 
 /** Boxes in frame coordinates: [nodeId, x, y, w, h, label]. */
 const BOXES = [
-  // --- hero ("section 4"), 257:3393 ---
-  ['257:3395', 20, 20, 1400, 64, 'header'],
-  ['257:3396', 40, 35, 697, 34, 'header leading group'],
-  ['257:3397', 40, 35, 34, 34, 'logo'],
-  ['257:3408', 1260, 35, 140, 34, 'become-a-partner button'],
-  ['257:3409', 1260, 35, 140, 34, 'become-a-partner shape'],
-  // tag row 14 tall + 32 gap + two 72px lines = 190, centred on the frame
-  ['257:3452', 60, 310, 1320, 190, 'hero content'],
-  ['257:3447', 60, 313, 8, 8, 'tag square (left)'],
-  ['257:3413', 40, 700, 1360, 50, 'hero footer'],
-  ['257:3415', 1229, 700, 171, 50, 'actions'],
-  ['257:3416', 1229, 700, 171, 50, 'explore button'],
-  ['257:3417', 1249, 710, 131, 30, 'explore label box'],
-  ['257:3418', 1227, 700, 175, 50, 'explore plate'],
+  // --- hero ("section 5"), 313:1164 ---
+  ['313:1200', 20, 20, 1400, 64, 'header'],
+  ['313:1201', 40, 35, 697, 34, 'header leading group'],
+  ['313:1203', 40, 35, 34, 34, 'logo'],
+  ['313:1212', 1260, 33, 140, 38, 'become-a-partner slot'],
+  ['313:1213', 1254, 32, 146, 36, 'become-a-partner shape'],
+  // tag 14 + 32 + [headline 128 + 40 + button 57] = 271, centred on the frame
+  ['313:1246', 220, 269, 1000, 271, 'hero content'],
+  ['313:1240', null, 269, null, 14, 'tag row'],
+  ['313:1241', null, 272, 8, 8, 'tag square (left)'],
+  ['313:1239', 220, 315, 1000, 225, 'title + button stack'],
+  ['313:1221', 220, 315, 1000, 128, 'headline'],
+  ['313:1223', 626, 483, 188, 57, 'button row'],
+  ['313:1224', 626, 486.5, 171, 50, 'button'],
+  ['313:1225', 703, 481, 94, 40, 'button glow'],
+  ['313:1228', 626, 488, 188, 50, 'button tab'],
+  ['313:1229', 626, 486, 188, 54, 'button plate'],
+  ['313:1230', 626, 486, 188, 54, 'button sheen'],
+  // two 16px lines — the height the bottom anchor is set from
+  ['313:1216', 460, 728, 520, 32, 'bottom note'],
 
   // --- section 2 (our role), 238:2674 ---
   ['238:2675', 338, 321, 764, 168, 'statement'],
@@ -44,25 +50,25 @@ const BOXES = [
  * the spacing between them is covered by GAPS below.
  */
 const TEXT_ORIGINS = [
-  ['257:3412', 60, 356, 'headline'],
-  ['257:3414', 40, 726, 'subhead'],
-  ['257:3403', 114, 45, 'nav: TECHNOLOGY'],
-  ['257:3410', 1278, 45, 'become-a-partner label'],
-  ['257:3419', 1249, 718, 'explore label'],
+  ['313:1208', 114, 44.2, 'nav: TECHNOLOGY'],
+  ['313:1214', 1270, 42, 'become-a-partner label'],
+  ['313:1237', 644, 506, 'explore label'],
+  ['313:1218', 460, 728, 'bottom note text'],
   ['238:2679', 687, 760, 'our-role label'],
   ['238:2682', 607, 760, 'our-role row'],
 ];
 
 /** [fromNodeId, toNodeId, expectedGap, label] — the paddings and margins themselves. */
 const GAPS = [
-  ['257:3397', '257:3402', 40, 'logo -> nav'],
-  ['257:3403', '257:3404', 30, 'nav: TECHNOLOGY -> COMPANY'],
-  ['257:3404', '257:3406', 30, 'nav: COMPANY -> FOR INVESTORS'],
-  ['257:3406', '257:3407', 30, 'nav: FOR INVESTORS -> CONTACT'],
+  ['313:1203', '313:1207', 40, 'logo -> nav'],
+  ['313:1208', '313:1209', 30, 'nav: TECHNOLOGY -> COMPANY'],
+  ['313:1209', '313:1210', 30, 'nav: COMPANY -> FOR INVESTORS'],
+  ['313:1210', '313:1211', 30, 'nav: FOR INVESTORS -> CONTACT'],
   // the tag's law: 56px of air between the text and each square
-  ['257:3447', '257:3446-text', 56, 'tag: left square -> text'],
-  ['257:3446-text', '257:3450', 56, 'tag: text -> right square'],
-  ['257:3446', '257:3412', 32, 'tag -> headline'],
+  ['313:1241', '313:1240-text', 56, 'tag: left square -> text'],
+  ['313:1240-text', '313:1244', 56, 'tag: text -> right square'],
+  ['313:1240', '313:1239', 32, 'tag -> title stack'],
+  ['313:1221', '313:1223', 40, 'headline -> button'],
   ['238:2680', '238:2679', 72, 'dot -> OUR ROLE'],
   ['238:2679', '238:2681', 72, 'OUR ROLE -> dot'],
 ];
@@ -90,7 +96,7 @@ const rects = await page.evaluate(() => {
   if (tagText) {
     const frame = tagText.closest('.frame').getBoundingClientRect();
     const r = tagText.getBoundingClientRect();
-    out['257:3446-text'] = {
+    out['313:1240-text'] = {
       x: r.x - frame.x,
       y: r.y - frame.y,
       w: r.width,
@@ -114,12 +120,17 @@ const rects = await page.evaluate(() => {
 
 await browser.close();
 
-const n = (v) => v.toFixed(1).padStart(7);
+const n = (v) => (v === null ? '      —' : v.toFixed(1).padStart(7));
 let failures = 0;
 
+/*
+ * A null in `want` means the design does not pin that number: the tag row's
+ * width follows whichever line is showing, and the note's height follows how
+ * many lines its copy takes. Those are reported and skipped.
+ */
 const check = (label, got, want) => {
-  const deltas = got.map((g, i) => g - want[i]);
-  const ok = deltas.every((d) => Math.abs(d) <= TOL);
+  const deltas = got.map((g, i) => (want[i] === null ? null : g - want[i]));
+  const ok = deltas.every((d) => d === null || Math.abs(d) <= TOL);
   if (!ok) failures++;
   console.log(
     `${ok ? 'ok  ' : 'FAIL'}  ${label.padEnd(34)}` +

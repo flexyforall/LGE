@@ -15,19 +15,15 @@
  * whole frame is scaled down instead of re-laid out, which holds every padding
  * and margin at its designed ratio.
  *
- * `--frame-width` is published because the quarter-turned video in the hero is
- * sized off the frame width, and a rotated box cannot derive that from
- * percentages.
- *
  * Runs before first paint so nothing jumps.
  */
 (function () {
-  var MIN_WIDTH = 900;
+  var MIN_WIDTH = 1040; // must match --frame-min-width in css/style.css
   var set = function () {
-    var width = Math.max(document.documentElement.clientWidth, MIN_WIDTH);
-    var style = document.documentElement.style;
-    style.setProperty('--frame-scale', Math.min(1, window.innerWidth / MIN_WIDTH));
-    style.setProperty('--frame-width', width + 'px');
+    document.documentElement.style.setProperty(
+      '--frame-scale',
+      Math.min(1, window.innerWidth / MIN_WIDTH)
+    );
   };
   set();
   addEventListener('resize', set);
@@ -37,80 +33,92 @@
 <body>
 
 <!-- =====================================================================
-     Figma: "section 4" (257:3393) — 1440 x 810, the reworked hero.
+     Figma: "section 5" (313:1164) — 1440 x 810, the reworked hero.
 
-     One clip loops as the background at the design's 70%. The scroll fades
-     the copy, then whites the frame out — the hand-off into the section
-     below. The tag line rotates through the five points on its own clock.
-     See js/scene.js.
+     One clip loops as the background, full strength — the updated frame
+     drops the 70% veil the earlier hero ran its media at. The copy is
+     centred now: tag, title and the one button stack on the frame's middle,
+     with a line of small type down at y 728.
+
+     The scroll fades the copy, then whites the frame out — the hand-off
+     into the section below. The tag line rotates through the five points on
+     its own clock. See js/scene.js.
      ===================================================================== -->
 <div class="scene" data-scene="hero">
   <div class="scene__stage">
-    <div class="frame" data-node-id="257:3393" data-design-frame>
+    <div class="frame" data-node-id="313:1164" data-design-frame>
 
       <div class="frame__bg" aria-hidden="true">
-        <!-- 303:36 — the clip, at 70% over black per the design -->
+        <!-- 313:1165 — the clip, full bleed and full strength -->
         <video class="frame__video" data-hero-video="1" muted playsinline loop
                preload="auto" poster="assets/videos/video-1-poster.jpg">
           <source src="assets/videos/video-1.mp4" type="video/mp4">
           <source src="assets/videos/video-1.webm" type="video/webm">
         </video>
-        <div class="frame__overlay"></div>
       </div>
 
-      <!-- Figma: 257:3395 — 1400 x 64, inset 20/20. Fades with the white-out. -->
-      <header class="header" data-node-id="257:3395" data-hero-chrome>
-        <div class="header__leading" data-node-id="257:3396">
+      <!-- Figma: 313:1200 — 1400 x 64, inset 20/20. Fades with the white-out. -->
+      <header class="header" data-node-id="313:1200" data-hero-chrome>
+        <div class="header__leading" data-node-id="313:1201">
 
-          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="257:3397">
+          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="313:1203">
             <img src="assets/logos/logo.svg" alt="" width="34" height="34">
           </a>
 
-          <nav class="nav" data-node-id="257:3402">
-            <a class="nav__link" href="#technology" data-node-id="257:3403">TECHNOLOGY</a>
-            <a class="nav__link" href="#company" data-node-id="257:3404">COMPANY</a>
-            <a class="nav__link" href="#investors" data-node-id="257:3406">FOR INVESTORS</a>
-            <a class="nav__link" href="#contact" data-node-id="257:3407">CONTACT</a>
+          <nav class="nav" data-node-id="313:1207">
+            <a class="nav__link" href="#technology" data-node-id="313:1208">TECHNOLOGY</a>
+            <a class="nav__link" href="#company" data-node-id="313:1209">COMPANY</a>
+            <a class="nav__link" href="#investors" data-node-id="313:1210">FOR INVESTORS</a>
+            <a class="nav__link" href="#contact" data-node-id="313:1211">CONTACT</a>
           </nav>
 
         </div>
 
-        <a class="partner" href="#partner" data-node-id="257:3408">
-          <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
-               alt="" width="140" height="34" data-node-id="257:3409">
-          <span class="partner__label" data-node-id="257:3410">BECOME A PARTNER</span>
+        <a class="partner" href="#partner" data-node-id="313:1212">
+          <span class="partner__shape" data-node-id="313:1213"></span>
+          <span class="partner__label" data-node-id="313:1214">BECOME A PARTNER</span>
         </a>
       </header>
 
       <!-- Both blocks clear out together as the scroll leaves the hero. -->
       <div data-scene-copy>
 
-        <!-- Figma: 257:3452 — tag row + title, 32 apart, centred on the frame -->
-        <div class="hero__content" data-node-id="257:3452">
-          <div class="hero__tag" data-node-id="257:3446">
-            <span class="hero__tagSquare" data-node-id="257:3447"></span>
+        <!-- Figma: 313:1246 — x 220, 1000 wide, centred on the frame; the tag
+             sits 32 above the inner stack, which is 40 between title and button -->
+        <div class="hero__content" data-node-id="313:1246">
+          <div class="hero__tag" data-node-id="313:1240">
+            <span class="hero__tagSquare" data-node-id="313:1241"></span>
             <span class="hero__tagText" data-hero-tag>
               <span class="hero__tagLine">WELCOME TO CORE SPACE</span>
             </span>
-            <span class="hero__tagSquare" data-node-id="257:3450"></span>
+            <span class="hero__tagSquare" data-node-id="313:1244"></span>
           </div>
 
-          <h1 class="hero__headline" data-node-id="257:3412">The enabling technology<br>behind orbital data centers.</h1>
+          <div class="hero__stack" data-node-id="313:1239">
+            <h1 class="hero__headline" data-node-id="313:1221">The enabling technology<br>behind orbital data centers</h1>
+
+            <!-- Figma: 313:1223 — the button row. The plate overhangs the
+                 button's own 171px box on the right, and the bloom overhangs
+                 it again; both are the design's, kept as CSS so the glow can
+                 breathe and follow the pointer. See js/scene.js. -->
+            <div class="btns" data-node-id="313:1223">
+              <a class="btn" href="#technology" data-node-id="313:1224" data-btn-glow>
+                <span class="btn__aura" data-node-id="313:1225" aria-hidden="true"></span>
+                <span class="btn__tab" data-node-id="313:1228">
+                  <span class="btn__plate" data-node-id="313:1229"></span>
+                  <span class="btn__sheen" data-node-id="313:1230" aria-hidden="true">
+                    <span class="btn__sheenCore"></span>
+                  </span>
+                  <span class="btn__label" data-node-id="313:1237">EXPLORE TECHNOLOGY</span>
+                </span>
+              </a>
+            </div>
+          </div>
         </div>
 
-        <!-- Figma: 257:3413 — y 700, full-width row inset 40 -->
-        <div class="hero__footer" data-node-id="257:3413">
-          <p class="hero__subhead" data-node-id="257:3414">Plasma power and propulsion, connected by high-bandwidth laser links</p>
-
-          <div class="hero__actions" data-node-id="257:3415">
-            <a class="explore" href="#technology" data-node-id="257:3416">
-              <span class="explore__inner" data-node-id="257:3417">
-                <img class="explore__shape" src="assets/icons/btn-explore-base.svg"
-                     alt="" width="175" height="50" data-node-id="257:3418">
-                <span class="explore__label" data-node-id="257:3419">EXPLORE TECHNOLOGY</span>
-              </span>
-            </a>
-          </div>
+        <!-- Figma: 313:1216 — 520 wide, centred, y 728 -->
+        <div class="hero__note" data-node-id="313:1216">
+          <p class="hero__noteText" data-node-id="313:1218">Core Space works alongside operators and platform builders, providing the critical systems they need to deploy, scale and operate in orbit.</p>
         </div>
 
       </div>
@@ -184,8 +192,7 @@
           </nav>
         </div>
         <a class="partner" href="#partner">
-          <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
-               alt="" width="140" height="34">
+          <span class="partner__shape"></span>
           <span class="partner__label">BECOME A PARTNER</span>
         </a>
       </header>

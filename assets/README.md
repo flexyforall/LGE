@@ -59,27 +59,22 @@ H.264 rather than the preferred file.
 
 Three things shape the encodes:
 
-- **Videos 1 and 2 keep their source resolution** and near-transparent crf, so
-  retina screens finally get the clip as delivered. Video 3 sits at 2560 — its
+- **Video 1 keeps its source resolution** and near-transparent crf, so retina
+  screens finally get the clip as delivered. Video 3 sits at 2560 — its
   light streaks are brutally expensive to code, and the full-4K version came
   out at 41 MB for five seconds; 2560 is the sane ceiling.
 - **Anything the scroll drives gets a keyframe every 8 frames.** The scroll sets
   `currentTime` directly, and seeking is only as precise as the nearest
   keyframe. Video 1 just plays, so it keeps a normal GOP.
-- **Quality beats weight here — and it now costs real weight.** ~74 MB of MP4
+- **Quality beats weight here — and it now costs real weight.** ~61 MB of MP4
   all told. If that ever matters, the crf 20-24 encodes of the previous pass
   were the best quality-per-byte trade.
 
 ```bash
-# video 1 — plays straight through
+# video 1 — loops in the background
 ffmpeg -i 1.mp4 -vf "fps=24,setsar=1" \
   -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 18 -preset slow -g 24 \
   -an -movflags +faststart video-1.mp4
-
-# video 2 — quarter-turned in CSS, so encode to the height the rotation needs
-ffmpeg -i 2.mp4 -vf "fps=24,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 20 -preset medium \
-  -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-2.mp4
 
 # video 3 — scroll-driven, streak-heavy
 ffmpeg -i 3.mp4 -vf "fps=24,scale=2560:-2,setsar=1" \
@@ -99,12 +94,12 @@ ffmpeg -i 1.mp4 -vf "fps=24,scale=1280:-2,setsar=1" -c:v libvpx-vp9 \
 corrected in place to `0 -248 600 600`, read off the mask bounds — nothing else
 in the file was touched. Worth re-checking if the logo is ever re-exported.
 
-The PP Neue Montreal faces arrived as `.otf`. Only Book is wired up — it is the
-one weight these sections use. Converting the family to `.woff2` would cut it to
-roughly half the bytes, worth doing before launch.
+The PP Neue Montreal faces arrived as `.otf`. Book and Medium are wired up —
+the two weights these sections use. Converting the family to `.woff2` would cut
+it to roughly half the bytes, worth doing before launch.
 
 Vector uploads keep arriving in `images/` and get moved to `icons/` under the
-names the markup uses:
+names the markup used at the time:
 
 | Uploaded as | Now | Figma node |
 | --- | --- | --- |
@@ -113,16 +108,28 @@ names the markup uses:
 | `Ellipse 2510.svg` | `icons/glow-soft.svg` | `201:3135` |
 | `Ellipse 2511.svg` | `icons/glow-core.svg` | `201:3136` |
 
-`icons/btn-explore-base.svg` is the one asset not exported from Figma. It is the
-white 175x50 plate the glow sits on — Figma node `201:3078`
-("Rectangle 26102856"), which was not in the upload. The outline is taken
-verbatim from the path `btn-explore-glow.svg` masks itself with, so the two line
-up exactly; only the fill is assumed. Exporting `201:3078` and dropping it in at
-that path would replace it.
+`icons/btn-explore-base.svg` is the one file here not exported from Figma. It
+is the white 175x50 plate the glow sits on — Figma node `201:3078`
+("Rectangle 26102856"), which was not in the upload. Its outline is taken
+verbatim from the path `btn-explore-glow.svg` masks itself with.
 
-`shaperec.svg` (175x44) belonged to an earlier hero and is no longer used — the
-current design's button is 175x50.
+**Every SVG in `icons/` is currently unused.** Both buttons are now drawn in
+CSS instead:
 
-The current hero's button has no glow behind it, so `glow-soft.svg`,
-`glow-core.svg` and `btn-explore-glow.svg` are unused for now. They are kept
-because they belong to a design that may come back.
+- The hero's EXPLORE TECHNOLOGY button (`313:1223`, `314:1263`) grew to a
+  188x54 plate, so the 175x50 exports no longer fit it — and its bloom has to
+  breathe and follow the pointer, which a flat SVG cannot do. The plate is a
+  `clip-path` and the bloom a pair of gradients; the ellipse geometry is the
+  same as `glow-soft.svg` and `glow-core.svg` (rx 47 at 30px and 10px of
+  blur), read off those files.
+- BECOME A PARTNER (`313:1213`) turned from the white plate into the dark one
+  with a hairline, the shape `314:1287` uses at its larger size. That border
+  is a 1px inset of a cut-cornered outline, which needs a second copy of the
+  outline to hold, so it too is two clipped layers rather than an export.
+
+The files are kept because they are the record of the shapes those rules were
+built from, and because a design that uses them may come back. figma.com is
+unreachable from here, so nothing in `icons/` can be re-exported without
+someone uploading it.
+
+`shaperec.svg` (175x44) belonged to an earlier hero and is no longer used.
