@@ -31,7 +31,6 @@ const ALLOWED_OFF_TARGET = FRAME * 1.5;
  * but never partially rewinds, and the incoming clip is playing at the end.
  */
 const SCENES = [
-  { name: 'hero', video: '[data-hero-video="2"]', restsOnTarget: true },
   { name: 'role', video: '[data-role-video]', restsOnTarget: false },
 ];
 
@@ -71,37 +70,30 @@ function worstDrop(samples, allowWraps) {
 const failures = [];
 
 /*
- * 1. The hero idle loop: video 1 in full, video 2 up to its cut, and around
- *    again. Wraps back to 0 are the loop working; anything else backwards is
- *    a rewind. It must also actually cycle.
+ * 1. The hero background: a 12s clip on loop. Wraps back to 0 are the loop
+ *    working; anything else backwards is a rewind. It must actually cycle.
  */
 const intro = await page.evaluate(
   () =>
     new Promise((resolve) => {
-      const first = document.querySelector('[data-hero-video="1"]');
-      const second = document.querySelector('[data-hero-video="2"]');
+      const video = document.querySelector('[data-hero-video="1"]');
       const a = [];
-      const b = [];
       const t0 = performance.now();
       (function tick() {
         const elapsed = performance.now() - t0;
-        a.push([Math.round(elapsed), first.currentTime]);
-        b.push([Math.round(elapsed), second.currentTime]);
+        a.push([Math.round(elapsed), video.currentTime]);
         if (elapsed < 16500) requestAnimationFrame(tick);
-        else resolve({ a, b });
+        else resolve({ a });
       })();
     })
 );
 
-const firstDrop = worstDrop(intro.a, true);
-const secondDrop = worstDrop(intro.b, true);
+const heroDrop = worstDrop(intro.a, true);
 console.log(`
-idle    video 1 wrapped ${firstDrop.wraps}x, largest non-wrap backward step ${firstDrop.worst.toFixed(4)}s
-        video 2 wrapped ${secondDrop.wraps}x, largest non-wrap backward step ${secondDrop.worst.toFixed(4)}s`);
+idle    hero clip wrapped ${heroDrop.wraps}x, largest non-wrap backward step ${heroDrop.worst.toFixed(4)}s`);
 
-if (firstDrop.worst > TOLERANCE) failures.push('video 1 rewinds mid-loop');
-if (secondDrop.worst > TOLERANCE) failures.push('video 2 rewinds mid-loop');
-if (firstDrop.wraps + secondDrop.wraps === 0) failures.push('the idle loop never cycles');
+if (heroDrop.worst > TOLERANCE) failures.push('the hero clip rewinds mid-loop');
+if (heroDrop.wraps === 0) failures.push('the hero loop never cycles');
 
 /*
  * 2. Each scrub: ramp the scroll across the section, then hold.

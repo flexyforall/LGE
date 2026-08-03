@@ -17,10 +17,17 @@
 (function () {
   'use strict';
 
-  var HERO_LOOP_CUT = 5.5; // video 2 loops back before its flare starts growing
-  var COPY_FADE = 0.22; // fraction of the hero scroll the copy fades over
+  var COPY_FADE = 0.3; // fraction of the hero scroll the copy fades over
   var COPY_RISE = 48; // px the copy drifts up as it goes
-  var FLASH_IN_FROM = 0.86; // the hero whites out over its last stretch
+  var FLASH_IN_FROM = 0.72; // the hero whites out over its last stretch
+  var TAG_LINES = [
+    'WELCOME TO CORE SPACE',
+    'POWER GENERATION & TRANSMISSION',
+    'HIGH-BANDWIDTH LASER LINKS',
+    'PLASMA ELECTRIC PROPULSION',
+    'ENGINEERED FOR VLEO',
+  ];
+  var TAG_PERIOD = 2800; // ms between rotations
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
   var TEXT_FILL_FROM = 0.12; // the statement starts filling once the flash is gone
   var TEXT_FILL_BY = 0.38; // ...and is fully read by here
@@ -99,89 +106,85 @@
    * Hero
    * ------------------------------------------------------------------ */
 
+  /*
+   * The rotating tag. One line lives in the box at a time; on each tick the
+   * next line tips in from below while the old one tips up and away, and the
+   * box's width glides to the new line's width — which is what slides the
+   * right-hand square while the left one holds its ground.
+   */
+  function setUpTag(scene) {
+    var box = scene.querySelector('[data-hero-tag]');
+    if (!box) return;
+
+    var current = box.querySelector('.hero__tagLine');
+    var idx = 0;
+
+    function widthOf(text) {
+      var probe = document.createElement('span');
+      probe.className = 'hero__tagLine';
+      probe.style.visibility = 'hidden';
+      probe.textContent = text;
+      box.appendChild(probe);
+      var w = probe.getBoundingClientRect().width;
+      probe.remove();
+      return w;
+    }
+
+    function fit() {
+      box.style.width = widthOf(TAG_LINES[idx]) + 'px';
+    }
+
+    /* Fonts land late and change the measurement — fit again when they do. */
+    fit();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+
+    if (reduced) return;
+
+    setInterval(function () {
+      idx = (idx + 1) % TAG_LINES.length;
+
+      var next = document.createElement('span');
+      next.className = 'hero__tagLine is-in';
+      next.textContent = TAG_LINES[idx];
+      box.appendChild(next);
+      fit();
+
+      var old = current;
+      current = next;
+
+      /* Two frames so the entering transform is committed before it animates. */
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          next.classList.remove('is-in');
+          if (old) old.classList.add('is-out');
+        });
+      });
+      setTimeout(function () {
+        if (old) old.remove();
+      }, 650);
+    }, TAG_PERIOD);
+  }
+
   function setUpHero() {
     var scene = document.querySelector('[data-scene="hero"]');
     if (!scene) return;
 
-    var frame = scene.querySelector('[data-design-frame]');
-    var first = scene.querySelector('[data-hero-video="1"]');
-    var second = scene.querySelector('[data-hero-video="2"]');
+    var video = scene.querySelector('[data-hero-video="1"]');
     var copy = scene.querySelector('[data-scene-copy]');
     var flash = scene.querySelector('[data-hero-flash]');
     var chrome = scene.querySelector('[data-hero-chrome]');
-    if (!frame || !first || !second || !copy) return;
+    if (!video || !copy) return;
+
+    setUpTag(scene);
 
     if (reduced) {
       scene.style.height = 'auto';
       return;
     }
 
-    var seek = seeker(second);
-    /*
-     * Where video 2 was when the scroll took over, and the origin the scrub
-     * runs from. Null while the idle loop still has the stage.
-     *
-     * It is read off the video rather than assumed: playback always overshoots
-     * a mark by a frame or two, and rewinding onto a round number shows as a
-     * hitch backwards just as the motion settles.
-     */
-    var handOver = null;
-    var stage = 1;
-
-    function show(n) {
-      stage = n;
-      frame.dataset.heroStage = String(n);
-    }
-
-    function ignore() {}
-
-    /*
-     * The idle loop: video 1 in full, video 2 up to HERO_LOOP_CUT — cutting
-     * away just before its flare starts to grow — then around again, crossing
-     * on each change. Watched on the frame clock rather than `timeupdate`,
-     * which fires about four times a second, far too coarse to cut on a mark.
-     */
-    /*
-     * The hidden clip is rewound only after the 500ms cross has finished, and
-     * never while it is on stage. Rewinding it at the moment of the cut put a
-     * stray frame on screen — the incoming clip fading in on whatever frame it
-     * had been left showing.
-     */
-    function rewindWhenHidden(video, ofStage) {
-      setTimeout(function () {
-        if (handOver === null && stage !== ofStage) video.currentTime = 0;
-      }, 700);
-    }
-
-    function watchLoop() {
-      if (handOver !== null) return;
-      if (stage === 1) {
-        if (first.ended || (first.duration && first.currentTime >= first.duration - 0.05)) {
-          show(2);
-          second.play().catch(ignore);
-          /* Video 1 has faded out on its last frame — reset it off stage. */
-          rewindWhenHidden(first, 1);
-        }
-      } else if (second.currentTime >= HERO_LOOP_CUT || second.ended) {
-        show(1);
-        second.pause();
-        first.play().catch(ignore);
-        rewindWhenHidden(second, 2);
-      }
-      requestAnimationFrame(watchLoop);
-    }
-
-    /* The first scroll breaks the loop and gives video 2 to the scrub. */
-    function endIntro() {
-      if (handOver !== null) return;
-      first.pause();
-      second.pause();
-      if (stage === 1) show(2);
-      handOver = Math.min(second.currentTime, HERO_LOOP_CUT);
-    }
-
-    first.play().catch(ignore);
-    watchLoop();
+    /* The clip is a background: it loops on its own, at the design's 70%. */
+    video.loop = true;
+    video.play().catch(function () {});
 
     register(function () {
       var p = progressOf(scene);
@@ -189,30 +192,18 @@
       var fade = Math.min(1, p / COPY_FADE);
       copy.style.opacity = String(1 - fade);
       copy.style.transform = 'translateY(' + (-fade * COPY_RISE).toFixed(1) + 'px)';
-      /* Visibility cascades where pointer-events does not, so it also takes
-         the two blocks out of reach once they are gone. */
       copy.style.visibility = fade === 1 ? 'hidden' : '';
 
       /*
-       * Video 2's last frames are bright but faintly textured; this finishes
-       * the white-out so the hand-off to the section below is pure white on
-       * both sides of the seam.
+       * The white-out that hands over to the section below; the bar fades
+       * with it, so nothing rides the flash.
        */
       var flashIn = clamp01((p - FLASH_IN_FROM) / (1 - FLASH_IN_FROM));
       if (flash) flash.style.opacity = String(flashIn);
-      /* The bar fades with the white-out, so nothing rides the flash. */
       if (chrome) {
         chrome.style.opacity = String(1 - flashIn);
         chrome.style.visibility = flashIn === 1 ? 'hidden' : '';
       }
-
-      /* Scrolling hands the camera over from wherever the intro had got to. */
-      if (p > 0) endIntro();
-      if (handOver === null || !second.duration) return;
-
-      if (!second.paused) second.pause();
-      seek(handOver + p * (second.duration - handOver));
-      scene.dataset.cameraEnd = String(second.duration);
     });
   }
 
@@ -410,141 +401,10 @@
     });
   }
 
-  /* ------------------------------------------------------------------ *
-   * Features — Figma "section 3.1" (251:2810)
-   *
-   * The media holds still on the right; the points ride one track that the
-   * scroll pushes bottom-to-top through the active slot. A point fades up
-   * from the design's 0.2 as it arrives, its body reads itself in with a
-   * blue leading edge, and it dims again as it leaves upward.
-   * ------------------------------------------------------------------ */
-
-  var FEATURE_POINTS = [
-    {
-      title: 'Built to integrate',
-      body: 'Designed to work with existing and next-generation orbital platforms.',
-    },
-    {
-      title: 'Built to scale',
-      body: 'Critical systems that support partners from initial deployment through long-term operations.',
-    },
-    {
-      title: 'Partner, not competitor',
-      body: 'We extend the capabilities of partner platforms without competing with the companies that build and operate them.',
-    },
-  ];
-  var POINT_SPACING = 353; // 254:3217 sits exactly this far below 254:3213
-  var POINT_DIM = 0.2; // a waiting point's opacity, from the design
-  var POINT_LEAD = 0.35; // the track starts this much shy of the first slot
-  var FRESH_TRAIL = 7; // characters the blue edge covers before settling
-
-  function setUpFeatures() {
-    var scene = document.querySelector('[data-scene="features"]');
-    if (!scene) return;
-
-    var video = scene.querySelector('[data-features-video]');
-    var track = scene.querySelector('[data-features-track]');
-    if (!track) return;
-
-    /* Build a block per point. */
-    var blocks = FEATURE_POINTS.map(function (point, i) {
-      var el = document.createElement('div');
-      el.className = 'fpoint';
-      el.style.top = i * POINT_SPACING + 'px';
-
-      var head = document.createElement('div');
-      head.className = 'fpoint__head';
-      var index = document.createElement('p');
-      index.className = 'fpoint__index';
-      index.textContent = '[0' + (i + 1) + ']';
-      var title = document.createElement('p');
-      title.className = 'fpoint__title';
-      title.textContent = point.title;
-      head.appendChild(index);
-      head.appendChild(title);
-
-      var body = document.createElement('p');
-      body.className = 'fpoint__body';
-      body.textContent = point.body;
-
-      el.appendChild(head);
-      el.appendChild(body);
-      track.appendChild(el);
-
-      return { el: el, letters: splitCharacters(body), read: 0 };
-    });
-
-    if (reduced) {
-      scene.style.height = 'auto';
-      blocks.forEach(function (b) {
-        for (var i = 0; i < b.letters.length; i++) b.letters[i].className = 'is-read';
-      });
-      return;
-    }
-
-    if (video) {
-      video.loop = true;
-      video.play().catch(function () {});
-    }
-
-    register(function () {
-      var p = progressOf(scene);
-
-      /*
-       * s is the reading clock in slot units: block i is centred in the
-       * active slot when s === i. It starts a little shy of the first slot so
-       * the opening scroll carries point one up into place, and runs a beat
-       * past the last so its body finishes reading. The track itself stops at
-       * the last slot — only the clock overshoots.
-       */
-      var s =
-        -POINT_LEAD +
-        p * (FEATURE_POINTS.length - 1 + POINT_LEAD + 0.15);
-      var sTrack = Math.min(s, FEATURE_POINTS.length - 1);
-      track.style.transform =
-        'translateY(' + (-sTrack * POINT_SPACING).toFixed(1) + 'px)';
-
-      for (var i = 0; i < blocks.length; i++) {
-        var block = blocks[i];
-        var away = Math.abs(i - sTrack);
-
-        /* At the slot a point is full; one slot out it waits at the dim. */
-        var presence = clamp01(1 - away);
-        block.el.style.opacity = String(
-          POINT_DIM + (1 - POINT_DIM) * presence
-        );
-
-        /*
-         * The body reads in as the point rides up into the slot: empty while
-         * it waits below, complete just after it arrives.
-         */
-        var fill = clamp01((s - i + POINT_LEAD) / (POINT_LEAD + 0.15));
-        var want = Math.round(fill * block.letters.length);
-        block.read = want;
-
-        /*
-         * Every character is one of three states — settled black, the blue
-         * edge, or unread grey — and the whole run is restated each paint so
-         * the edge really travels: what it leaves behind settles to black.
-         */
-        /* 0.995 rather than 1: float rounding must not hold the last few
-           characters blue forever at the very end of the travel. */
-        var settledTo = fill < 0.995 ? Math.max(0, want - FRESH_TRAIL) : want;
-        for (var j = 0; j < block.letters.length; j++) {
-          var cls = j < settledTo ? 'is-read' : j < want ? 'is-fresh' : '';
-          if (block.letters[j].className !== cls) {
-            block.letters[j].className = cls;
-          }
-        }
-      }
-    });
-  }
-
   /* ------------------------------------------------------------------ */
 
   setUpHero();
   setUpRole();
-  setUpFeatures();
 
   if (!reduced) {
     window.addEventListener('scroll', onScroll, { passive: true });

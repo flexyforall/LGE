@@ -49,9 +49,8 @@ sources that are **not committed** — keep copies if they might need re-encodin
 
 | File | Where | Source | Encoded |
 | --- | --- | --- | --- |
-| `video-1.*` | hero, idle loop | 3840x2160, 8s | source res, 24fps, crf 18 |
-| `video-2.*` | hero, loop tail + scroll | 3838x2140, 8s | source res, 24fps, crf 20 |
-| `video-3.*` | our role, intro + scroll | 3840x2160, 5s | 2560 wide, 24fps, crf 21 |
+| `video-1.*` | hero, background loop | 3840x2160, 12s | source res, 24fps, crf 19 |
+| `video-3.*` | our role + containers | 3840x2160, 5s | 2560 wide, 24fps, crf 21 |
 
 **MP4 is the primary source and WebM the fallback.** That order is deliberate:
 VP9 handles video 3's light streaks badly — the same quality costs 16 MB against

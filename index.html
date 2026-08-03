@@ -37,80 +37,77 @@
 <body>
 
 <!-- =====================================================================
-     Figma: "section 1" (235:2775) — 1440 x 810.
+     Figma: "section 4" (257:3393) — 1440 x 810, the reworked hero.
 
-     Video 1 plays on load, video 2 follows it for a couple of seconds, and
-     from there the scroll drives video 2 to its white-out, which is what hands
-     over to the section below. See js/scene.js.
+     One clip loops as the background at the design's 70%. The scroll fades
+     the copy, then whites the frame out — the hand-off into the section
+     below. The tag line rotates through the five points on its own clock.
+     See js/scene.js.
      ===================================================================== -->
 <div class="scene" data-scene="hero">
   <div class="scene__stage">
-    <div class="frame" data-node-id="235:2775" data-design-frame>
+    <div class="frame" data-node-id="257:3393" data-design-frame>
 
       <div class="frame__bg" aria-hidden="true">
-        <!-- 242:2707 — video 1, full bleed -->
-        <video class="frame__video" data-hero-video="1" muted playsinline preload="auto"
-               poster="assets/videos/video-1-poster.jpg">
+        <!-- 303:36 — the clip, at 70% over black per the design -->
+        <video class="frame__video" data-hero-video="1" muted playsinline loop
+               preload="auto" poster="assets/videos/video-1-poster.jpg">
           <source src="assets/videos/video-1.mp4" type="video/mp4">
           <source src="assets/videos/video-1.webm" type="video/webm">
         </video>
-
-        <!-- Video 2, kept in the quarter-turned crop it was placed in. -->
-        <div class="frame__strip" data-hero-layer="2">
-          <video class="frame__video" data-hero-video="2" muted playsinline preload="auto">
-            <source src="assets/videos/video-2.mp4" type="video/mp4">
-            <source src="assets/videos/video-2.webm" type="video/webm">
-          </video>
-        </div>
-
-        <!-- 238:2673 runs its media at 70% over black; the same 30% veil here. -->
         <div class="frame__overlay"></div>
       </div>
 
-      <!-- Figma: "Frame 2147227336" (235:2779) — 1400 x 64, inset 20/20.
-           Fades with the white-out so nothing rides the flash. -->
-      <header class="header" data-node-id="235:2779" data-hero-chrome>
-        <div class="header__leading" data-node-id="235:2780">
+      <!-- Figma: 257:3395 — 1400 x 64, inset 20/20. Fades with the white-out. -->
+      <header class="header" data-node-id="257:3395" data-hero-chrome>
+        <div class="header__leading" data-node-id="257:3396">
 
-          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="235:2781">
+          <a class="header__logo" href="/" aria-label="Core Space — home" data-node-id="257:3397">
             <img src="assets/logos/logo.svg" alt="" width="34" height="34">
           </a>
 
-          <nav class="nav" data-node-id="235:2786">
-            <a class="nav__link" href="#technology" data-node-id="235:2787">TECHNOLOGY</a>
-            <a class="nav__link" href="#company" data-node-id="235:2788">COMPANY</a>
-            <a class="nav__link" href="#newsroom" data-node-id="235:2789">NEWSROOM</a>
-            <a class="nav__link" href="#investors" data-node-id="235:2790">FOR INVESTORS</a>
-            <a class="nav__link" href="#contact" data-node-id="235:2791">CONTACT</a>
+          <nav class="nav" data-node-id="257:3402">
+            <a class="nav__link" href="#technology" data-node-id="257:3403">TECHNOLOGY</a>
+            <a class="nav__link" href="#company" data-node-id="257:3404">COMPANY</a>
+            <a class="nav__link" href="#investors" data-node-id="257:3406">FOR INVESTORS</a>
+            <a class="nav__link" href="#contact" data-node-id="257:3407">CONTACT</a>
           </nav>
 
         </div>
 
-        <a class="partner" href="#partner" data-node-id="235:2792">
+        <a class="partner" href="#partner" data-node-id="257:3408">
           <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
-               alt="" width="140" height="34" data-node-id="235:2793">
-          <span class="partner__label" data-node-id="235:2794">BECOME A PARTNER</span>
+               alt="" width="140" height="34" data-node-id="257:3409">
+          <span class="partner__label" data-node-id="257:3410">BECOME A PARTNER</span>
         </a>
       </header>
 
-      <!-- Both blocks clear out together as the scroll takes over the camera. -->
+      <!-- Both blocks clear out together as the scroll leaves the hero. -->
       <div data-scene-copy>
 
-        <!-- Figma: "title" (235:2807) -->
-        <div class="hero__title" data-node-id="235:2807">
-          <h1 class="hero__headline" data-node-id="235:2808">The enabling<br>technology behind <br>orbital data centers</h1>
+        <!-- Figma: 257:3452 — tag row + title, 32 apart, centred on the frame -->
+        <div class="hero__content" data-node-id="257:3452">
+          <div class="hero__tag" data-node-id="257:3446">
+            <span class="hero__tagSquare" data-node-id="257:3447"></span>
+            <span class="hero__tagText" data-hero-tag>
+              <span class="hero__tagLine">WELCOME TO CORE SPACE</span>
+            </span>
+            <span class="hero__tagSquare" data-node-id="257:3450"></span>
+          </div>
+
+          <h1 class="hero__headline" data-node-id="257:3412">The enabling technology<br>behind orbital data centers.</h1>
         </div>
 
-        <!-- Figma: "Frame 2147227359" (235:2816) -->
-        <div class="hero__footer" data-node-id="235:2816">
-          <p class="hero__subhead" data-node-id="235:2814">Plasma power and propulsion, connected by high-bandwidth laser links</p>
+        <!-- Figma: 257:3413 — y 700, full-width row inset 40 -->
+        <div class="hero__footer" data-node-id="257:3413">
+          <p class="hero__subhead" data-node-id="257:3414">Plasma power and propulsion, connected by high-bandwidth laser links</p>
 
-          <div class="hero__actions" data-node-id="235:2802">
-            <a class="explore" href="#technology" data-node-id="235:2803">
-              <span class="explore__inner" data-node-id="235:2804">
+          <div class="hero__actions" data-node-id="257:3415">
+            <a class="explore" href="#technology" data-node-id="257:3416">
+              <span class="explore__inner" data-node-id="257:3417">
                 <img class="explore__shape" src="assets/icons/btn-explore-base.svg"
-                     alt="" width="175" height="50" data-node-id="235:2805">
-                <span class="explore__label" data-node-id="235:2806">EXPLORE TECHNOLOGY</span>
+                     alt="" width="175" height="50" data-node-id="257:3418">
+                <span class="explore__label" data-node-id="257:3419">EXPLORE TECHNOLOGY</span>
               </span>
             </a>
           </div>
@@ -182,7 +179,6 @@
           <nav class="nav">
             <a class="nav__link" href="#technology">TECHNOLOGY</a>
             <a class="nav__link" href="#company">COMPANY</a>
-            <a class="nav__link" href="#newsroom">NEWSROOM</a>
             <a class="nav__link" href="#investors">FOR INVESTORS</a>
             <a class="nav__link" href="#contact">CONTACT</a>
           </nav>
@@ -200,56 +196,6 @@
   </div>
 </div>
 
-
-<!-- =====================================================================
-     Features. No Figma frame yet — built to the agreed reference: a pinned
-     white section, media held on the right, and the copy on the left reading
-     itself in as the scroll steps through three points.
-
-     Media is a placeholder (the tunnel again) until the real clip arrives.
-     ===================================================================== -->
-<div class="scene" data-scene="features">
-  <div class="scene__stage">
-    <div class="frame frame--light" data-features-frame>
-
-      <!-- 254:3203 — the media, held on the right with the folder notches,
-           fixed while the copy marches past. Placeholder: the tunnel. -->
-      <div class="features__media" data-node-id="254:3203" aria-hidden="true">
-        <video class="frame__video" data-features-video muted playsinline loop
-               preload="metadata" poster="assets/videos/video-3-poster.jpg">
-          <source src="assets/videos/video-3.mp4" type="video/mp4">
-          <source src="assets/videos/video-3.webm" type="video/webm">
-        </video>
-      </div>
-
-      <!-- 254:3213 / 254:3217 — the points ride one track that the scroll
-           pushes upward through the active slot; js/scene.js builds a block
-           per FEATURE_POINTS entry. -->
-      <div class="features__track" data-features-track></div>
-
-      <header class="header header--plate">
-        <div class="header__leading">
-          <a class="header__logo" href="/" aria-label="Core Space — home">
-            <img src="assets/logos/logo.svg" alt="" width="34" height="34">
-          </a>
-          <nav class="nav">
-            <a class="nav__link" href="#technology">TECHNOLOGY</a>
-            <a class="nav__link" href="#company">COMPANY</a>
-            <a class="nav__link" href="#newsroom">NEWSROOM</a>
-            <a class="nav__link" href="#investors">FOR INVESTORS</a>
-            <a class="nav__link" href="#contact">CONTACT</a>
-          </nav>
-        </div>
-        <a class="partner" href="#partner">
-          <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
-               alt="" width="140" height="34">
-          <span class="partner__label">BECOME A PARTNER</span>
-        </a>
-      </header>
-
-    </div>
-  </div>
-</div>
 
 <script src="js/smooth.js"></script>
 <script src="js/scene.js"></script>

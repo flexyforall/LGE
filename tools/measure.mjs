@@ -18,18 +18,20 @@ const target =
 
 /** Boxes in frame coordinates: [nodeId, x, y, w, h, label]. */
 const BOXES = [
-  // --- section 1 (hero), 235:2775 ---
-  ['235:2779', 20, 20, 1400, 64, 'header'],
-  ['235:2780', 40, 35, 697, 34, 'header leading group'],
-  ['235:2781', 40, 35, 34, 34, 'logo'],
-  ['235:2792', 1260, 35, 140, 34, 'become-a-partner button'],
-  ['235:2793', 1260, 35, 140, 34, 'become-a-partner shape'],
-  ['235:2807', 60, 285, 1320, 240, 'title block'],
-  ['235:2816', 60, 710, 1320, 50, 'hero footer'],
-  ['235:2802', 1209, 710, 171, 50, 'actions'],
-  ['235:2803', 1209, 710, 171, 50, 'explore button'],
-  ['235:2804', 1229, 720, 131, 30, 'explore label box'],
-  ['235:2805', 1207, 710, 175, 50, 'explore plate'],
+  // --- hero ("section 4"), 257:3393 ---
+  ['257:3395', 20, 20, 1400, 64, 'header'],
+  ['257:3396', 40, 35, 697, 34, 'header leading group'],
+  ['257:3397', 40, 35, 34, 34, 'logo'],
+  ['257:3408', 1260, 35, 140, 34, 'become-a-partner button'],
+  ['257:3409', 1260, 35, 140, 34, 'become-a-partner shape'],
+  // tag row 14 tall + 32 gap + two 72px lines = 190, centred on the frame
+  ['257:3452', 60, 310, 1320, 190, 'hero content'],
+  ['257:3447', 60, 313, 8, 8, 'tag square (left)'],
+  ['257:3413', 40, 700, 1360, 50, 'hero footer'],
+  ['257:3415', 1229, 700, 171, 50, 'actions'],
+  ['257:3416', 1229, 700, 171, 50, 'explore button'],
+  ['257:3417', 1249, 710, 131, 30, 'explore label box'],
+  ['257:3418', 1227, 700, 175, 50, 'explore plate'],
 
   // --- section 2 (our role), 238:2674 ---
   ['238:2675', 338, 321, 764, 168, 'statement'],
@@ -42,22 +44,25 @@ const BOXES = [
  * the spacing between them is covered by GAPS below.
  */
 const TEXT_ORIGINS = [
-  ['235:2808', 60, 285, 'headline'],
-  ['235:2814', 60, 736, 'subhead'],
-  ['235:2787', 114, 45, 'nav: TECHNOLOGY'],
-  ['235:2794', 1278, 45, 'become-a-partner label'],
-  ['235:2806', 1229, 728, 'explore label'],
+  ['257:3412', 60, 356, 'headline'],
+  ['257:3414', 40, 726, 'subhead'],
+  ['257:3403', 114, 45, 'nav: TECHNOLOGY'],
+  ['257:3410', 1278, 45, 'become-a-partner label'],
+  ['257:3419', 1249, 718, 'explore label'],
   ['238:2679', 687, 760, 'our-role label'],
   ['238:2682', 607, 760, 'our-role row'],
 ];
 
 /** [fromNodeId, toNodeId, expectedGap, label] — the paddings and margins themselves. */
 const GAPS = [
-  ['235:2781', '235:2786', 40, 'logo -> nav'],
-  ['235:2787', '235:2788', 30, 'nav: TECHNOLOGY -> COMPANY'],
-  ['235:2788', '235:2789', 30, 'nav: COMPANY -> NEWSROOM'],
-  ['235:2789', '235:2790', 30, 'nav: NEWSROOM -> FOR INVESTORS'],
-  ['235:2790', '235:2791', 30, 'nav: FOR INVESTORS -> CONTACT'],
+  ['257:3397', '257:3402', 40, 'logo -> nav'],
+  ['257:3403', '257:3404', 30, 'nav: TECHNOLOGY -> COMPANY'],
+  ['257:3404', '257:3406', 30, 'nav: COMPANY -> FOR INVESTORS'],
+  ['257:3406', '257:3407', 30, 'nav: FOR INVESTORS -> CONTACT'],
+  // the tag's law: 56px of air between the text and each square
+  ['257:3447', '257:3446-text', 56, 'tag: left square -> text'],
+  ['257:3446-text', '257:3450', 56, 'tag: text -> right square'],
+  ['257:3446', '257:3412', 32, 'tag -> headline'],
   ['238:2680', '238:2679', 72, 'dot -> OUR ROLE'],
   ['238:2679', '238:2681', 72, 'OUR ROLE -> dot'],
 ];
@@ -81,6 +86,17 @@ await page.waitForTimeout(300);
  */
 const rects = await page.evaluate(() => {
   const out = {};
+  const tagText = document.querySelector('[data-hero-tag]');
+  if (tagText) {
+    const frame = tagText.closest('.frame').getBoundingClientRect();
+    const r = tagText.getBoundingClientRect();
+    out['257:3446-text'] = {
+      x: r.x - frame.x,
+      y: r.y - frame.y,
+      w: r.width,
+      h: r.height,
+    };
+  }
   for (const el of document.querySelectorAll('[data-node-id]')) {
     const frame = el.closest('.frame');
     if (!frame) continue;

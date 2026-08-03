@@ -35,6 +35,14 @@
 
 @font-face {
   font-family: 'Mozilla Text';
+  src: url('../assets/fonts/MozillaText-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mozilla Text';
   src: url('../assets/fonts/MozillaText-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
@@ -82,9 +90,8 @@
   --frame-min-width: 900px;
 
   /* How much scroll each camera move is spread over. */
-  --scene-length-hero: 420vh;
+  --scene-length-hero: 260vh;
   --scene-length-role: 560vh;
-  --scene-length-features: 420vh;
 
   /*
    * Video 2 is turned a quarter turn, so the strip it lands in is as wide as
@@ -160,9 +167,6 @@ img {
   height: var(--scene-length-role);
 }
 
-[data-scene='features'] {
-  height: var(--scene-length-features);
-}
 
 .scene__stage {
   position: sticky;
@@ -437,9 +441,6 @@ img {
  * the frame rather than collapsing around them: js/scene.js puts a transform on
  * it, and a transformed box becomes the containing block for anything absolute
  * inside it — on a collapsed wrapper that would drag both blocks off position.
- *
- * It only carries the fade, so it stays out of the way of pointers; the two
- * blocks take them back.
  */
 [data-scene-copy] {
   position: absolute;
@@ -451,49 +452,104 @@ img {
   pointer-events: auto;
 }
 
-/*
- * 235:2807 — x 60, 1360 wide, centred on the frame. The headline is the only
- * thing in it and sits left, so the box is anchored by its insets and stretches
- * with the window. At 1440 that resolves to the 1360 in the design.
- */
-.hero__title {
+/* 257:3452 — x 60, 1320 wide, centred on the frame, 32 between tag and title */
+.hero__content {
   position: absolute;
   top: 50%;
   left: 60px;
-  right: 60px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
+  width: 1320px;
   transform: translateY(-50%);
 }
 
-/* 235:2808 — Mozilla Text Regular 80/80, tracking -3.2 */
+/*
+ * 257:3446 — the tag: an 8px square each side, 56px of air between each square
+ * and the text. The row hugs its content, so as the rotating line changes
+ * width the left square holds its ground on the 60px column and the right one
+ * slides to keep its 56px — the fold/expand the design asks for. js/scene.js
+ * animates the text box's width to make that slide glide.
+ */
+.hero__tag {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+}
+
+/* 257:3447 / 257:3450 — 8 x 8 */
+.hero__tagSquare {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--color-fg);
+}
+
+.hero__tagText {
+  position: relative;
+  flex: none;
+  height: 14px;
+  overflow: hidden;
+  perspective: 400px;
+  transition: width 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 257:3449 — Neue Montreal Regular 14, tracking -0.28 */
+.hero__tagLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 14px;
+  letter-spacing: -0.28px;
+  color: var(--color-fg);
+  white-space: nowrap;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.45s ease;
+}
+
+/* The rotation: the old line tips up and away, the new one tips in from below. */
+.hero__tagLine.is-out {
+  transform: translateY(-115%) rotateX(75deg);
+  opacity: 0;
+}
+
+.hero__tagLine.is-in {
+  transform: translateY(115%) rotateX(-75deg);
+  opacity: 0;
+}
+
+/* 257:3412 — Mozilla Text SemiBold 72/72, tracking -2.88, sentence case */
 .hero__headline {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 80px;
+  font-weight: 600;
+  font-size: 72px;
   line-height: 1;
-  letter-spacing: -3.2px;
+  letter-spacing: -2.88px;
   color: var(--color-fg);
-  white-space: nowrap;
 }
 
 /*
- * 235:2816 — y 710 on the 810 frame, 1320 wide and centred, so 60 in from each
- * side. Anchored to the bottom edge — the designed 50px gap below it — so it
- * holds that gap on any window height instead of drifting up.
+ * 257:3413 — y 700 on the 810 frame, the full 1400 row with 20 padding, so the
+ * content runs x40 to x1400. Anchored to the bottom edge (the designed 60px
+ * below the row) so the gap holds on any window height.
  */
 .hero__footer {
   position: absolute;
-  bottom: 50px;
-  left: 60px;
-  right: 60px;
+  bottom: 60px;
+  left: 40px;
+  right: 40px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
 }
 
-/* 235:2814 — Neue Montreal Regular 18/24, tracking -0.18 */
+/* 257:3414 — Neue Montreal Regular 18/24, tracking -0.18 */
 .hero__subhead {
   margin: 0;
   flex: none;
@@ -506,14 +562,14 @@ img {
   white-space: nowrap;
 }
 
-/* 235:2802 */
+/* 257:3415 */
 .hero__actions {
   display: flex;
   flex: none;
   align-items: center;
 }
 
-/* 235:2803 — padding 10 / 20 around a 131 x 30 label box */
+/* 257:3416 — padding 10 / 20 around a 131 x 30 label box */
 .explore {
   display: flex;
   flex: none;
@@ -521,7 +577,7 @@ img {
   padding: 10px 20px;
 }
 
-/* 235:2804 */
+/* 257:3417 */
 .explore__inner {
   position: relative;
   flex: none;
@@ -529,7 +585,7 @@ img {
   height: 30px;
 }
 
-/* 235:2805 — the 175 x 50 plate, centred on the label box */
+/* 257:3418 — the 175 x 50 plate, centred on the label box */
 .explore__shape {
   position: absolute;
   top: 50%;
@@ -539,7 +595,7 @@ img {
   transform: translate(-50%, -50%);
 }
 
-/* 235:2806 — Mozilla Text Bold 12, tracking -0.24 */
+/* 257:3419 — Mozilla Text Bold 12, tracking -0.24 */
 .explore__label {
   position: absolute;
   top: 8px;
@@ -618,133 +674,4 @@ img {
   letter-spacing: -0.28px;
   color: var(--color-fg);
   white-space: nowrap;
-}
-
-
-/* --- Features --------------------------------------------------------------
-   Figma "section 3.1" (251:2810). A white chapter: media held on the right
-   inside the notched folder shape (254:3203), the bar on its black plate, and
-   the points marching bottom-to-top through the active slot on the left. The
-   reading fill's leading edge runs blue — the design's accent — before the
-   characters settle to black.
-   --------------------------------------------------------------------------- */
-
-.frame--light {
-  background: #ffffff;
-  color: var(--color-fg-inverse);
-}
-
-.header--plate {
-  background: #000000;
-}
-
-/*
- * 254:3203 — x 820, y 116, 560 x 662 at 1440x810: anchored to the designed
- * 60px right inset, spanning down to 32px off the bottom edge. The folder
- * notches come from the design's Exclude shape, cut here with a clip-path.
- */
-.features__media {
-  position: absolute;
-  top: 116px;
-  right: 60px;
-  bottom: 32px;
-  width: 560px;
-  overflow: hidden;
-  background: var(--color-bg);
-  clip-path: polygon(
-    35% 0,
-    100% 0,
-    100% 92%,
-    83% 92%,
-    83% 100%,
-    0 100%,
-    0 8%,
-    35% 8%
-  );
-}
-
-.features__media .frame__video {
-  position: absolute;
-  inset: 0;
-}
-
-/*
- * 254:3213 — the active slot: x 60, block centre 41.5 below the frame's
- * middle, 410 wide. The track holds every point 353px apart (254:3217 sits
- * exactly that far below the first) and js/scene.js slides the whole thing
- * upward through the slot.
- */
-.features__track {
-  position: absolute;
-  top: calc(50% - 46px);
-  left: 60px;
-  width: 410px;
-  will-change: transform;
-}
-
-.fpoint {
-  position: absolute;
-  left: 0;
-  width: 410px;
-}
-
-/* 254:3212 — [01] and the title on one line, 20 apart, 48 tall */
-.fpoint__head {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  height: 48px;
-  margin: 0 0 31px;
-}
-
-/* 254:3210 — Mozilla Text Medium 20, tracking -0.8 */
-.fpoint__index {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 20px;
-  line-height: 1;
-  letter-spacing: -0.8px;
-  color: rgba(33, 33, 33, 0.7);
-  white-space: nowrap;
-}
-
-/* 254:3204 — Mozilla Text Medium 48, tracking -1.92 */
-.fpoint__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 48px;
-  line-height: 1;
-  letter-spacing: -1.92px;
-  color: #212121;
-  white-space: nowrap;
-}
-
-/* 254:3206 — PP Neue Montreal Medium 32/1, 401 wide */
-.fpoint__body {
-  margin: 0;
-  width: 401px;
-  font-family: var(--font-body);
-  font-weight: 500;
-  font-size: 32px;
-  line-height: 1.15;
-  color: rgba(0, 0, 0, 0.2);
-}
-
-/*
- * The reading fill: grey ahead of the edge, the design's blue on the freshly
- * read run, settling to black behind it. The colour transition is what makes
- * the edge read as a gradient sweeping through the text.
- */
-.fpoint__body span {
-  transition: color 0.35s ease;
-}
-
-.fpoint__body .is-fresh {
-  color: #2f5fe8;
-}
-
-.fpoint__body .is-read {
-  color: #000000;
 }

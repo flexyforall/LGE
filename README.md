@@ -12,7 +12,7 @@ Double-click `index.html`. That's it.
 ```
 index.html          the page
 css/style.css       all styles
-js/scene.js         the scroll-driven cameras, the reading fill, the shrink
+js/scene.js         the scene choreography: fades, fills, the shrink, the tag
 js/smooth.js        eases wheel scrolling so the cameras glide
 assets/             Figma exports and video — see assets/README.md
 tools/              optional checks, not needed to run the site
@@ -20,21 +20,19 @@ tools/              optional checks, not needed to run the site
 
 ## The sections
 
-Three sections, each pinned while its own stretch of scroll plays out.
+Two sections, each pinned while its own stretch of scroll plays out.
 
-**Hero** — Figma `section 1` (235:2775).
+**Hero** — Figma `section 4` (257:3393).
 
-1. While nobody scrolls, the hero idles as a loop: video 1 in full, then
-   video 2 up to just before its flare starts growing (`HERO_LOOP_CUT`, 5.5s),
-   crossing over on each change, and around again.
-2. The first scroll breaks the loop wherever it happens to be and hands
-   video 2 to the scroll. Scrolling moves the camera, stopping stops it — it
-   never plays on its own again.
-3. The title and footer clear out over the first fifth of that scroll.
-4. Over the last stretch a white sheet finishes video 2's flash to pure white
-   — and the next section starts under an identical sheet that lifts over its
-   first stretch. The seam between them is white-on-white, so the flash and the
-   drop into the tunnel read as one continuous shot.
+One clip loops as the background at the design's 70%. The scroll fades the
+copy over the first stretch, then a white sheet whites the frame out — the
+hand-off into the section below, met by its twin sheet lifting there.
+
+The tag line above the headline rotates through five points on its own clock
+(`TAG_LINES` / `TAG_PERIOD` in `js/scene.js`): the next line tips in from
+below while the old one tips up and away, and the text box's width glides to
+the new line — the left square holds the 60px column while the right one
+slides, keeping 56px of air on both sides of the text throughout.
 
 **Our role** — Figma `section 2` (238:2674) through `section 2.1` (242:2673)
 and into `section 3` (242:2681), all on one scroll.
@@ -54,18 +52,8 @@ right at 0.4x, grows to the same spot, and finally opens up to the full frame �
 the shape of Figma's `section 3.1` reference. The constants for every phase sit
 at the top of `js/scene.js`.
 
-**Features** — Figma `section 3.1` (251:2810). A pinned white chapter: the
-media holds still on the right inside the design's notched folder shape
-(560x662, 60px off the right edge; placeholder: the tunnel, looping), the bar
-rides its black plate, and the points march bottom-to-top through the active
-slot on the left — the reference's fixed-media/moving-copy animation. A point
-fades up from the design's 0.2 as it arrives, its body reads itself in with a
-blue leading edge that settles to black behind it, and it dims again as it
-leaves upward. The copy lives in `FEATURE_POINTS` in `js/scene.js`; the column
-keeps the site's 60px inset, and the blocks sit 353px apart, as drawn.
-
-Both video-backed sections put a 30% veil over their media — the media-at-70%
-from the design, kept as a sheet. The features media plays clean.
+Both sections put a 30% veil over their media — the media-at-70% from the
+design, kept as a sheet.
 
 The constants at the top of `js/scene.js` control the intro length and both
 fades; `--scene-length-hero` and `--scene-length-role` in the CSS control how
