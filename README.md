@@ -20,7 +20,7 @@ tools/              optional checks, not needed to run the site
 
 ## The sections
 
-Two sections, each pinned while its own stretch of scroll plays out.
+Three sections, each pinned while its own stretch of scroll plays out.
 
 **Hero** — Figma `section 1` (235:2775).
 
@@ -54,8 +54,15 @@ right at 0.4x, grows to the same spot, and finally opens up to the full frame �
 the shape of Figma's `section 3.1` reference. The constants for every phase sit
 at the top of `js/scene.js`.
 
-Both sections put a 30% veil over their media — the media-at-70% from the
-design, kept as a sheet.
+**Features** — no Figma frame yet; built to the agreed reference. A pinned
+white chapter: media held on the right (placeholder: the tunnel, looping), the
+bar on its black plate, and the copy on the left stepping through three points
+as the scroll walks the section — each point's body reading itself in, dark on
+white. The points and their copy live in `FEATURE_POINTS` at the top of the
+features block in `js/scene.js`; the left column keeps the site's 60px inset.
+
+Both video-backed sections put a 30% veil over their media — the media-at-70%
+from the design, kept as a sheet. The features media plays clean.
 
 The constants at the top of `js/scene.js` control the intro length and both
 fades; `--scene-length-hero` and `--scene-length-role` in the CSS control how

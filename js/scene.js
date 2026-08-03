@@ -410,10 +410,90 @@
     });
   }
 
+  /* ------------------------------------------------------------------ *
+   * Features
+   * ------------------------------------------------------------------ */
+
+  var FEATURE_POINTS = [
+    {
+      title: 'Built to integrate',
+      body: 'Designed to work with existing and next-generation orbital platforms.',
+    },
+    {
+      title: 'Built to scale',
+      body: 'Critical systems that support partners from initial deployment through long-term operations.',
+    },
+    {
+      title: 'Partner, not competitor',
+      body: 'We extend the capabilities of partner platforms without competing with the companies that build and operate them.',
+    },
+  ];
+  var POINT_FILL_BY = 0.72; // fraction of a point's stretch its body reads over
+
+  function setUpFeatures() {
+    var scene = document.querySelector('[data-scene="features"]');
+    if (!scene) return;
+
+    var video = scene.querySelector('[data-features-video]');
+    var index = scene.querySelector('[data-features-index]');
+    var title = scene.querySelector('[data-features-title]');
+    var body = scene.querySelector('[data-features-body]');
+    if (!index || !title || !body) return;
+
+    if (reduced) {
+      scene.style.height = 'auto';
+      var spans = splitCharacters(body);
+      for (var i = 0; i < spans.length; i++) spans[i].className = 'is-read';
+      return;
+    }
+
+    if (video) {
+      video.loop = true;
+      video.play().catch(function () {});
+    }
+
+    var step = -1;
+    var letters = [];
+    var read = 0;
+
+    function showPoint(n) {
+      step = n;
+      var point = FEATURE_POINTS[n];
+      index.textContent = '[0' + (n + 1) + ']';
+      title.textContent = point.title;
+      body.textContent = point.body;
+      letters = splitCharacters(body);
+      read = 0;
+    }
+
+    register(function () {
+      var p = progressOf(scene);
+
+      /* The scroll walks the three points, each reading itself in. */
+      var slot = Math.min(
+        FEATURE_POINTS.length - 1,
+        Math.floor(p * FEATURE_POINTS.length)
+      );
+      if (slot !== step) showPoint(slot);
+
+      var local = clamp01(
+        (p * FEATURE_POINTS.length - slot) / POINT_FILL_BY
+      );
+      var want = Math.round(local * letters.length);
+      if (want > read) {
+        for (var i = read; i < want; i++) letters[i].className = 'is-read';
+      } else if (want < read) {
+        for (var j = read - 1; j >= want; j--) letters[j].className = '';
+      }
+      read = want;
+    });
+  }
+
   /* ------------------------------------------------------------------ */
 
   setUpHero();
   setUpRole();
+  setUpFeatures();
 
   if (!reduced) {
     window.addEventListener('scroll', onScroll, { passive: true });

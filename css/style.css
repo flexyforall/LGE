@@ -68,6 +68,7 @@
   /* How much scroll each camera move is spread over. */
   --scene-length-hero: 420vh;
   --scene-length-role: 560vh;
+  --scene-length-features: 420vh;
 
   /*
    * Video 2 is turned a quarter turn, so the strip it lands in is as wide as
@@ -141,6 +142,10 @@ img {
 
 [data-scene='role'] {
   height: var(--scene-length-role);
+}
+
+[data-scene='features'] {
+  height: var(--scene-length-features);
 }
 
 .scene__stage {
@@ -597,4 +602,82 @@ img {
   letter-spacing: -0.28px;
   color: var(--color-fg);
   white-space: nowrap;
+}
+
+
+/* --- Features --------------------------------------------------------------
+   No Figma frame yet — built to the agreed reference. A white chapter: media
+   held on the right, the copy reading itself in on the left, the bar on its
+   black plate throughout. The left inset keeps the site's 60px column.
+   --------------------------------------------------------------------------- */
+
+.frame--light {
+  background: #ffffff;
+  color: var(--color-fg-inverse);
+}
+
+.header--plate {
+  background: #000000;
+}
+
+/* Flush to the right edge, held clear of the bar and the bottom. */
+.features__media {
+  position: absolute;
+  top: 104px;
+  right: 0;
+  bottom: 40px;
+  left: 50%;
+  overflow: hidden;
+  border-radius: 16px 0 0 16px;
+  background: var(--color-bg);
+}
+
+.features__media .frame__video {
+  position: absolute;
+  inset: 0;
+}
+
+.features__copy {
+  position: absolute;
+  top: 50%;
+  left: 60px;
+  width: 560px;
+  max-width: calc(50% - 120px);
+  transform: translateY(-50%);
+}
+
+.features__index {
+  margin: 0 0 20px;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.features__title {
+  margin: 0 0 32px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 48px;
+  line-height: 1.05;
+  letter-spacing: -1.92px;
+  color: var(--color-fg-inverse);
+}
+
+/* Reads itself in, the same way the statement does — dark on white here. */
+.features__body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.28px;
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.features__body .is-read {
+  color: #0a0a0a;
 }

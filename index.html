@@ -200,6 +200,56 @@
   </div>
 </div>
 
+
+<!-- =====================================================================
+     Features. No Figma frame yet — built to the agreed reference: a pinned
+     white section, media held on the right, and the copy on the left reading
+     itself in as the scroll steps through three points.
+
+     Media is a placeholder (the tunnel again) until the real clip arrives.
+     ===================================================================== -->
+<div class="scene" data-scene="features">
+  <div class="scene__stage">
+    <div class="frame frame--light" data-features-frame>
+
+      <div class="features__media" aria-hidden="true">
+        <video class="frame__video" data-features-video muted playsinline loop
+               preload="metadata" poster="assets/videos/video-3-poster.jpg">
+          <source src="assets/videos/video-3.mp4" type="video/mp4">
+          <source src="assets/videos/video-3.webm" type="video/webm">
+        </video>
+      </div>
+
+      <div class="features__copy">
+        <p class="features__index" data-features-index>[01]</p>
+        <h2 class="features__title" data-features-title>Built to integrate</h2>
+        <p class="features__body" data-features-body>Designed to work with existing and next-generation orbital platforms.</p>
+      </div>
+
+      <header class="header header--plate">
+        <div class="header__leading">
+          <a class="header__logo" href="/" aria-label="Core Space — home">
+            <img src="assets/logos/logo.svg" alt="" width="34" height="34">
+          </a>
+          <nav class="nav">
+            <a class="nav__link" href="#technology">TECHNOLOGY</a>
+            <a class="nav__link" href="#company">COMPANY</a>
+            <a class="nav__link" href="#newsroom">NEWSROOM</a>
+            <a class="nav__link" href="#investors">FOR INVESTORS</a>
+            <a class="nav__link" href="#contact">CONTACT</a>
+          </nav>
+        </div>
+        <a class="partner" href="#partner">
+          <img class="partner__shape" src="assets/icons/btn-become-a-partner.svg"
+               alt="" width="140" height="34">
+          <span class="partner__label">BECOME A PARTNER</span>
+        </a>
+      </header>
+
+    </div>
+  </div>
+</div>
+
 <script src="js/smooth.js"></script>
 <script src="js/scene.js"></script>
 
