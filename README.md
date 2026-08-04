@@ -130,8 +130,10 @@ facing edges closing on the 8px gap. It folds in the same frozen frame the
 wide card grows in, sharing its top and height throughout; left in the page it
 would go on scrolling up while the wide card held still. Then it carries on into the window, and its copy fades as
 it goes, so that by the time the clip has the screen nothing is left of the
-card but the picture. Only then does the clip start to run; it holds its first
-frame for the whole of the opening.
+card but the picture. While the card scales, the clip creeps a few frames forward
+(`FLIGHT_PREROLL`) — still well inside the cupola, never out through the
+glass — and the flight proper picks up from exactly where the creep leaves
+off, so the playhead never jumps.
 
 Both moves grow from where the card stood when the scene began, not from where
 it is now: the row goes on scrolling away underneath while the card lifts out

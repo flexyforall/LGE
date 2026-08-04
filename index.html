@@ -48,6 +48,39 @@
      the section below. The tag line rotates through the five points on its
      own clock. See js/scene.js.
      ===================================================================== -->
+<!-- =====================================================================
+     Figma: 356:1237 — 1400 x 64, inset 20/20, padding 20/13. One bar for the
+     whole site, fixed to the window: it fades into the hero's white-out,
+     lifts back with the role's flash, and simply holds from there — never
+     repeated, never rebuilt per section. js/scene.js owns its opacity.
+     ===================================================================== -->
+<header class="menu" data-site-menu data-node-id="356:1237">
+  <div class="menu__leading" data-node-id="356:1238">
+    <a class="menu__logo" href="/" aria-label="Core Space — home" data-node-id="356:1240">
+      <img src="assets/logos/logo.svg" alt="" width="34" height="34">
+    </a>
+  </div>
+
+  <div class="menu__trailing" data-node-id="356:1244">
+    <nav class="tabs" data-node-id="356:1245">
+      <a class="tab" href="#technology" data-node-id="356:1246">Technology</a>
+      <a class="tab" href="#company" data-node-id="356:1248">Company</a>
+      <a class="tab" href="#investors" data-node-id="356:1250">For investors</a>
+      <a class="tab" href="#contact" data-node-id="356:1252">Contact</a>
+    </nav>
+
+    <!-- 356:1254 — the light button; assets/images/buttonSecondary.svg is
+         the plate, at its own 188 x 44. -->
+    <a class="button button--light" href="#partner" data-node-id="356:1254">
+      <img class="button__plate" src="assets/images/buttonSecondary.svg"
+           alt="" width="188" height="44" aria-hidden="true">
+      <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
+      <span class="button__label">Become a partner</span>
+      <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
+    </a>
+  </div>
+</header>
+
 <div class="scene" data-scene="hero">
   <div class="scene__stage">
     <div class="frame" data-node-id="356:1231" data-design-frame>
@@ -69,34 +102,6 @@
         </video>
       </div>
 
-      <!-- Figma: 356:1237 — 1400 x 64, inset 20/20, padding 20/13. The logo
-           holds the left edge on its own; tabs and the button sit right. -->
-      <header class="menu" data-node-id="356:1237" data-hero-chrome>
-        <div class="menu__leading" data-node-id="356:1238">
-          <a class="menu__logo" href="/" aria-label="Core Space — home" data-node-id="356:1240">
-            <img src="assets/logos/logo.svg" alt="" width="34" height="34">
-          </a>
-        </div>
-
-        <div class="menu__trailing" data-node-id="356:1244">
-          <nav class="tabs" data-node-id="356:1245">
-            <a class="tab" href="#technology" data-node-id="356:1246">Technology</a>
-            <a class="tab" href="#company" data-node-id="356:1248">Company</a>
-            <a class="tab" href="#investors" data-node-id="356:1250">For investors</a>
-            <a class="tab" href="#contact" data-node-id="356:1252">Contact</a>
-          </nav>
-
-          <!-- 356:1254 — the light button; assets/images/buttonSecondary.svg
-               is the plate, at its own 188 x 44. -->
-          <a class="button button--light" href="#partner" data-node-id="356:1254">
-            <img class="button__plate" src="assets/images/buttonSecondary.svg"
-                 alt="" width="188" height="44" aria-hidden="true">
-            <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
-            <span class="button__label">Become a partner</span>
-            <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
-          </a>
-        </div>
-      </header>
 
       <!-- Everything clears out together as the scroll leaves the hero. -->
       <div data-scene-copy>
@@ -205,30 +210,6 @@
       <p class="role__statement" data-role-text data-node-id="330:497">We don’t build orbital data centers. We enable the companies that do.</p>
       <p class="role__statement" data-role-text>Keep scrolling to learn more about how we revolutionize the space.</p>
 
-      <!-- The same bar; fades in as the white lifts, and takes the black
-           plate of section 3 (242:2690) as the shot shrinks. -->
-      <header class="menu" data-role-chrome>
-        <div class="menu__leading">
-          <a class="menu__logo" href="/" aria-label="Core Space — home">
-            <img src="assets/logos/logo.svg" alt="" width="34" height="34">
-          </a>
-        </div>
-        <div class="menu__trailing">
-          <nav class="tabs">
-            <a class="tab" href="#technology">Technology</a>
-            <a class="tab" href="#company">Company</a>
-            <a class="tab" href="#investors">For investors</a>
-            <a class="tab" href="#contact">Contact</a>
-          </nav>
-          <a class="button button--light" href="#partner">
-            <img class="button__plate" src="assets/images/buttonSecondary.svg"
-                 alt="" width="188" height="44" aria-hidden="true">
-            <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
-            <span class="button__label">Become a partner</span>
-            <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
-          </a>
-        </div>
-      </header>
 
       <div class="role__flash" data-role-flash aria-hidden="true"></div>
 
@@ -254,30 +235,6 @@
   <!-- 342:576 — the wash behind everything, dodged over the page -->
   <div class="cards__wash" data-node-id="342:576" aria-hidden="true"></div>
 
-  <!-- The same bar; it belongs to the section, so it arrives with the leading
-       edge as the cover rides up, taking over from the one fading below. -->
-  <header class="menu">
-    <div class="menu__leading">
-      <a class="menu__logo" href="/" aria-label="Core Space — home">
-        <img src="assets/logos/logo.svg" alt="" width="34" height="34">
-      </a>
-    </div>
-    <div class="menu__trailing">
-      <nav class="tabs">
-        <a class="tab" href="#technology">Technology</a>
-        <a class="tab" href="#company">Company</a>
-        <a class="tab" href="#investors">For investors</a>
-        <a class="tab" href="#contact">Contact</a>
-      </nav>
-      <a class="button button--light" href="#partner">
-        <img class="button__plate" src="assets/images/buttonSecondary.svg"
-             alt="" width="188" height="44" aria-hidden="true">
-        <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
-        <span class="button__label">Become a partner</span>
-        <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
-      </a>
-    </div>
-  </header>
 
   <!-- 339:486 — label and heading, 24 apart -->
   <div class="cards__head" data-node-id="339:486">
@@ -342,30 +299,6 @@
   <div class="scene__stage">
     <div class="frame" data-node-id="342:1557">
 
-      <!-- The same bar; pinned with the frame, so it holds through the card's
-           opening and the whole flight. -->
-      <header class="menu">
-        <div class="menu__leading">
-          <a class="menu__logo" href="/" aria-label="Core Space — home">
-            <img src="assets/logos/logo.svg" alt="" width="34" height="34">
-          </a>
-        </div>
-        <div class="menu__trailing">
-          <nav class="tabs">
-            <a class="tab" href="#technology">Technology</a>
-            <a class="tab" href="#company">Company</a>
-            <a class="tab" href="#investors">For investors</a>
-            <a class="tab" href="#contact">Contact</a>
-          </nav>
-          <a class="button button--light" href="#partner">
-            <img class="button__plate" src="assets/images/buttonSecondary.svg"
-                 alt="" width="188" height="44" aria-hidden="true">
-            <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
-            <span class="button__label">Become a partner</span>
-            <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
-          </a>
-        </div>
-      </header>
 
       <div class="flight__copy" data-flight-intro data-node-id="342:1559">
         <div class="flight__label" data-node-id="342:1560">

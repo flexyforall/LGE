@@ -325,15 +325,21 @@ img {
  * window and the button stays pinned to the right edge. At 1440 that resolves
  * to the 1400 in the design.
  *
+ * There is exactly one of it, fixed to the window rather than living in any
+ * frame — js/scene.js fades it into the hero's white-out and lifts it back
+ * with the role's flash, and from there it simply holds.
+ *
  * Figma also puts a 50px backdrop blur on this frame. It is left off: with the
  * black background it was drawn against it was invisible, but over the video it
  * showed up as a blurred panel across the top of the shot.
  */
 .menu {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 20px;
   right: 20px;
+  /* above the opening card (40) and the flight stage (41) */
+  z-index: 60;
   display: flex;
   align-items: center;
   justify-content: space-between;

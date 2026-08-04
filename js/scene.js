@@ -69,6 +69,7 @@
   var CARD_GAP = 8;
 
   /* Outside the spacecraft — fractions of that section's own scroll. */
+  var FLIGHT_PREROLL = 1.2; // seconds the clip creeps through while the card scales
   var FLIGHT_WIDEN_BY = 0.09; // the card has widened across both by here...
   var FLIGHT_OPEN_BY = 0.24; // ...and has taken the whole window by here
   var FLIGHT_RUN_BY = 0.86; // ...and the clip has run to its end by here
@@ -239,7 +240,6 @@
     var video = scene.querySelector('[data-hero-video]');
     var copy = scene.querySelector('[data-scene-copy]');
     var flash = scene.querySelector('[data-hero-flash]');
-    var chrome = scene.querySelector('[data-hero-chrome]');
     if (!video || !copy) return;
 
     setUpTag(scene);
@@ -295,16 +295,9 @@
       copy.style.transform = 'translateY(' + (-fade * COPY_RISE).toFixed(1) + 'px)';
       copy.style.visibility = fade === 1 ? 'hidden' : '';
 
-      /*
-       * The white-out that hands over to the section below; the bar fades
-       * with it, so nothing rides the flash.
-       */
+      /* The white-out that hands over to the section below. */
       var flashIn = clamp01((p - FLASH_IN_FROM) / (1 - FLASH_IN_FROM));
       if (flash) flash.style.opacity = String(flashIn);
-      if (chrome) {
-        chrome.style.opacity = String(1 - flashIn);
-        chrome.style.visibility = flashIn === 1 ? 'hidden' : '';
-      }
     });
   }
 
@@ -363,7 +356,6 @@
     var video = scene.querySelector('[data-role-video]');
     var statements = scene.querySelectorAll('[data-role-text]');
     var flash = scene.querySelector('[data-role-flash]');
-    var chrome = scene.querySelector('[data-role-chrome]');
     var dark = scene.querySelector('[data-role-dark]');
     if (!video || !statements.length) return;
 
@@ -372,7 +364,6 @@
     if (reduced) {
       scene.style.height = 'auto';
       if (flash) flash.style.display = 'none';
-      if (chrome) chrome.style.opacity = '1';
       /* Nothing to scroll through, so only the first passage has a place. */
       for (var i = 0; i < passages[0].length; i++) passages[0][i].className = 'is-in';
       for (var j = 1; j < passages.length; j++) statements[j].style.display = 'none';
@@ -415,10 +406,6 @@
        */
       var dim = clamp01((p - DIM_FROM) / (DIM_BY - DIM_FROM));
       if (dark) dark.style.opacity = String(dim);
-      if (chrome) {
-        chrome.style.opacity = String(lift * (1 - dim));
-        chrome.style.visibility = dim === 1 ? 'hidden' : '';
-      }
 
       /*
        * Each passage writes itself on, one character at a time, and rubs itself
@@ -637,12 +624,19 @@
       card.style.setProperty('--card-copy', String(1 - zoom));
 
       /*
-       * The clip holds its first frame for the whole of the opening and only
-       * starts once the window is full.
+       * While the card scales, the clip creeps a few frames forward — still
+       * well inside the cupola, never out through the glass. The flight
+       * proper picks up from exactly where the creep leaves off, so the
+       * playhead never jumps.
        */
       if (video.duration) {
+        var creep = clamp01(p / FLIGHT_OPEN_BY);
         var run = clamp01((p - FLIGHT_OPEN_BY) / (FLIGHT_RUN_BY - FLIGHT_OPEN_BY));
-        seek(run * video.duration);
+        seek(
+          run > 0
+            ? FLIGHT_PREROLL + run * (video.duration - FLIGHT_PREROLL)
+            : creep * FLIGHT_PREROLL
+        );
       }
 
       /* The intro copy writes itself on over the flight out through the glass. */
@@ -662,12 +656,41 @@
     });
   }
 
+  /* ------------------------------------------------------------------ *
+   * The menu
+   * ------------------------------------------------------------------ */
+
+  /*
+   * One bar, fixed to the window, owned here and nowhere else. It fades into
+   * the hero's white-out, lifts back with the role's flash, and from there it
+   * simply holds — through the cover, the cards and the whole flight.
+   */
+  function setUpMenu() {
+    var menu = document.querySelector('[data-site-menu]');
+    var hero = document.querySelector('[data-scene="hero"]');
+    var role = document.querySelector('[data-scene="role"]');
+    if (!menu || !hero || !role || reduced) return;
+
+    register(function () {
+      var rp = progressOf(role);
+      var o;
+      if (rp > 0) {
+        o = clamp01(rp / FLASH_FADE);
+      } else {
+        o = 1 - clamp01((progressOf(hero) - FLASH_IN_FROM) / (1 - FLASH_IN_FROM));
+      }
+      menu.style.opacity = String(o);
+      menu.style.visibility = o === 0 ? 'hidden' : '';
+    });
+  }
+
   /* ------------------------------------------------------------------ */
 
   setUpHero();
   setUpRole();
   setUpCards();
   setUpFlight();
+  setUpMenu();
 
   if (!reduced) {
     window.addEventListener('scroll', onScroll, { passive: true });

@@ -131,8 +131,11 @@ const rects = await page.evaluate(() => {
      * is not pinned and is its own origin.
      */
     const frame = el.closest('.frame') || el.closest('[data-cards]');
-    if (!frame) continue;
-    const origin = frame.getBoundingClientRect();
+    /*
+     * The menu is fixed to the window and lives in no frame; the viewport is
+     * its origin, which at the top of the page is the hero frame's own.
+     */
+    const origin = frame ? frame.getBoundingClientRect() : { x: 0, y: 0 };
     const r = el.getBoundingClientRect();
     out[el.dataset.nodeId] = {
       x: r.x - origin.x,
