@@ -537,14 +537,25 @@
       var open = clamp01(p / FLIGHT_OPEN_BY);
 
       /*
-       * The box. At 0 it is exactly where the card holds it; at 1 it is the
-       * window. The card's copy goes as it opens, so nothing rides the growth.
+       * The box grows from where the card held it at the moment the scene
+       * began — not from where the card is now. The card goes on scrolling
+       * away underneath while this lifts out of it and fills the window, and
+       * tracking the card instead would drag the box up off the screen with
+       * it, which is the whole difference between opening out and flying away.
+       *
+       * That start is recovered rather than captured: the scene's own top is
+       * how far the scroll has come into it, so adding it back to the card's
+       * current top gives where the card stood at zero. Recomputed every frame,
+       * so arriving at any scroll position lands on the right box.
        */
       if (open > 0 && open < 1) {
         var r = card.getBoundingClientRect();
+        var into = scene.getBoundingClientRect().top;
+        var left0 = r.left;
+        var top0 = r.top - into;
         video.classList.add('is-opening');
-        video.style.left = (r.left * (1 - open)).toFixed(1) + 'px';
-        video.style.top = (r.top * (1 - open)).toFixed(1) + 'px';
+        video.style.left = (left0 * (1 - open)).toFixed(1) + 'px';
+        video.style.top = (top0 * (1 - open)).toFixed(1) + 'px';
         video.style.width =
           (r.width + (window.innerWidth - r.width) * open).toFixed(1) + 'px';
         video.style.height =
