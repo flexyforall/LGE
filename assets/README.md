@@ -50,7 +50,8 @@ keep copies if they might need re-encoding.
 | File | Where | Source | Encoded |
 | --- | --- | --- | --- |
 | `video-hero.*` | hero | two 3840x2160 clips, 12s + 8s | source res, 24fps, crf 23, keyframe every 8 |
-| `video-3.*` | our role + containers | 2754x1536, 12s | source res, 24fps, crf 21, keyframe every 8 |
+| `video-3.*` | our role | 2754x1536, 12s | source res, 24fps, crf 21, keyframe every 8 |
+| `video-cupola.*` | the card that opens out | 3256x2160, 9s | source res, 24fps, crf 21, keyframe every 8 |
 
 `video-hero` is the old videos 1 and 2 joined into one file. They were generated
 as one continuous shot — the second begins on **exactly** the frame the first
@@ -147,10 +148,10 @@ would have coloured it from `currentcolor`, but a mask is a fetch and a fetch
 from a `file://` page is blocked, and the page has to keep working on a
 double-click.
 
-### Still needed — the cards section
+### Still needed — bitmaps
 
-`339:343` uses three bitmaps that could not be exported: figma.com is
-unreachable from here, so they have to be uploaded. The section is built and
+These could not be exported: figma.com is unreachable from here, so they have
+to be uploaded. The section is built and
 measured against the frame; these are the only things missing from it, and each
 is referenced by a CSS `background-image`, so until they land the slots simply
 render empty rather than broken.
@@ -159,7 +160,9 @@ render empty rather than broken.
 | --- | --- | --- | --- |
 | `images/cards-wash.png` | `342:576` | 1456 x 1555 | the wash behind the whole section, dodged over the black |
 | `images/card-partner.png` | `339:355` | 544 x 306 ratio | the band across the top of the wide card |
-| `images/card-integrate.png` | `339:372` | 380 x 380 | the square on the narrow card |
+| `images/card-integrate.png` | `339:372` | 380 x 380 | the satellite on the narrow card |
+| `images/shot-cupola.png` | `342:1558` | 1440 x 955 | the still the outside-spacecraft section opens on |
+| `images/shot-device.png` | `342:1599` | 1555 x 1031 | the still behind the Power copy |
 
 ### Partner logos
 

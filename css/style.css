@@ -897,9 +897,20 @@ img {
   color: rgba(255, 255, 255, 0.2);
 }
 
+/*
+ * The unread colour has to be opaque, and this is the whole reason the fill
+ * could not be seen.
+ *
+ * The gradient above is painted on the paragraph and clipped to its text, so it
+ * sits *behind* every character. A translucent unread colour — the frame writes
+ * it as rgba(255,255,255,0.2) — lets four fifths of that gradient straight
+ * through, which left read and unread all but identical. Flattened against the
+ * section's #030303 it is the same grey the frame intends, and now it actually
+ * covers what is behind it.
+ */
 .cards__headline span {
-  color: rgba(255, 255, 255, 0.2);
-  transition: color 260ms ease;
+  color: rgb(53, 53, 53);
+  transition: color 320ms ease;
 }
 
 .cards__headline span.is-read {

@@ -58,8 +58,8 @@
    */
   var TEXT_TRAIL = 26;
   /* The cards section is not pinned; these are fractions of the window. */
-  var CARDS_FILL_FROM = 0.86; // the heading starts filling here...
-  var CARDS_FILL_BY = 0.06; // ...and is fully read only once it is near the top
+  var CARDS_FILL_FROM = 0.92; // the heading starts filling as it enters...
+  var CARDS_FILL_BY = 0.16; // ...and is only fully read once it is near the top
   var CARDS_RISE_FROM = 0.92; // a card rises as its top reaches here
   var CARDS_RISE_BY = 0.8;
   var CARDS_OPEN_FROM = 0.9; // the pair start trading width here...
