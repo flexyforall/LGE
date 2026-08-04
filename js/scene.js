@@ -50,14 +50,17 @@
   var HERO_RUN_MS = 3200;
   var HERO_LAND_MS = 900; // ...and how long the white takes to lift off the tunnel
   var CURSOR_EASE = 0.22; // fraction of the distance the cursor closes per frame
-  var CURSOR_LEAVE_MS = 760; // ...and how long its line takes to turn itself out
-  var SQUARE_DRIFT = 10; // px either square travels at the far edge of the window
+  var CURSOR_LEAVE_MS = 520; // ...and how long its line takes to turn itself out
+  var CURSOR_TYPE_MS = 34; // ms per character as that line writes itself on
   /*
-   * How much of the way to the pointer a square closes each frame. Low enough
-   * to smooth the motion out, high enough that it still reads as following the
-   * pointer rather than wandering off on its own some while later.
+   * The cursor's own two squares answer the pointer's movement rather than its
+   * position: they are carried apart along whichever way it is going and draw
+   * back level as soon as it stops.
    */
-  var SQUARE_EASE = 0.12;
+  var SQUARE_THROW = 16; // px the furthest either one is carried
+  var SQUARE_GAIN = 0.4; // how much of a move's distance it is pushed by
+  var SQUARE_BLEED = 0.84; // how much of that push survives each frame
+  var SQUARE_EASE = 0.2; // ...and how much of the way it closes on it
   var TAG_LINES = [
     'WELCOME TO CORE SPACE',
     'POWER GENERATION & TRANSMISSION',
@@ -205,23 +208,34 @@
    * until the line is finished. The text is read off the element and put back
    * character by character, so the markup stays the whole line and the page
    * still reads properly with no script.
+   *
+   * Returns the run, so a line that comes and goes — the cursor's — can write
+   * itself again each time it arrives.
    */
-  function typeOn(el) {
-    if (!el) return;
+  function typeOn(el, caretClass, ms) {
+    if (!el) return function () {};
     var text = el.textContent;
     var caret = document.createElement('span');
-    caret.className = 'loader__caret';
-    el.textContent = '';
-    el.appendChild(caret);
+    caret.className = caretClass;
+    var timer = null;
 
-    var i = 0;
-    (function put() {
-      if (i >= text.length) {
-        caret.classList.add('is-done');
-        return;
-      }
-      caret.before(document.createTextNode(text.charAt(i++)));
-      setTimeout(put, TYPE_MS);
+    return (function run() {
+      if (timer) clearTimeout(timer);
+      caret.classList.remove('is-done');
+      el.textContent = '';
+      el.appendChild(caret);
+
+      var i = 0;
+      (function put() {
+        if (i >= text.length) {
+          caret.classList.add('is-done');
+          timer = null;
+          return;
+        }
+        caret.before(document.createTextNode(text.charAt(i++)));
+        timer = setTimeout(put, ms);
+      })();
+      return run;
     })();
   }
 
@@ -259,7 +273,7 @@
       var COPY_GONE_BY = 0.17; // share of the clip still to run when it has gone
       var COPY_OVER = 0.06; // ...and the share it fades over
 
-      typeOn(sheet.querySelector('[data-loader-type]'));
+      typeOn(sheet.querySelector('[data-loader-type]'), 'loader__caret', TYPE_MS);
 
       (function tick() {
         if (lifted) return;
@@ -401,19 +415,36 @@
    */
   function setUpCursor(scene, live) {
     var el = document.querySelector('[data-hero-cursor]');
-    var squares = scene.querySelectorAll('.hero__tagSquare');
+    var squares = el ? el.querySelectorAll('.cursor__square') : [];
     if (!el || reduced) return function () {};
 
     var tx = 0, ty = 0, x = 0, y = 0, placed = false;
-    var driftTo = 0, drift = 0;
     var on = false;
     var leaving = false;
+    /*
+     * The push the two squares are under: how hard the pointer was last moved,
+     * and which way. `want` is topped up by each move and bleeds away every
+     * frame, so it stands for how the pointer is moving rather than where it
+     * is — which is what brings the squares back together the moment it stops.
+     */
+    var want = { x: 0, y: 0 };
+    var push = { x: 0, y: 0 };
+    var lastX = null, lastY = null;
+
+    /* Its line writes itself on afresh every time the cursor arrives. */
+    var retype = typeOn(el.querySelector('.cursor__label'), 'cursor__caret', CURSOR_TYPE_MS);
 
     function show(next) {
       /* Mid-exit the cursor answers to nothing — its turn plays out. */
       if (leaving || next === on) return;
       on = next;
       el.classList.toggle('is-on', on);
+      if (on) retype();
+    }
+
+    function nudge(v, by) {
+      var n = v + by * SQUARE_GAIN;
+      return n > SQUARE_THROW ? SQUARE_THROW : n < -SQUARE_THROW ? -SQUARE_THROW : n;
     }
 
     scene.addEventListener('mousemove', function (event) {
@@ -424,20 +455,28 @@
         x = tx;
         y = ty;
       }
+      if (lastX !== null) {
+        want.x = nudge(want.x, tx - lastX);
+        want.y = nudge(want.y, ty - lastY);
+      }
+      lastX = tx;
+      lastY = ty;
       /* Over a link or a button the pointer means what it usually means. */
       show(live() && !event.target.closest('a, button'));
-      driftTo = ((tx / window.innerWidth) * 2 - 1) * SQUARE_DRIFT;
     });
 
     scene.addEventListener('mouseleave', function () {
       show(false);
-      driftTo = 0;
+      lastX = null;
+      lastY = null;
     });
 
     (function follow() {
       requestAnimationFrame(follow);
       /* Nothing on screen and nothing left to settle — no work to do. */
-      if (!on && Math.abs(drift - driftTo) < 0.02 && Math.abs(tx - x) < 0.5) return;
+      if (!on && Math.abs(push.x) < 0.05 && Math.abs(push.y) < 0.05 && Math.abs(tx - x) < 0.5) {
+        return;
+      }
 
       x += (tx - x) * CURSOR_EASE;
       y += (ty - y) * CURSOR_EASE;
@@ -445,13 +484,20 @@
         'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) translate(-50%,-50%)';
 
       /*
-       * One eased number for both, the second square given the negative of the
-       * first — which is what sends them opposite ways.
+       * The squares are carried apart along whichever way the pointer is
+       * going — up, down, across or any diagonal — the top one with it and
+       * the bottom one against, so they always separate rather than shift
+       * together. The want bleeds off each frame, so they draw back level as
+       * soon as the pointer settles.
        */
-      drift += (driftTo - drift) * SQUARE_EASE;
+      want.x *= SQUARE_BLEED;
+      want.y *= SQUARE_BLEED;
+      push.x += (want.x - push.x) * SQUARE_EASE;
+      push.y += (want.y - push.y) * SQUARE_EASE;
       for (var i = 0; i < squares.length; i++) {
         var way = i % 2 ? -1 : 1;
-        squares[i].style.setProperty('--drift', (way * drift).toFixed(2) + 'px');
+        squares[i].style.setProperty('--px', (way * push.x).toFixed(2) + 'px');
+        squares[i].style.setProperty('--py', (way * push.y).toFixed(2) + 'px');
       }
     })();
 
@@ -461,7 +507,8 @@
      * never over the hero there is nothing standing there to take its leave.
      */
     return function () {
-      driftTo = 0;
+      want.x = 0;
+      want.y = 0;
       if (!on || leaving) return;
       leaving = true;
       el.classList.add('is-leaving');

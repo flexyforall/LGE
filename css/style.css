@@ -337,6 +337,8 @@ html.is-held [data-scene='hero'] button {
   gap: 20px;
   opacity: 0;
   pointer-events: none;
+  /* the depth the line's tip-over on click is read in */
+  perspective: 400px;
   transition: opacity 0.25s ease;
   will-change: transform;
 }
@@ -345,12 +347,17 @@ html.is-held [data-scene='hero'] button {
   opacity: 1;
 }
 
-/* 378:2087 / 378:2084 — 7 x 7 */
+/*
+ * 378:2087 / 378:2084 — 7 x 7. The pair are carried apart along whichever way
+ * the pointer is moving, the top one with it and the bottom one against, and
+ * draw back level once it settles. js/scene.js writes the offsets.
+ */
 .cursor__square {
   flex: none;
   width: 7px;
   height: 7px;
   background: #ffffff;
+  transform: translate(var(--px, 0px), var(--py, 0px));
 }
 
 /* 378:2085 — label/S in caps, centred over the pointer */
@@ -363,36 +370,61 @@ html.is-held [data-scene='hero'] button {
   text-transform: uppercase;
   color: #ffffff;
   white-space: nowrap;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
 }
 
 /*
- * The click is answered before the cursor goes: the line turns a full circle
- * where it stands, and only once it is round again does the whole thing fade.
- * The fade is held off until the turn is more than half done, so the spin is
- * watched rather than glimpsed through it.
+ * The click is answered before the cursor goes: the line tips up and away on
+ * its own axis, the same turn the hero's tag makes when it changes — see
+ * .hero__tagLine.is-out — rather than spinning flat in the plane of the page.
+ * The perspective is what gives that tip its depth.
  */
 .cursor.is-leaving {
-  animation: cursor-leave 760ms ease forwards;
+  animation: cursor-leave 520ms ease forwards;
 }
 
 .cursor.is-leaving .cursor__label {
-  animation: cursor-turn 760ms cubic-bezier(0.5, 0, 0.2, 1) forwards;
+  animation: cursor-turn 460ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
 @keyframes cursor-turn {
   to {
-    transform: rotate(360deg);
+    transform: translateY(-115%) rotateX(75deg);
+    opacity: 0;
   }
 }
 
 @keyframes cursor-leave {
   0%,
-  55% {
+  60% {
     opacity: 1;
   }
   100% {
     opacity: 0;
   }
+}
+
+/*
+ * The line writes itself on each time the cursor arrives, the same caret the
+ * loader's line uses at this smaller size. It collapses once the line is
+ * written so it leaves no gap standing after the last letter.
+ */
+.cursor__caret {
+  display: inline-block;
+  width: 0.45em;
+  height: 0.72em;
+  margin-left: 0.08em;
+  background: #ffffff;
+  vertical-align: -0.04em;
+  animation: loader-caret 900ms steps(1, end) infinite;
+}
+
+.cursor__caret.is-done {
+  width: 0;
+  margin-left: 0;
+  animation: none;
+  opacity: 0;
 }
 
 /* No pointer to follow, and nothing to click through. */
@@ -819,18 +851,12 @@ html.is-held [data-scene='hero'] button {
 }
 
 /* 356:1260 / 356:1263 — 8 x 8 */
-/*
- * The pair follow the pointer across the hero, each sliding the opposite way
- * to the other, so the label breathes as the cursor crosses it. The offset is
- * written to --drift by js/scene.js and is zero until the pointer moves —
- * which is also what keeps the 40px either side measurable at rest.
- */
+/* 356:1260 / 356:1263 — 8 x 8 */
 .hero__tagSquare {
   flex: none;
   width: 8px;
   height: 8px;
   background: var(--color-fg);
-  transform: translateX(var(--drift, 0px));
 }
 
 .hero__tagText {
