@@ -1023,10 +1023,18 @@ img {
   right: 5.5px;
 }
 
-/* The wide card's own copy goes as it opens out — js/scene.js sets the value. */
+/*
+ * Everything that makes the card a card goes as it opens out, leaving only the
+ * picture — js/scene.js sets the value.
+ */
 .card--wide .card__overline,
-.card--wide .card__foot {
+.card--wide .card__foot,
+.card--wide .card__tick {
   opacity: var(--card-copy, 1);
+}
+
+.card--wide.is-opening {
+  box-shadow: inset 0 0 0 1px rgba(41, 41, 41, var(--card-copy, 1));
 }
 
 /* 339:360 — headline/Overline: Notch Regular 16/20, tracking 0.4, in caps */
@@ -1132,16 +1140,14 @@ img {
 }
 
 /*
- * The card's media is the clip. While the card is opening out, js/scene.js
- * lifts this box out of the card and grows it to the window — so it has to be
- * able to leave, which is what the fixed position at that moment is for.
+ * The whole card opens out, not just what is in it — so the card itself leaves
+ * the row and is driven against the window. Everything inside goes on filling
+ * it: the clip covers, the copy stays where the card puts it and fades.
  */
-.card__media.is-opening {
+.card.is-opening {
   position: fixed;
   z-index: 40;
-  inset: auto;
-  aspect-ratio: auto;
-  object-fit: cover;
+  height: auto;
 }
 
 /* 342:1559 — 764 wide on the frame's middle, 21 between label and headline */

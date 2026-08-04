@@ -65,8 +65,12 @@
   var CARDS_OPEN_FROM = 0.9; // the pair start trading width here...
   var CARDS_OPEN_BY = 0.3; // ...and have settled on the frame's split by here
 
+  var CARD_WIDE = 915; // the frame's split, and the gap between the pair
+  var CARD_GAP = 8;
+
   /* Outside the spacecraft — fractions of that section's own scroll. */
-  var FLIGHT_OPEN_BY = 0.22; // the card has opened out to the window by here
+  var FLIGHT_WIDEN_BY = 0.09; // the card has widened across both by here...
+  var FLIGHT_OPEN_BY = 0.24; // ...and has taken the whole window by here
   var FLIGHT_RUN_BY = 0.86; // ...and the clip has run to its end by here
   var TEXT_IN_FROM = 0.26; // the intro copy writes on over the flight...
   var TEXT_IN_BY = 0.6; // ...and has written itself out again by here
@@ -510,12 +514,30 @@
    * whole window. The card's own rect is read every frame rather than captured
    * once, so arriving at any scroll position lands on the right box.
    */
+  /*
+   * The narrow card would take the whole row the moment the wide one lifts out
+   * of it, so while that is happening it is held at the width the pair leave
+   * it. Passing 0 hands it back to the stylesheet.
+   */
+  function keepNarrow(row, rowWidth) {
+    var narrow = row.querySelector('.card--narrow');
+    if (!narrow) return;
+    if (!rowWidth) {
+      narrow.style.flex = '';
+      narrow.style.width = '';
+      return;
+    }
+    narrow.style.flex = 'none';
+    narrow.style.width = (rowWidth - CARD_WIDE - CARD_GAP).toFixed(1) + 'px';
+  }
+
   function setUpFlight() {
     var scene = document.querySelector('[data-scene="flight"]');
     if (!scene) return;
 
     var video = document.querySelector('[data-flight-video]');
     var card = video ? video.closest('[data-card]') : null;
+    var row = card ? card.closest('[data-card-row]') : null;
     var intro = scene.querySelector('[data-flight-intro]');
     var heading = scene.querySelector('[data-flight-text]');
     var device = scene.querySelector('[data-flight-device]');
@@ -534,43 +556,66 @@
 
     register(function () {
       var p = progressOf(scene);
-      var open = clamp01(p / FLIGHT_OPEN_BY);
 
       /*
-       * The box grows from where the card held it at the moment the scene
-       * began — not from where the card is now. The card goes on scrolling
-       * away underneath while this lifts out of it and fills the window, and
-       * tracking the card instead would drag the box up off the screen with
-       * it, which is the whole difference between opening out and flying away.
+       * The card opens out in two moves, and it is the whole card that moves —
+       * frame, ticks and copy together, with the clip filling it throughout.
        *
-       * That start is recovered rather than captured: the scene's own top is
-       * how far the scroll has come into it, so adding it back to the card's
-       * current top gives where the card stood at zero. Recomputed every frame,
-       * so arriving at any scroll position lands on the right box.
+       *   first   it widens across the space both cards held, keeping its own
+       *           height and its place in the row
+       *   then    it carries on into the window, and its copy fades as it goes
+       *           so that by the time the clip has the screen nothing is left
+       *           of the card but the picture
+       *
+       * Both moves grow from where the card stood when the scene began, not
+       * from where it is now: the row goes on scrolling away underneath while
+       * this lifts out of it, and tracking it instead drags the box up off the
+       * screen. That start is recovered rather than captured — the scene's own
+       * top is how far the scroll has come into it, so adding it back to the
+       * card's current top gives where it stood at zero.
        */
-      if (open > 0 && open < 1) {
-        var r = card.getBoundingClientRect();
+      var widen = clamp01(p / FLIGHT_WIDEN_BY);
+      var zoom = clamp01((p - FLIGHT_WIDEN_BY) / (FLIGHT_OPEN_BY - FLIGHT_WIDEN_BY));
+      var open = p >= FLIGHT_OPEN_BY ? 1 : 0;
+
+      if (p > 0 && p < FLIGHT_OPEN_BY && row) {
         var into = scene.getBoundingClientRect().top;
-        var left0 = r.left;
-        var top0 = r.top - into;
-        video.classList.add('is-opening');
-        video.style.left = (left0 * (1 - open)).toFixed(1) + 'px';
-        video.style.top = (top0 * (1 - open)).toFixed(1) + 'px';
-        video.style.width =
-          (r.width + (window.innerWidth - r.width) * open).toFixed(1) + 'px';
-        video.style.height =
-          (r.height + (window.innerHeight - r.height) * open).toFixed(1) + 'px';
-      } else if (open >= 1) {
-        video.classList.add('is-opening');
-        video.style.left = '0px';
-        video.style.top = '0px';
-        video.style.width = '100%';
-        video.style.height = '100%';
+        /*
+         * Measured off the row, never off the card: the card is fixed by the
+         * time this runs a second time, so its own rect would be reporting
+         * back the position this very code just gave it. The row stays in the
+         * page and keeps telling the truth.
+         */
+        var rowBox = row.getBoundingClientRect();
+        var x0 = rowBox.left;
+        var y0 = rowBox.top - into;
+        var h0 = rowBox.height;
+        /* From the card's own share of the row to the whole of it. */
+        var ww = CARD_WIDE + (rowBox.width - CARD_WIDE) * widen;
+        var wx = x0;
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+
+        card.classList.add('is-opening');
+        keepNarrow(row, rowBox.width);
+        card.style.left = (wx * (1 - zoom)).toFixed(1) + 'px';
+        card.style.top = (y0 * (1 - zoom)).toFixed(1) + 'px';
+        card.style.width = (ww + (vw - ww) * zoom).toFixed(1) + 'px';
+        card.style.height = (h0 + (vh - h0) * zoom).toFixed(1) + 'px';
+      } else if (open) {
+        card.classList.add('is-opening');
+        if (row) keepNarrow(row, row.getBoundingClientRect().width);
+        card.style.left = '0px';
+        card.style.top = '0px';
+        card.style.width = '100%';
+        card.style.height = '100%';
       } else {
-        video.classList.remove('is-opening');
-        video.style.cssText = '';
+        card.classList.remove('is-opening');
+        card.style.cssText = '';
+        if (row) keepNarrow(row, 0);
       }
-      card.style.setProperty('--card-copy', String(1 - open));
+      /* The copy goes over the second move only, and is gone by the end of it. */
+      card.style.setProperty('--card-copy', String(1 - zoom));
 
       /*
        * The clip holds its first frame for the whole of the opening and only
