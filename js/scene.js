@@ -214,11 +214,25 @@
         resolve();
       }
 
+      /*
+       * The copy leaves before the burst whites the frame out — measured on
+       * the clip, the fill is total by 1.2s from the end — because against
+       * white, exclusion turns the text black, and nothing should be standing
+       * there when the flash lands.
+       */
+      var copy = sheet.querySelector('.loader__copy');
+
       (function tick() {
         if (lifted) return;
-        if (count && video.duration) {
-          var pct = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
-          count.textContent = pct + '%';
+        if (video.duration) {
+          if (count) {
+            var pct = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
+            count.textContent = pct + '%';
+          }
+          if (copy) {
+            var left = video.duration - video.currentTime;
+            copy.style.opacity = String(clamp01((left - 1.2) / 0.4));
+          }
         }
         requestAnimationFrame(tick);
       })();
