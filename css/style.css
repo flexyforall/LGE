@@ -256,6 +256,40 @@ img {
   white-space: nowrap;
 }
 
+/*
+ * The line writes itself on as the clip runs, a solid caret standing at its
+ * head — the same rectangle the block reveal rides, at text scale. The caret
+ * takes no width once the line is written, or it would leave a phantom gap
+ * between the text and the square beside it.
+ */
+.loader__caret {
+  display: inline-block;
+  width: 0.45em;
+  height: 0.72em;
+  margin-left: 0.08em;
+  background: var(--color-fg);
+  vertical-align: -0.04em;
+  animation: loader-caret 900ms steps(1, end) infinite;
+}
+
+.loader__caret.is-done {
+  width: 0;
+  margin-left: 0;
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes loader-caret {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Scroll holds still while the loader owns the screen. */
 html.is-loading {
   overflow: hidden;
@@ -331,6 +365,36 @@ html.is-held [data-scene='hero'] button {
   white-space: nowrap;
 }
 
+/*
+ * The click is answered before the cursor goes: the line turns a full circle
+ * where it stands, and only once it is round again does the whole thing fade.
+ * The fade is held off until the turn is more than half done, so the spin is
+ * watched rather than glimpsed through it.
+ */
+.cursor.is-leaving {
+  animation: cursor-leave 760ms ease forwards;
+}
+
+.cursor.is-leaving .cursor__label {
+  animation: cursor-turn 760ms cubic-bezier(0.5, 0, 0.2, 1) forwards;
+}
+
+@keyframes cursor-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cursor-leave {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* No pointer to follow, and nothing to click through. */
 @media (prefers-reduced-motion: reduce) {
   .cursor {
@@ -372,42 +436,6 @@ html.is-held [data-scene='hero'] button {
   background: var(--color-fg);
   opacity: 0;
   pointer-events: none;
-}
-
-/*
- * The typing cursor for the headline's rotating tail: the same rectangle at
- * text scale, visible only while the tail is being retyped.
- */
-/*
- * Collapsed to nothing while idle — an invisible cursor must take no space,
- * or it stands as a phantom gap between the tail and the full stop.
- */
-.hero__swapCursor {
-  display: inline-block;
-  width: 0;
-  height: 0.72em;
-  background: var(--color-fg);
-  opacity: 0;
-}
-
-.hero__swapCursor.is-typing {
-  width: 0.45em;
-  margin-left: 0.08em;
-  opacity: 1;
-}
-
-/*
- * A typed character arrives the way the tunnel's copy does: holding the
- * accent, then settling to white a beat later — so the tail being typed
- * trails off into blue at its leading edge.
- */
-[data-hero-swap] span {
-  color: var(--color-accent);
-  transition: color 300ms ease 140ms;
-}
-
-[data-hero-swap] span.is-set {
-  color: var(--color-fg);
 }
 
 
@@ -792,10 +820,10 @@ html.is-held [data-scene='hero'] button {
 
 /* 356:1260 / 356:1263 — 8 x 8 */
 /*
- * The pair drift sideways under the pointer, each the opposite way, so the
- * label breathes as the cursor crosses the hero. The offset is written to
- * --drift by js/scene.js and is zero until the pointer moves, which is also
- * what keeps the 40px either side measurable at rest.
+ * The pair follow the pointer across the hero, each sliding the opposite way
+ * to the other, so the label breathes as the cursor crosses it. The offset is
+ * written to --drift by js/scene.js and is zero until the pointer moves —
+ * which is also what keeps the 40px either side measurable at rest.
  */
 .hero__tagSquare {
   flex: none;

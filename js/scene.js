@@ -31,6 +31,14 @@
    * keeps it feeling like one camera moving rather than a cut to another shot.
    */
   var HERO_LOOP_END = 14; // seconds — the flight plus two of the transition
+  /*
+   * Where the transition itself begins in the joined clip. The click goes
+   * straight here rather than rushing the rest of the flight past first — it
+   * is one shot either side of the join, so what is skipped is more of the
+   * same rather than a cut to somewhere else. If the loop is already past
+   * this, it carries on from where it is: never backwards.
+   */
+  var HERO_TRANSITION_FROM = 12;
   var HERO_SCRUB_FROM = 0.02; // where the run takes the clip off its loop...
   var HERO_SCRUB_BY = 0.92; // ...and has carried it to the last frame by here
   var FLASH_IN_FROM = 0.86; // the sheet closes whatever white the clip left short
@@ -42,8 +50,14 @@
   var HERO_RUN_MS = 3200;
   var HERO_LAND_MS = 900; // ...and how long the white takes to lift off the tunnel
   var CURSOR_EASE = 0.22; // fraction of the distance the cursor closes per frame
-  var SQUARE_DRIFT = 7; // px either square travels at the far edge of the window
-  var SQUARE_EASE = 0.06;
+  var CURSOR_LEAVE_MS = 760; // ...and how long its line takes to turn itself out
+  var SQUARE_DRIFT = 10; // px either square travels at the far edge of the window
+  /*
+   * How much of the way to the pointer a square closes each frame. Low enough
+   * to smooth the motion out, high enough that it still reads as following the
+   * pointer rather than wandering off on its own some while later.
+   */
+  var SQUARE_EASE = 0.12;
   var TAG_LINES = [
     'WELCOME TO CORE SPACE',
     'POWER GENERATION & TRANSMISSION',
@@ -81,15 +95,7 @@
 
   var REVEAL_MS = 950; // one line's wipe — unhurried enough to be watched
   var REVEAL_STAGGER = 220; // ms between lines setting off
-  var SWAP_PHRASES = [
-    'orbital data centers',
-    'power generation',
-    'data transmission',
-    'sustainability in space',
-  ];
-  var TYPE_HOLD = 2400; // ms a phrase stands before retyping
-  var TYPE_DEL = 22; // ms per character on the way out
-  var TYPE_ADD = 36; // ...and on the way in
+  var TYPE_MS = 52; // ms per character as the loader's line writes itself on
 
   /* Outside the spacecraft — fractions of that section's own scroll. */
   var FLIGHT_PREROLL = 1.2; // seconds the clip creeps through while the card scales
@@ -194,6 +200,31 @@
    * gets out of the way instead of standing over the page, and a hard
    * deadline catches a stalled clip the same way.
    */
+  /*
+   * Writes a line on one character at a time, a caret standing at its head
+   * until the line is finished. The text is read off the element and put back
+   * character by character, so the markup stays the whole line and the page
+   * still reads properly with no script.
+   */
+  function typeOn(el) {
+    if (!el) return;
+    var text = el.textContent;
+    var caret = document.createElement('span');
+    caret.className = 'loader__caret';
+    el.textContent = '';
+    el.appendChild(caret);
+
+    var i = 0;
+    (function put() {
+      if (i >= text.length) {
+        caret.classList.add('is-done');
+        return;
+      }
+      caret.before(document.createTextNode(text.charAt(i++)));
+      setTimeout(put, TYPE_MS);
+    })();
+  }
+
   function setUpLoader() {
     var sheet = document.querySelector('[data-loader]');
     var video = document.querySelector('[data-loader-video]');
@@ -218,12 +249,17 @@
       }
 
       /*
-       * The copy leaves before the burst whites the frame out — measured on
-       * the clip, the fill is total by 1.2s from the end — because against
-       * white, exclusion turns the text black, and nothing should be standing
-       * there when the flash lands.
+       * The copy leaves before the burst whites the frame out — because
+       * against white, exclusion turns the text black, and nothing should be
+       * standing there when the flash lands. It is held as a share of the clip
+       * rather than a number of seconds, so re-timing the clip re-times this
+       * with it: measured on the footage, the fill is total by the last sixth.
        */
       var copy = sheet.querySelector('.loader__copy');
+      var COPY_GONE_BY = 0.17; // share of the clip still to run when it has gone
+      var COPY_OVER = 0.06; // ...and the share it fades over
+
+      typeOn(sheet.querySelector('[data-loader-type]'));
 
       (function tick() {
         if (lifted) return;
@@ -233,8 +269,8 @@
             count.textContent = pct + '%';
           }
           if (copy) {
-            var left = video.duration - video.currentTime;
-            copy.style.opacity = String(clamp01((left - 1.2) / 0.4));
+            var left = (video.duration - video.currentTime) / video.duration;
+            copy.style.opacity = String(clamp01((left - COPY_GONE_BY) / COPY_OVER));
           }
         }
         requestAnimationFrame(tick);
@@ -371,9 +407,11 @@
     var tx = 0, ty = 0, x = 0, y = 0, placed = false;
     var driftTo = 0, drift = 0;
     var on = false;
+    var leaving = false;
 
     function show(next) {
-      if (next === on) return;
+      /* Mid-exit the cursor answers to nothing — its turn plays out. */
+      if (leaving || next === on) return;
       on = next;
       el.classList.toggle('is-on', on);
     }
@@ -406,14 +444,32 @@
       el.style.transform =
         'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) translate(-50%,-50%)';
 
+      /*
+       * One eased number for both, the second square given the negative of the
+       * first — which is what sends them opposite ways.
+       */
       drift += (driftTo - drift) * SQUARE_EASE;
-      if (squares[0]) squares[0].style.setProperty('--drift', drift.toFixed(2) + 'px');
-      if (squares[1]) squares[1].style.setProperty('--drift', (-drift).toFixed(2) + 'px');
+      for (var i = 0; i < squares.length; i++) {
+        var way = i % 2 ? -1 : 1;
+        squares[i].style.setProperty('--drift', (way * drift).toFixed(2) + 'px');
+      }
     })();
 
+    /*
+     * On the way out the line turns a full circle before the cursor fades, so
+     * the click is answered by the thing that asked for it. If the pointer was
+     * never over the hero there is nothing standing there to take its leave.
+     */
     return function () {
-      show(false);
       driftTo = 0;
+      if (!on || leaving) return;
+      leaving = true;
+      el.classList.add('is-leaving');
+      setTimeout(function () {
+        leaving = false;
+        show(false);
+        el.classList.remove('is-leaving');
+      }, CURSOR_LEAVE_MS);
     };
   }
 
@@ -445,11 +501,9 @@
     /*
      * The reveal. Both blocks hide before first paint and wipe on once the
      * fonts have landed — splitting sooner would measure fallback metrics.
-     * The tail starts retyping only after its own line has been revealed.
      */
     var headline = scene.querySelector('.hero__headline');
     var lead = scene.querySelector('.hero__lead');
-    var swap = scene.querySelector('[data-hero-swap]');
     if (headline) headline.style.opacity = '0';
     if (lead) lead.style.opacity = '0';
     var fontsReady =
@@ -457,9 +511,7 @@
     Promise.all([fontsReady, loaderLifted]).then(function () {
       if (headline) {
         headline.style.opacity = '';
-        blockReveal(headline, function () {
-          if (swap) startTyper(swap);
-        });
+        blockReveal(headline);
       }
       if (lead) {
         setTimeout(function () {
@@ -569,7 +621,8 @@
         }
       } else {
         if (anchor === null) {
-          anchor = video.currentTime;
+          /* Straight to the transition, unless the loop is already past it. */
+          anchor = Math.max(video.currentTime, HERO_TRANSITION_FROM);
           video.pause();
         }
         if (video.duration) {
@@ -748,69 +801,6 @@
     hideReveal(lines);
     runReveal(lines, done);
     return lines;
-  }
-
-  /*
-   * The headline's tail retypes itself through SWAP_PHRASES: hold, rub the
-   * old phrase out a character at a time, type the new one in, hold again.
-   * The cursor is the reveal's rectangle at text scale, on only while the
-   * tail is actually being retyped.
-   */
-  function startTyper(swap) {
-    var cursor = document.createElement('span');
-    cursor.className = 'hero__swapCursor';
-    swap.parentNode.insertBefore(cursor, swap.nextSibling);
-    var idx = 0;
-
-    /*
-     * The tail is kept as one node per character so each can arrive the way
-     * the tunnel's copy does — in the accent, settling to white a beat later.
-     * Spaces stay bare text nodes; they have no colour to settle.
-     */
-    function put(ch) {
-      if (ch === ' ') {
-        swap.appendChild(document.createTextNode(' '));
-        return;
-      }
-      var span = document.createElement('span');
-      span.textContent = ch;
-      swap.appendChild(span);
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          span.className = 'is-set';
-        });
-      });
-    }
-
-    function retype(next, done) {
-      (function del() {
-        if (swap.lastChild) {
-          swap.removeChild(swap.lastChild);
-          setTimeout(del, TYPE_DEL);
-        } else {
-          var i = 0;
-          (function add() {
-            if (i < next.length) {
-              put(next.charAt(i++));
-              setTimeout(add, TYPE_ADD);
-            } else {
-              done();
-            }
-          })();
-        }
-      })();
-    }
-
-    (function cycle() {
-      setTimeout(function () {
-        idx = (idx + 1) % SWAP_PHRASES.length;
-        cursor.classList.add('is-typing');
-        retype(SWAP_PHRASES[idx], function () {
-          cursor.classList.remove('is-typing');
-          cycle();
-        });
-      }, TYPE_HOLD);
-    })();
   }
 
   function setUpRole() {
