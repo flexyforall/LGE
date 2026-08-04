@@ -6,8 +6,8 @@
  *
  *   Hero    the clip loops as a background. The scroll clears the copy, then
  *           whites the frame out and hands over to the section below. The tag
- *           line rotates on its own clock, and the button's light breathes on
- *           its own and leans towards the pointer.
+ *           line rotates on its own clock; the partner row runs on its own in
+ *           CSS.
  *
  *   Role    video 3 loops as a background too; the scroll drives the
  *           statement's reading fill and the container moves.
@@ -26,8 +26,6 @@
     'ENGINEERED FOR VLEO',
   ];
   var TAG_PERIOD = 2800; // ms between rotations
-  var GLOW_PULL = 0.34; // how much of the pointer's offset the button's light takes
-  var GLOW_REACH = 26; // px it may drift either way from where Figma rests it
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
   var TEXT_FILL_FROM = 0.12; // the statement starts filling once the flash is gone
   var TEXT_FILL_BY = 0.38; // ...and is fully read by here
@@ -109,9 +107,9 @@
   /*
    * The rotating tag. One line lives in the box at a time; on each tick the
    * next line tips in from below while the old one tips up and away, and the
-   * box's width glides to the new line's width. The row is centred on the
-   * frame, so that glide slides both squares outwards or inwards together,
-   * each keeping its 56px of air.
+   * box's width glides to the new line's width — which is what slides the
+   * right-hand square while the left one holds the 56px column, each keeping
+   * its 40px of air.
    */
   function setUpTag(scene) {
     var box = scene.querySelector('[data-hero-tag]');
@@ -179,35 +177,6 @@
     }, TAG_PERIOD);
   }
 
-  /*
-   * The button's light follows the pointer.
-   *
-   * The bloom rests where Figma puts it — on the plate's right shoulder. While
-   * the pointer is over the button it leans towards it, damped to GLOW_PULL so
-   * the light drifts rather than sticking to the cursor, and clamped so it
-   * never leaves the plate. Both bloom layers read the same offset, which is
-   * what keeps them one light source rather than two.
-   */
-  function setUpButtonGlow(scene) {
-    if (reduced) return;
-
-    scene.querySelectorAll('[data-btn-glow]').forEach(function (btn) {
-      btn.addEventListener('pointermove', function (event) {
-        var box = btn.getBoundingClientRect();
-        if (!box.width) return;
-        /* The rest position, in the button's own coordinates. */
-        var rest = box.width / 2 + 38.5;
-        var shift = (event.clientX - box.left - rest) * GLOW_PULL;
-        shift = Math.max(-GLOW_REACH, Math.min(GLOW_REACH, shift));
-        btn.style.setProperty('--glow-shift', shift.toFixed(1) + 'px');
-      });
-
-      btn.addEventListener('pointerleave', function () {
-        btn.style.removeProperty('--glow-shift');
-      });
-    });
-  }
-
   function setUpHero() {
     var scene = document.querySelector('[data-scene="hero"]');
     if (!scene) return;
@@ -219,14 +188,13 @@
     if (!video || !copy) return;
 
     setUpTag(scene);
-    setUpButtonGlow(scene);
 
     if (reduced) {
       scene.style.height = 'auto';
       return;
     }
 
-    /* The clip is a background: it loops on its own, at the design's 70%. */
+    /* The clip is a background: it loops on its own, cropped by the frame. */
     video.loop = true;
     video.play().catch(function () {});
 

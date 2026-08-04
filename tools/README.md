@@ -6,7 +6,7 @@ Optional. Nothing here is needed to view or deploy the site — open
 ## Design parity check
 
 `measure.mjs` opens the page in a headless browser and diffs every box, text
-origin and gap against the numbers read off the Figma frames — `313:1164` for
+origin and gap against the numbers read off the Figma frames — `356:1231` for
 the hero, `238:2674` for Our role. It finds elements by the `data-node-id`
 attributes in `index.html`.
 
@@ -20,12 +20,12 @@ Output is one line per measurement — the Figma value, the rendered value, and
 the difference:
 
 ```
-ok    header (313:1200)   figma[   20.0    20.0  1400.0    64.0 ]  dom[ ... ]  d[  0.0  0.0  0.0  0.0 ]
+ok    menu (356:1237)     figma[   20.0    20.0  1400.0    64.0 ]  dom[ ... ]  d[  0.0  0.0  0.0  0.0 ]
 ```
 
 A `—` in the Figma column is a number the design does not pin — the tag row's
-width follows whichever line is showing — and is reported without being
-asserted.
+width follows whichever line is showing, and the copy column's follows the
+headline — and is reported without being asserted.
 
 To check a running server instead of the local file:
 

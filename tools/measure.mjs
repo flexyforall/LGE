@@ -18,26 +18,24 @@ const target =
 
 /** Boxes in frame coordinates: [nodeId, x, y, w, h, label]. */
 const BOXES = [
-  // --- hero ("section 5"), 313:1164 ---
-  ['313:1200', 20, 20, 1400, 64, 'header'],
-  ['313:1201', 40, 35, 697, 34, 'header leading group'],
-  ['313:1203', 40, 35, 34, 34, 'logo'],
-  ['313:1212', 1260, 33, 140, 38, 'become-a-partner slot'],
-  ['313:1213', 1254, 32, 146, 36, 'become-a-partner shape'],
-  // tag 14 + 32 + [headline 128 + 40 + button 57] = 271, centred on the frame
-  ['313:1246', 220, 269, 1000, 271, 'hero content'],
-  ['313:1240', null, 269, null, 14, 'tag row'],
-  ['313:1241', null, 272, 8, 8, 'tag square (left)'],
-  ['313:1239', 220, 315, 1000, 225, 'title + button stack'],
-  ['313:1221', 220, 315, 1000, 128, 'headline'],
-  ['313:1223', 626, 483, 188, 57, 'button row'],
-  ['313:1224', 626, 486.5, 171, 50, 'button'],
-  ['313:1225', 703, 481, 94, 40, 'button glow'],
-  ['313:1228', 626, 488, 188, 50, 'button tab'],
-  ['313:1229', 626, 486, 188, 54, 'button plate'],
-  ['313:1230', 626, 486, 188, 54, 'button sheen'],
-  // two 16px lines — the height the bottom anchor is set from
-  ['313:1216', 460, 728, 520, 32, 'bottom note'],
+  // --- hero ("Hero"), 356:1231 ---
+  ['356:1237', 20, 20, 1400, 64, 'menu'],
+  ['356:1240', 40, 35, 34, 34, 'logo'],
+  ['356:1254', 1212, 30, 188, 44, 'become-a-partner button'],
+  ['356:1246', null, 36, null, 32, 'tab: TECHNOLOGY'],
+  // label 20 + 16 + headline 160 + 24 + lead 28 + 40 + button 56 = 344,
+  // centred on the frame
+  ['356:1255', 56, 233, null, 344, 'hero content'],
+  ['356:1257', 56, 233, null, 248, 'title block'],
+  ['356:1258', 56, 233, null, 196, 'label + headline'],
+  ['356:1259', 56, 233, null, 20, 'tag row'],
+  ['356:1260', 56, 239, 8, 8, 'tag square (left)'],
+  ['356:1264', 56, 269, null, 160, 'headline'],
+  ['356:1265', 56, 453, 677, 28, 'lead'],
+  ['356:1266', 56, 521, 210, 56, 'become-partner button'],
+  ['356:1234', 1166, 659, null, 20, 'progress-you-can-verify'],
+  ['356:1236', null, 668.5, 72, 1, 'its rule'],
+  ['356:1267', 0, 679, 1440, 132, 'partner row'],
 
   // --- section 2 (our role), 238:2674 ---
   ['238:2675', 338, 321, 764, 168, 'statement'],
@@ -50,25 +48,24 @@ const BOXES = [
  * the spacing between them is covered by GAPS below.
  */
 const TEXT_ORIGINS = [
-  ['313:1208', 114, 44.2, 'nav: TECHNOLOGY'],
-  ['313:1214', 1270, 42, 'become-a-partner label'],
-  ['313:1237', 644, 506, 'explore label'],
-  ['313:1218', 460, 728, 'bottom note text'],
+  ['356:1235', 1166, 659, 'progress you can verify'],
   ['238:2679', 687, 760, 'our-role label'],
   ['238:2682', 607, 760, 'our-role row'],
 ];
 
 /** [fromNodeId, toNodeId, expectedGap, label] — the paddings and margins themselves. */
 const GAPS = [
-  ['313:1203', '313:1207', 40, 'logo -> nav'],
-  ['313:1208', '313:1209', 30, 'nav: TECHNOLOGY -> COMPANY'],
-  ['313:1209', '313:1210', 30, 'nav: COMPANY -> FOR INVESTORS'],
-  ['313:1210', '313:1211', 30, 'nav: FOR INVESTORS -> CONTACT'],
-  // the tag's law: 56px of air between the text and each square
-  ['313:1241', '313:1240-text', 56, 'tag: left square -> text'],
-  ['313:1240-text', '313:1244', 56, 'tag: text -> right square'],
-  ['313:1240', '313:1239', 32, 'tag -> title stack'],
-  ['313:1221', '313:1223', 40, 'headline -> button'],
+  ['356:1246', '356:1248', 24, 'tabs: TECHNOLOGY -> COMPANY'],
+  ['356:1248', '356:1250', 24, 'tabs: COMPANY -> FOR INVESTORS'],
+  ['356:1250', '356:1252', 24, 'tabs: FOR INVESTORS -> CONTACT'],
+  ['356:1245', '356:1254', 40, 'tabs -> button'],
+  // the tag's law: 40px of air between the text and each square
+  ['356:1260', '356:1259-text', 40, 'tag: left square -> text'],
+  ['356:1259-text', '356:1263', 40, 'tag: text -> right square'],
+  ['356:1259', '356:1264', 16, 'tag -> headline'],
+  ['356:1264', '356:1265', 24, 'headline -> lead'],
+  ['356:1265', '356:1266', 40, 'lead -> button'],
+  ['356:1235', '356:1236', 9, 'verify: text -> rule'],
   ['238:2680', '238:2679', 72, 'dot -> OUR ROLE'],
   ['238:2679', '238:2681', 72, 'OUR ROLE -> dot'],
 ];
@@ -96,7 +93,7 @@ const rects = await page.evaluate(() => {
   if (tagText) {
     const frame = tagText.closest('.frame').getBoundingClientRect();
     const r = tagText.getBoundingClientRect();
-    out['313:1240-text'] = {
+    out['356:1259-text'] = {
       x: r.x - frame.x,
       y: r.y - frame.y,
       w: r.width,

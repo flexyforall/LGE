@@ -66,6 +66,38 @@
   font-display: swap;
 }
 
+/*
+ * Stack Sans — the three families the 356:1231 frame is set in. Pulled from
+ * Google Fonts as woff2 and committed, so the page needs no network: open
+ * index.html on a plane and the type is still right.
+ *
+ * Headline ships as a static 400; Notch and Text are variable over 200-700,
+ * which is why their ranges are declared rather than a single weight.
+ */
+@font-face {
+  font-family: 'Stack Sans Headline';
+  src: url('../assets/fonts/StackSansHeadline.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Stack Sans Text';
+  src: url('../assets/fonts/StackSansText.woff2') format('woff2');
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Stack Sans Notch';
+  src: url('../assets/fonts/StackSansNotch.woff2') format('woff2');
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 /* --- Tokens --------------------------------------------------------------
    Figma has no published variables on these frames, so these mirror the raw
@@ -83,6 +115,14 @@
   --font-body: 'PP Neue Montreal', 'Mozilla Text', system-ui, sans-serif;
 
   /*
+   * The hero frame's three roles: Headline for the title, Text for the lead,
+   * Notch for every label.
+   */
+  --font-headline: 'Stack Sans Headline', 'PP Neue Montreal', system-ui, sans-serif;
+  --font-text: 'Stack Sans Text', 'PP Neue Montreal', system-ui, sans-serif;
+  --font-label: 'Stack Sans Notch', 'PP Neue Montreal', system-ui, sans-serif;
+
+  /*
    * A frame fills its pinned stage. Dividing by the scale means it still fills
    * it once it is being scaled down, rather than leaving a strip below.
    */
@@ -90,10 +130,10 @@
   --frame-height: calc(100dvh / var(--frame-scale, 1));
   /*
    * The narrowest the frame is allowed to be before it scales down instead.
-   * Set by the hero's 1000px copy block plus a margin either side: below this
-   * the centred headline would be cut off at both ends.
+   * Set by the hero's headline: it runs about 868 wide from the 56px margin,
+   * and this leaves the same margin on its right.
    */
-  --frame-min-width: 1040px;
+  --frame-min-width: 980px;
 
   /* How much scroll each camera move is spread over. */
   --scene-length-hero: 260vh;
@@ -210,10 +250,19 @@ img {
   pointer-events: none;
 }
 
-/* 313:1165 — the hero clip fills the frame. */
+/*
+ * 356:1233 — the frame does not simply cover itself with the clip: it blows it
+ * up to 2616 x 1472 and pulls it 100 left and 10 up, so the window lands on
+ * the upper-left of the shot. Held as ratios of the frame so the same crop
+ * survives any window size.
+ */
 [data-hero-video='1'] {
   position: absolute;
-  inset: 0;
+  left: -6.9444%;
+  top: -1.2346%;
+  width: 181.6667%;
+  height: 181.7284%;
+  object-fit: cover;
 }
 
 /* 242:2689 — the container the shot packs itself into; js/scene.js drives its
@@ -295,19 +344,19 @@ img {
 }
 
 
-/* --- Header --------------------------------------------------------------- */
+/* --- Menu ----------------------------------------------------------------- */
 
 /*
- * 235:2779 — x 20, y 20, 1400 x 64, padding 20 (the updated frames pull the
- * bar out to 20px insets). The inset is the designed value; the width follows
- * from it, so the bar spans the window and BECOME A PARTNER stays pinned to
- * the right edge. At 1440 that resolves to the 1400 in the design.
+ * 356:1237 — x 20, y 20, 1400 x 64, padding 20 across and 13 down. The inset
+ * is the designed value; the width follows from it, so the bar spans the
+ * window and the button stays pinned to the right edge. At 1440 that resolves
+ * to the 1400 in the design.
  *
  * Figma also puts a 50px backdrop blur on this frame. It is left off: with the
  * black background it was drawn against it was invisible, but over the video it
  * showed up as a blurred panel across the top of the shot.
  */
-.header {
+.menu {
   position: absolute;
   top: 20px;
   left: 20px;
@@ -316,134 +365,165 @@ img {
   align-items: center;
   justify-content: space-between;
   height: 64px;
-  padding: 20px;
+  padding: 13px 20px;
 }
 
-/* 235:2780 — 697 wide, 40 gap between logo and nav */
-.header__leading {
+/* 356:1238 — the logo holds the left edge on its own now */
+.menu__leading {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+/* 356:1240 — 34 x 34 */
+.menu__logo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 34px;
+  height: 34px;
+}
+
+.menu__logo img {
+  width: 34px;
+  height: 34px;
+}
+
+/* 356:1244 — 40 between the tabs and the button */
+.menu__trailing {
   display: flex;
   flex: none;
   align-items: center;
   gap: 40px;
-  width: 697px;
 }
 
-/* 235:2781 — 34 x 34 */
-.header__logo {
+/* 356:1245 — 24 between tabs */
+.tabs {
   display: flex;
   flex: none;
   align-items: center;
-  width: 34px;
-  height: 34px;
+  gap: 24px;
 }
 
-.header__logo img {
-  width: 34px;
-  height: 34px;
-}
-
-/* 235:2786 — 30 gap between links */
-.nav {
+/* 356:1246 etc — label/S in caps at 60%, each in a 10 / 8 pad */
+.tab {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 30px;
-}
-
-/* 313:1208-1211 — Neue Montreal Medium 12/1.3, tracking -0.24 */
-.nav__link {
-  font-family: var(--font-body);
+  justify-content: center;
+  padding: 8px 10px;
+  font-family: var(--font-label);
   font-weight: 500;
   font-size: 12px;
-  line-height: 1.3;
-  letter-spacing: -0.24px;
-  color: var(--color-fg);
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
+  transition: color 0.25s ease;
+}
+
+.tab:hover {
+  color: var(--color-fg);
+}
+
+
+/* --- Buttons -------------------------------------------------------------
+   356:1254 (light) and 356:1266 (dark). Both are a plate, a plus, a label and
+   a second plus. The plates are the uploaded exports — the dark one carries
+   its own glow, drawn at 47 / 60 inside a 314 x 163 canvas, so it hangs off
+   the button by exactly that much and needs no clipping.
+   ------------------------------------------------------------------------- */
+
+.button {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.button__plate {
+  position: absolute;
+  pointer-events: none;
 }
 
 /*
- * 313:1212 — a 140 x 38 box with the shape hung off it: 146 x 36 at -6 / -1,
- * so the plate is wider than the slot it is measured in and sits a hair high.
+ * The plus, 356:1254 / 356:1266. It is exported white, which is what the dark
+ * plate wants; the light plate flips it to black with a filter. A CSS mask
+ * would have coloured it properly from `currentcolor`, but masks are fetches
+ * and a fetch from a file:// page is blocked — the page has to keep working
+ * on a double-click.
  */
-.partner {
+.button__icon {
   position: relative;
   flex: none;
-  width: 140px;
-  height: 38px;
+  width: 20px;
+  height: 20px;
 }
 
-/*
- * 313:1213 — Rectangle 26102865. The frame turns this button around: it used
- * to be the solid white plate, and is now the dark one with a hairline, the
- * same shape 314:1287 uses at its larger size. Drawn here rather than
- * exported, because the border is a 1px inset of the cut-cornered outline and
- * only a second copy of that outline can hold it.
- */
-.partner__shape {
-  position: absolute;
-  top: -1px;
-  left: -6px;
-  width: 146px;
-  height: 36px;
-  clip-path: polygon(
-    8.46px 0,
-    137.54px 0,
-    146px 9px,
-    146px 27px,
-    136.48px 36px,
-    8.46px 36px,
-    0 27px,
-    0 9px
-  );
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.partner__shape::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  clip-path: polygon(
-    7.6px 1px,
-    137.1px 1px,
-    145px 9.5px,
-    145px 26.5px,
-    136.1px 35px,
-    7.6px 35px,
-    1px 26.5px,
-    1px 9.5px
-  );
-  background: #202020;
-}
-
-/*
- * 313:1214 — Mozilla Text Bold 12/1.3, tracking -0.24, centred on the slot
- * (left 50% - 60, top 50% - 10). The label is no longer flat black: the frame
- * fills it with a grey-to-white ramp, clipped to the glyphs.
- */
-.partner__label {
-  position: absolute;
-  top: calc(50% - 10px);
-  left: calc(50% - 60px);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 12px;
-  line-height: 1.3;
-  letter-spacing: -0.24px;
+.button__label {
+  position: relative;
+  padding: 0 6px;
+  font-family: var(--font-label);
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
   white-space: nowrap;
-  background-image: linear-gradient(109.592deg, #999999 47.621%, #ffffff 130.93%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+}
+
+/* 356:1254 — 188 x 44, padding 8 / 12, label/S on #030303 */
+.button--light {
+  width: 188px;
+  height: 44px;
+  padding: 12px 8px;
+  color: #030303;
+}
+
+.button--light .button__icon {
+  filter: brightness(0);
+}
+
+.button--light .button__plate {
+  top: 0;
+  left: 0;
+  width: 188px;
+  height: 44px;
+}
+
+.button--light .button__label {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* 356:1266 — 210 x 56, padding 16 / 18, label/M in white */
+.button--dark {
+  width: 210px;
+  height: 56px;
+  padding: 18px 16px;
+  color: var(--color-fg);
+}
+
+.button--dark .button__plate {
+  top: -60px;
+  left: -47px;
+  width: 314px;
+  height: 163px;
+}
+
+.button--dark .button__label {
+  font-size: 14px;
+  line-height: 20px;
 }
 
 
 /* --- Hero ----------------------------------------------------------------- */
 
 /*
- * The title and footer clear out together, so they share a wrapper. It spans
- * the frame rather than collapsing around them: js/scene.js puts a transform on
+ * The copy clears out together, so it shares a wrapper. It spans the frame
+ * rather than collapsing around its children: js/scene.js puts a transform on
  * it, and a transformed box becomes the containing block for anything absolute
- * inside it — on a collapsed wrapper that would drag both blocks off position.
+ * inside it — on a collapsed wrapper that would drag every block off position.
  */
 [data-scene-copy] {
   position: absolute;
@@ -455,48 +535,50 @@ img {
   pointer-events: auto;
 }
 
-/*
- * 313:1246 — 1000 wide, 32 between tag and stack, sitting on both of the
- * frame's midlines. The design writes the horizontal one as x 220; centring
- * resolves to exactly that at 1440 and keeps the block centred on any wider
- * window, which is the alignment the frame is drawn with.
- */
+/* 356:1255 — x 56, centred on the frame, 40 between the title and the button */
 .hero__content {
   position: absolute;
-  top: calc(50% - 0.5px);
-  left: 50%;
+  top: 50%;
+  left: 56px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 32px;
-  width: 1000px;
-  transform: translate(-50%, -50%);
+  align-items: flex-start;
+  gap: 40px;
+  transform: translateY(-50%);
 }
 
-/* 313:1239 — title and button, 40 apart, on the column's full width */
-.hero__stack {
+/* 356:1257 — 24 between the title block and the lead */
+.hero__title {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+}
+
+/* 356:1258 — 16 between the label and the headline */
+.hero__titleLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
 }
 
 /*
- * 313:1240 — the tag: an 8px square each side, 56px of air between each square
- * and the text. The row hugs its content and is centred, so as the rotating
- * line changes width both squares glide outwards or inwards together, keeping
- * their 56px — the fold/expand the design asks for. js/scene.js animates the
- * text box's width to make that glide.
+ * 356:1259 — the label: an 8px square each side, 40px of air between each
+ * square and the text. The row hugs its content on the left margin, so as the
+ * rotating line changes width the left square holds its ground on the 56px
+ * column and the right one slides to keep its 40 — the fold/expand the design
+ * asks for. js/scene.js animates the text box's width to make that glide.
  */
 .hero__tag {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 56px;
+  gap: 40px;
 }
 
-/* 313:1241 / 313:1244 — 8 x 8 */
+/* 356:1260 / 356:1263 — 8 x 8 */
 .hero__tagSquare {
   flex: none;
   width: 8px;
@@ -507,21 +589,22 @@ img {
 .hero__tagText {
   position: relative;
   flex: none;
-  height: 14px;
+  height: 20px;
   overflow: hidden;
   perspective: 400px;
   transition: width 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-/* 313:1243 — Neue Montreal Medium 14, no tracking */
+/* 356:1262 — label/M in caps, 14/20, tracking 0.4 */
 .hero__tagLine {
   position: absolute;
   top: 0;
   left: 0;
-  font-family: var(--font-body);
+  font-family: var(--font-label);
   font-weight: 500;
   font-size: 14px;
-  line-height: 14px;
+  line-height: 20px;
+  letter-spacing: 0.4px;
   color: var(--color-fg);
   white-space: nowrap;
   transform-origin: 50% 50%;
@@ -540,247 +623,117 @@ img {
   opacity: 0;
 }
 
-/* 313:1221 — Mozilla Text SemiBold 64/64, tracking -2.56, set in caps */
+/* 356:1264 — headline/Display: 72/80, tracking -1, sentence case */
 .hero__headline {
   margin: 0;
-  width: 100%;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 64px;
-  line-height: 1;
-  letter-spacing: -2.56px;
-  text-align: center;
-  text-transform: uppercase;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 72px;
+  line-height: 80px;
+  letter-spacing: -1px;
   color: var(--color-fg);
 }
 
-/*
- * 313:1216 — 520 wide, centred, y 728 on the 810 frame. Anchored to the bottom
- * edge instead, so the air under it holds on any window height: the copy sets
- * two 16px lines, which puts its top back on 728 at the designed height.
- */
-.hero__note {
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  width: 520px;
-  transform: translateX(-50%);
-}
-
-/* 313:1218 — Neue Montreal Medium 12/16, tracking -0.12, in caps */
-.hero__noteText {
+/* 356:1265 — paragraph/L: 18/28 on 677, at 70% */
+.hero__lead {
   margin: 0;
-  font-family: var(--font-body);
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: -0.12px;
-  text-align: center;
-  text-transform: uppercase;
-  color: var(--color-fg);
+  width: 677px;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 28px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-
-/* --- The button ----------------------------------------------------------
-   Figma 313:1223 -> 314:1263. Three layers, all of them the design's:
-
-     313:1229  the plate — a cut-cornered 188 x 54 tablet, white at the left
-               edge ramping to blue at the right
-     313:1230  the sheen — a bloom sitting inside the plate, added onto it
-               rather than painted over it, so it only ever brightens
-     313:1225  the aura  — the same bloom again, unclipped, which is what
-               spills past the plate's top edge
-
-   Figma exports those as flat SVGs. They are rebuilt here as gradients so the
-   light can move: both bloom layers breathe on their own clocks, and
-   js/scene.js slides them towards the pointer. The geometry is unchanged —
-   every offset below is the frame's.
-   ------------------------------------------------------------------------- */
-
-:root {
-  /* 313:1229 — the plate's outline: 8 in from each side, 6.75 down each end */
-  --btn-plate: polygon(
-    8px 0,
-    180px 0,
-    188px 6.75px,
-    188px 47.25px,
-    180px 54px,
-    8px 54px,
-    0 47.25px,
-    0 6.75px
-  );
-}
-
-/* 313:1223 — 188 x 57 */
-.btns {
+/*
+ * 356:1234 — x 1166 (80% + 14), y 659, the rule 9 past the text. Both of the
+ * design's numbers are written here as the edge they land on:
+ *
+ *   - the row ends flush with the frame's right edge at 1440, so it is hung
+ *     off that edge; on a narrower frame the fixed-width rule would otherwise
+ *     be pushed off it
+ *   - 659 plus its own 20 is 679, exactly where the partner row starts, so it
+ *     rests on that row rather than at a fixed y — otherwise a short window
+ *     walks the row up into it. The row hangs 1px past the bottom edge, hence
+ *     131 rather than its full 132.
+ */
+.verify {
+  position: absolute;
+  bottom: 131px;
+  right: 0;
   display: flex;
-  flex: none;
   align-items: center;
-  width: 188px;
-  height: 57px;
+  gap: 9px;
 }
 
-/* 313:1224 — the button's own box is 171 wide; the plate overhangs it. */
-.btn {
-  position: relative;
-  flex: none;
-  width: 171px;
-  height: 50px;
-}
-
-/*
- * 313:1225 — Group 97829: a 94 x 40 pair of ellipses centred on x 124, 5.5
- * above the button's top edge, blurred far past their own box. Unclipped, so
- * this is the halo that escapes over the plate's top edge.
- */
-.btn__aura {
-  position: absolute;
-  top: -5.5px;
-  left: calc(50% + 38.5px);
-  width: 94px;
-  height: 40px;
-  transform: translateX(calc(-50% + var(--glow-shift, 0px)));
-  transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1),
-    width 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
-  animation: glow-breathe 6.4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* the soft half of the group: white at 50%, blurred 30 */
-.btn__aura::before {
-  content: '';
-  position: absolute;
-  inset: -6px -10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  filter: blur(30px);
-}
-
-/* and the core: solid white, blurred 10 */
-.btn__aura::after {
-  content: '';
-  position: absolute;
-  inset: 3px 0;
-  border-radius: 50%;
-  background: #ffffff;
-  filter: blur(11px);
-}
-
-/* 313:1228 — 188 x 50, hung off the button's left edge, 1.5 down */
-.btn__tab {
-  position: absolute;
-  top: 1.5px;
-  left: 0;
-  width: 188px;
-  height: 50px;
-  /* keeps the sheen's blending to the plate instead of the video behind it */
-  isolation: isolate;
-}
-
-/* 313:1229 — the plate, 2 above the tab so it stands 54 tall */
-.btn__plate {
-  position: absolute;
-  top: -2px;
-  left: 0;
-  width: 188px;
-  height: 54px;
-  clip-path: var(--btn-plate);
-  background: linear-gradient(
-    90deg,
-    #ffffff 0%,
-    #f2f6ff 14%,
-    #aac7ff 36%,
-    #4f88f8 58%,
-    #1a63f2 82%,
-    #0a52ea 100%
-  );
-}
-
-/*
- * 313:1230 — the Mask group: the same bloom as the aura, clipped to the plate.
- * `screen` is what makes it a light rather than a coat of paint — it can only
- * lift the plate towards white, never darken it, which is why the blue reads
- * through everywhere the bloom has fallen off.
- */
-.btn__sheen {
-  position: absolute;
-  top: -2px;
-  left: 0;
-  width: 188px;
-  height: 54px;
-  clip-path: var(--btn-plate);
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-/* the haze: a wide, dim lift with no edge of its own */
-.btn__sheen::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    70px 34px at 68% 52%,
-    rgba(214, 232, 255, 0.45),
-    rgba(214, 232, 255, 0) 78%
-  );
-  animation: glow-breathe 8.1s ease-in-out -3s infinite;
-}
-
-/* the hotspot, on the aura's own column — the two read as one light source */
-.btn__sheenCore {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-      56px 25px at 67% 52%,
-      #ffffff 0%,
-      rgba(255, 255, 255, 0.58) 44%,
-      rgba(255, 255, 255, 0) 82%
-    ),
-    radial-gradient(30px 13px at 67% 51%, #ffffff 0%, rgba(255, 255, 255, 0) 88%);
-  transform: translateX(var(--glow-shift, 0px));
-  transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
-  animation: glow-breathe 5.2s ease-in-out -1.6s infinite;
-}
-
-/* 313:1237 — Mozilla Text Bold 14, tracking -0.28, x 18 / y 18 in the tab */
-.btn__label {
-  position: absolute;
-  top: 18px;
-  left: calc(50% - 76px);
-  font-family: var(--font-display);
-  font-weight: 700;
+/* 356:1235 — label/M in caps */
+.verify__text {
+  font-family: var(--font-label);
+  font-weight: 500;
   font-size: 14px;
-  line-height: normal;
-  letter-spacing: -0.28px;
-  color: var(--color-fg-inverse);
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--color-fg);
   white-space: nowrap;
 }
 
-/* Never fully off and never fully on — a light with a little instability. */
-@keyframes glow-breathe {
-  0%,
-  100% {
-    opacity: 0.74;
+/* 356:1236 — a 72px hairline */
+.verify__rule {
+  flex: none;
+  width: 72px;
+  height: 1px;
+  background: var(--color-fg);
+}
+
+
+/* --- The partner row -----------------------------------------------------
+   356:1267 — 132 tall on the bottom edge, padded 40 above and 56 below, at
+   50%. The frame draws one static line wider than the window; on request it
+   runs instead, so the strip clips and the track slides.
+
+   The list is repeated once and the track travels exactly one copy's width
+   before resetting, which puts every logo back where its twin was — no seam.
+   That width is one copy of the logos plus one gap each, so the gap lives on
+   the items as a margin rather than on the flex container: a flex `gap` would
+   leave one fewer gap than copies and the loop would drift.
+   ------------------------------------------------------------------------- */
+
+.logos {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 132px;
+  padding: 40px 0 56px;
+  overflow: hidden;
+  opacity: 0.5;
+}
+
+.logos__track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  height: 100%;
+  animation: logos-run var(--logos-period, 40s) linear infinite;
+}
+
+.logos__item {
+  flex: none;
+  /* 356:1267 — the 100px gap, carried by the items so the loop closes */
+  margin-right: 100px;
+}
+
+@keyframes logos-run {
+  to {
+    transform: translateX(-50%);
   }
-  50% {
-    opacity: 1;
-  }
 }
 
-/* Under the pointer the light gathers: it widens and quickens. */
-.btn:hover .btn__aura {
-  width: 122px;
-  animation-duration: 2.6s;
-}
-
-.btn:hover .btn__sheenCore {
-  animation-duration: 2.2s;
-}
-
+/* Reduced motion: hold the row still rather than running it. */
 @media (prefers-reduced-motion: reduce) {
-  .btn__aura,
-  .btn__sheen::before,
-  .btn__sheenCore {
+  .logos__track {
     animation: none;
   }
 }

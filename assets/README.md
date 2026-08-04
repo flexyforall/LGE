@@ -94,42 +94,78 @@ ffmpeg -i 1.mp4 -vf "fps=24,scale=1280:-2,setsar=1" -c:v libvpx-vp9 \
 corrected in place to `0 -248 600 600`, read off the mask bounds — nothing else
 in the file was touched. Worth re-checking if the logo is ever re-exported.
 
-The PP Neue Montreal faces arrived as `.otf`. Book and Medium are wired up —
-the two weights these sections use. Converting the family to `.woff2` would cut
-it to roughly half the bytes, worth doing before launch.
+### Fonts
 
-Vector uploads keep arriving in `images/` and get moved to `icons/` under the
-names the markup used at the time:
+The hero (356:1231) is set in three Stack Sans families, and all three are on
+Google Fonts. They are committed here as `.woff2` rather than linked from
+`fonts.googleapis.com`, so the page needs no network — it opens on a
+double-click and the type is still right.
 
-| Uploaded as | Now | Figma node |
+| File | Figma role | Notes |
 | --- | --- | --- |
-| `shaperec1.svg` | `icons/btn-become-a-partner.svg` | `201:3095` — 140x34 |
-| `base.svg` | `icons/btn-explore-glow.svg` | `201:3133` — the glow inside the button |
-| `Ellipse 2510.svg` | `icons/glow-soft.svg` | `201:3135` |
-| `Ellipse 2511.svg` | `icons/glow-core.svg` | `201:3136` |
+| `StackSansHeadline.woff2` | headline/Display | static 400 |
+| `StackSansText.woff2` | paragraph/L | variable, wght 200-700 |
+| `StackSansNotch.woff2` | label/M, label/S | variable, wght 200-700 |
 
-`icons/btn-explore-base.svg` is the one file here not exported from Figma. It
-is the white 175x50 plate the glow sits on — Figma node `201:3078`
-("Rectangle 26102856"), which was not in the upload. Its outline is taken
-verbatim from the path `btn-explore-glow.svg` masks itself with.
+Latin subset only, which is all this copy needs. Re-fetch a wider subset from
+Google Fonts if the site ever carries other scripts.
 
-**Every SVG in `icons/` is currently unused.** Both buttons are now drawn in
-CSS instead:
+Mozilla Text is still what Our role's statement is set in. PP Neue Montreal is
+no longer used by either section; both families are kept for the frames that
+may still call for them. The PP faces arrived as `.otf` — converting them to
+`.woff2` would halve their bytes if they come back into use.
 
-- The hero's EXPLORE TECHNOLOGY button (`313:1223`, `314:1263`) grew to a
-  188x54 plate, so the 175x50 exports no longer fit it — and its bloom has to
-  breathe and follow the pointer, which a flat SVG cannot do. The plate is a
-  `clip-path` and the bloom a pair of gradients; the ellipse geometry is the
-  same as `glow-soft.svg` and `glow-core.svg` (rx 47 at 30px and 10px of
-  blur), read off those files.
-- BECOME A PARTNER (`313:1213`) turned from the white plate into the dark one
-  with a hairline, the shape `314:1287` uses at its larger size. That border
-  is a 1px inset of a cut-cornered outline, which needs a second copy of the
-  outline to hold, so it too is two clipped layers rather than an export.
+### Buttons and icons
 
-The files are kept because they are the record of the shapes those rules were
-built from, and because a design that uses them may come back. figma.com is
-unreachable from here, so nothing in `icons/` can be re-exported without
-someone uploading it.
+| File | Where | Figma node |
+| --- | --- | --- |
+| `images/buttonSecondary.svg` | the bar's BECOME A PARTNER | `356:1254` — 188x44 |
+| `images/buttonPrimary.svg` | the hero's BECOME PARTNER | `356:1266` — the button at 47/60 inside a 314x163 canvas, so its glow comes with it |
+| `icons/plus.svg` | both buttons, twice each | `341:1405` — 20x20, white |
 
-`shaperec.svg` (175x44) belonged to an earlier hero and is no longer used.
+`icons/plus.svg` was uploaded as `plus icon.svg`; the space was taken out of the
+name so the URL needs no escaping. The plus is white, which is what the dark
+plate wants — the light plate flips it with `filter: brightness(0)`. A CSS mask
+would have coloured it from `currentcolor`, but a mask is a fetch and a fetch
+from a `file://` page is blocked, and the page has to keep working on a
+double-click.
+
+### Partner logos
+
+`logos/` holds the nine marks from the design's bottom row. **Seven are in
+use.** `Frame.png` and `layer1.png` both arrived as 1x1 pixels — the export
+appears to have failed for those two — so they are left out of the running row
+rather than showing as blank gaps. They are the two that sat fully off-frame in
+the Figma render, which is probably why the failure went unnoticed. Re-upload
+them and add two `<img>` rows to `.logos__track` (in both copies of the list)
+to bring them in.
+
+The seven that work, at the sizes the design gives them:
+
+| File | Size | Mark |
+| --- | --- | --- |
+| `Layer_2.png` | 168 x 32 | Stop & Shop |
+| `MeijerLogo-Primary-FullColor.png` | 82.4 x 32 | Meijer |
+| `svg52656.png` | 90.4 x 28.8 | Smith's |
+| `Frame-3.png` | 160 x 25.6 | Albertsons |
+| `Frame-2.png` | 111.2 x 24 | Foods Co |
+| `Frame-1.png` | 69.6 x 33.6 | Rite Aid |
+| `Group.png` | 110.4 x 41.6 | Kroger |
+
+They are white on transparent and run at the design's 50%.
+
+### Earlier vector uploads, now unused
+
+These belong to hero designs that have since been replaced. They are kept as
+the record of shapes that earlier CSS was built from; nothing references them.
+
+| File | Uploaded as | Figma node |
+| --- | --- | --- |
+| `icons/btn-become-a-partner.svg` | `shaperec1.svg` | `201:3095` — 140x34 |
+| `icons/btn-explore-glow.svg` | `base.svg` | `201:3133` |
+| `icons/glow-soft.svg` | `Ellipse 2510.svg` | `201:3135` |
+| `icons/glow-core.svg` | `Ellipse 2511.svg` | `201:3136` |
+| `icons/btn-explore-base.svg` | — | `201:3078`, redrawn here rather than exported |
+
+figma.com is unreachable from this machine, so nothing in `icons/` can be
+re-exported without someone uploading it.
