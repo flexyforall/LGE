@@ -208,31 +208,22 @@ img {
  * The typing cursor for the headline's rotating tail: the same rectangle at
  * text scale, visible only while the tail is being retyped.
  */
+/*
+ * Collapsed to nothing while idle — an invisible cursor must take no space,
+ * or it stands as a phantom gap between the tail and the full stop.
+ */
 .hero__swapCursor {
   display: inline-block;
-  width: 0.45em;
+  width: 0;
   height: 0.72em;
-  margin-left: 0.08em;
   background: var(--color-fg);
   opacity: 0;
 }
 
 .hero__swapCursor.is-typing {
+  width: 0.45em;
+  margin-left: 0.08em;
   opacity: 1;
-}
-
-/*
- * A typed character arrives the way the tunnel's copy does: holding the
- * accent, then settling to white a beat later — so the tail being typed
- * trails off into blue at its leading edge.
- */
-[data-hero-swap] span {
-  color: var(--color-accent);
-  transition: color 300ms ease 140ms;
-}
-
-[data-hero-swap] span.is-set {
-  color: var(--color-fg);
 }
 
 
@@ -1153,6 +1144,12 @@ img {
 /* 339:362 / 339:367 — headline/H5 at 24/32 */
 .card__body {
   margin: 0;
+  /*
+   * None, or the foot's flexbox squeezes this while the card is still folded
+   * — and the block reveal, which measures the real wrap when the card first
+   * comes on, would split it into the squeezed lines rather than these.
+   */
+  flex: none;
   width: 547px;
   font-family: var(--font-headline);
   font-weight: 400;

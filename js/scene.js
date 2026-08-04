@@ -77,8 +77,8 @@
     'sustainability in space',
   ];
   var TYPE_HOLD = 2400; // ms a phrase stands before retyping
-  var TYPE_DEL = 38; // ms per character on the way out
-  var TYPE_ADD = 58; // ...and on the way in
+  var TYPE_DEL = 22; // ms per character on the way out
+  var TYPE_ADD = 36; // ...and on the way in
 
   /* Outside the spacecraft — fractions of that section's own scroll. */
   var FLIGHT_PREROLL = 1.2; // seconds the clip creeps through while the card scales
@@ -514,36 +514,16 @@
     swap.parentNode.insertBefore(cursor, swap.nextSibling);
     var idx = 0;
 
-    /*
-     * The tail is kept as one node per character so each can arrive the way
-     * the tunnel's copy does — in the accent, settling to white a beat later.
-     * Spaces stay bare text nodes; they have no colour to settle.
-     */
-    function put(ch) {
-      if (ch === ' ') {
-        swap.appendChild(document.createTextNode(' '));
-        return;
-      }
-      var span = document.createElement('span');
-      span.textContent = ch;
-      swap.appendChild(span);
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          span.className = 'is-set';
-        });
-      });
-    }
-
     function retype(next, done) {
       (function del() {
-        if (swap.lastChild) {
-          swap.removeChild(swap.lastChild);
+        if (swap.textContent.length) {
+          swap.textContent = swap.textContent.slice(0, -1);
           setTimeout(del, TYPE_DEL);
         } else {
           var i = 0;
           (function add() {
             if (i < next.length) {
-              put(next.charAt(i++));
+              swap.textContent = next.slice(0, ++i);
               setTimeout(add, TYPE_ADD);
             } else {
               done();
@@ -666,6 +646,8 @@
     var heading = section.querySelector('[data-cards-text]');
     var cards = section.querySelectorAll('[data-card]');
     var row = section.querySelector('[data-card-row]');
+    var cardOn = [];
+    var cardLines = [];
     if (!heading) return;
 
     var letters = splitCharacters(heading);
@@ -687,9 +669,28 @@
       }
 
       for (var c = 0; c < cards.length; c++) {
-        /* Each card waits its turn: the second is a tenth of a window later. */
-        var up = progressUp(cards[c], CARDS_RISE_FROM - c * 0.1, CARDS_RISE_BY);
-        cards[c].classList.toggle('is-in', up > 0);
+        /*
+         * Each card waits its turn: the second is a tenth of a window later.
+         * As one comes on, its copy is wiped in by the block reveal — and
+         * reset on the way back out, so scrolling through again replays it.
+         */
+        var on = progressUp(cards[c], CARDS_RISE_FROM - c * 0.1, CARDS_RISE_BY) > 0;
+        if (on !== cardOn[c]) {
+          cardOn[c] = on;
+          cards[c].classList.toggle('is-in', on);
+          if (on) {
+            if (!cardLines[c]) {
+              cardLines[c] = [];
+              cards[c].querySelectorAll('.card__overline, .card__body').forEach(function (el) {
+                cardLines[c] = cardLines[c].concat(splitIntoLines(el));
+              });
+            }
+            hideReveal(cardLines[c]);
+            runReveal(cardLines[c]);
+          } else if (cardLines[c]) {
+            hideReveal(cardLines[c]);
+          }
+        }
       }
 
       /*
