@@ -175,6 +175,95 @@ img {
 }
 
 
+/* --- The loader ----------------------------------------------------------
+   Figma 372:1852. A black sheet over the whole page while its clip plays; the
+   copy sits on exclusion so the burst's rays print through it. js/scene.js
+   drives the counter off the clip's playhead and lifts the sheet when the
+   burst has whited out.
+   ------------------------------------------------------------------------- */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #000000;
+  transition: opacity 900ms ease;
+}
+
+.loader.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * 372:1863 — 282 wide on the frame's centre, its bottom 56 off the frame's
+ * (the design's y 690 on 810). Exclusion is the point: where a ray crosses
+ * the text or the squares, they invert against it instead of sitting on top.
+ */
+.loader__copy {
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 282px;
+  transform: translateX(-50%);
+  mix-blend-mode: exclusion;
+}
+
+/* 372:1857 — the same 8px squares and 40px air as the hero's tag */
+.loader__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+}
+
+.loader__square {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--color-fg);
+}
+
+/* 372:1860 / 372:1856 — label/M in caps */
+.loader__labelText,
+.loader__count {
+  margin: 0;
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-fg);
+  white-space: nowrap;
+}
+
+/* Scroll holds still while the loader owns the screen. */
+html.is-loading {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader {
+    display: none;
+  }
+}
+
+
 /* --- The block reveal ----------------------------------------------------
    js/scene.js splits a piece of copy into its lines and wipes each one on
    left to right, a solid white rectangle riding the reveal's edge — sharp

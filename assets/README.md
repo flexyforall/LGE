@@ -52,6 +52,7 @@ keep copies if they might need re-encoding.
 | `video-hero.*` | hero | two 3840x2160 clips, 12s + 8s | source res, 24fps, crf 23, keyframe every 8 |
 | `video-3.*` | our role | 2754x1536, 12s | source res, 24fps, crf 21, keyframe every 8 |
 | `video-cupola.*` | the card that opens out | 3256x2160, 9s | source res, 24fps, crf 21, keyframe every 8 |
+| `video-loader.*` | the loader | 1980x1536, trimmed to its last 7s | source res, 24fps, crf 21, normal GOP — it only ever plays |
 
 `video-hero` is the old videos 1 and 2 joined into one file. They were generated
 as one continuous shot — the second begins on **exactly** the frame the first

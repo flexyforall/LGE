@@ -178,6 +178,58 @@
   }
 
   /* ------------------------------------------------------------------ *
+   * The loader
+   * ------------------------------------------------------------------ */
+
+  /*
+   * The burst plays once over a black sheet, the counter riding its playhead
+   * so 100% lands exactly as it whites out — and then the sheet lifts. The
+   * promise is the page's starting gun: the hero's reveal waits on it, so the
+   * copy wipes on just as the white clears.
+   *
+   * If the clip cannot play — autoplay refused, file missing — the loader
+   * gets out of the way instead of standing over the page, and a hard
+   * deadline catches a stalled clip the same way.
+   */
+  function setUpLoader() {
+    var sheet = document.querySelector('[data-loader]');
+    var video = document.querySelector('[data-loader-video]');
+    var count = document.querySelector('[data-loader-count]');
+    if (!sheet || !video || reduced) {
+      if (sheet) sheet.classList.add('is-done');
+      return Promise.resolve();
+    }
+
+    document.documentElement.classList.add('is-loading');
+
+    return new Promise(function (resolve) {
+      var lifted = false;
+
+      function lift() {
+        if (lifted) return;
+        lifted = true;
+        if (count) count.textContent = '100%';
+        sheet.classList.add('is-done');
+        document.documentElement.classList.remove('is-loading');
+        resolve();
+      }
+
+      (function tick() {
+        if (lifted) return;
+        if (count && video.duration) {
+          var pct = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
+          count.textContent = pct + '%';
+        }
+        requestAnimationFrame(tick);
+      })();
+
+      video.addEventListener('ended', lift);
+      video.play().catch(lift);
+      setTimeout(lift, 12000);
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
    * Hero
    * ------------------------------------------------------------------ */
 
@@ -297,7 +349,7 @@
     if (lead) lead.style.opacity = '0';
     var fontsReady =
       document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    fontsReady.then(function () {
+    Promise.all([fontsReady, loaderLifted]).then(function () {
       if (headline) {
         headline.style.opacity = '';
         blockReveal(headline, function () {
@@ -996,6 +1048,7 @@
 
   /* ------------------------------------------------------------------ */
 
+  var loaderLifted = setUpLoader();
   setUpHero();
   setUpRole();
   setUpCards();

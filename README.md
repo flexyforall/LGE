@@ -18,6 +18,17 @@ assets/             Figma exports and video — see assets/README.md
 tools/              optional checks, not needed to run the site
 ```
 
+## The loader
+
+Figma `Loader` (372:1852). A black sheet over everything while its clip — the
+burst, trimmed to its last seven seconds — plays once. The counter rides the
+clip's own playhead, so 100% lands exactly as the burst whites out, and then
+the sheet lifts over 900ms into the hero, whose reveal waits for it — the copy
+wipes on just as the white clears. The copy block runs on `mix-blend-mode:
+exclusion`, so the rays print through the text and squares where they cross.
+Scroll is held while the sheet is up. If the clip cannot play, the loader gets
+out of the way instead of standing over the page.
+
 ## The sections
 
 Four: two pinned while their own stretch of scroll plays out, one that rides up
