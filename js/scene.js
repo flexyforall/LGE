@@ -4,20 +4,27 @@
  * Two pinned sections, each taller than the window. The surplus height is the
  * scroll their cameras are mapped onto.
  *
- *   Hero    the clip loops as a background. The scroll clears the copy, then
- *           whites the frame out and hands over to the section below. The tag
- *           line rotates on its own clock; the partner row runs on its own in
- *           CSS.
+ *   Hero    video 1 loops as a background. Once the scroll has cleared the
+ *           copy the frame crosses to video 2 — the transition — which never
+ *           plays on its own: the scroll drives it to its last frame, where
+ *           the light has filled the screen and the section below takes over.
+ *           The tag line rotates on its own clock; the partner row runs on its
+ *           own in CSS.
  *
- *   Role    video 3 loops as a background too; the scroll drives the
- *           statement's reading fill and the container moves.
+ *   Role    video 3 answers to the scroll from its first frame, and so does
+ *           the clip in the container that follows it. The same scroll writes
+ *           the statement on and moves the containers.
+ *
+ * Nothing but the hero's idle loop and the partner row ever plays on its own.
  */
 (function () {
   'use strict';
 
   var COPY_FADE = 0.3; // fraction of the hero scroll the copy fades over
   var COPY_RISE = 48; // px the copy drifts up as it goes
-  var FLASH_IN_FROM = 0.72; // the hero whites out over its last stretch
+  var VIDEO2_FROM = 0.3; // the transition takes the frame once the copy has gone
+  var VIDEO2_BY = 0.92; // ...and the scroll has driven it to its last frame by here
+  var FLASH_IN_FROM = 0.86; // the sheet closes whatever white the clip left short
   var TAG_LINES = [
     'WELCOME TO CORE SPACE',
     'POWER GENERATION & TRANSMISSION',
@@ -187,7 +194,9 @@
     var scene = document.querySelector('[data-scene="hero"]');
     if (!scene) return;
 
+    var frame = scene.querySelector('.frame');
     var video = scene.querySelector('[data-hero-video="1"]');
+    var transition = scene.querySelector('[data-hero-video="2"]');
     var copy = scene.querySelector('[data-scene-copy]');
     var flash = scene.querySelector('[data-hero-flash]');
     var chrome = scene.querySelector('[data-hero-chrome]');
@@ -200,12 +209,34 @@
       return;
     }
 
-    /* The clip is a background: it loops on its own, cropped by the frame. */
+    /* Video 1 is a background: it loops on its own until the scroll takes over. */
     video.loop = true;
     video.play().catch(function () {});
 
+    var seekTransition = transition ? seeker(transition) : null;
+    if (transition) transition.pause();
+
     register(function () {
       var p = progressOf(scene);
+
+      /*
+       * The hand-off. The two shots are unrelated, so the frame crosses to the
+       * transition rather than cutting, and the idle loop rests while it is
+       * off screen — picking back up the moment scrolling brings it back.
+       */
+      if (transition && frame) {
+        var live = p >= VIDEO2_FROM;
+        frame.dataset.heroStage = live ? '2' : '1';
+        if (live) {
+          if (!video.paused) video.pause();
+          if (transition.duration) {
+            var t = clamp01((p - VIDEO2_FROM) / (VIDEO2_BY - VIDEO2_FROM));
+            seekTransition(t * transition.duration);
+          }
+        } else if (video.paused) {
+          video.play().catch(function () {});
+        }
+      }
 
       var fade = Math.min(1, p / COPY_FADE);
       copy.style.opacity = String(1 - fade);
@@ -300,14 +331,22 @@
     }
 
     /*
-     * The tunnel is a background, not a camera: it loops on its own from the
-     * start, and the scroll animates only the text and the container moves.
+     * Both clips here are cameras, not backgrounds: neither ever plays on its
+     * own. The tunnel answers to the section's scroll from its first frame,
+     * and the clip in the container that follows it answers to the stretch of
+     * scroll that brings that container in.
      */
-    video.loop = true;
-    video.play().catch(function () {});
+    var seekTunnel = seeker(video);
+    var seekNext = nextVideo ? seeker(nextVideo) : null;
+    video.pause();
+    if (nextVideo) nextVideo.pause();
 
     register(function () {
       var p = progressOf(scene);
+
+      if (video.duration) seekTunnel(clamp01(p) * video.duration);
+      /* Published for tools/playback.mjs — where the camera should come to rest. */
+      scene.dataset.cameraEnd = video.duration || 0;
 
       /*
        * The hero hands over on a frame of solid white; this lifts that white
@@ -324,7 +363,8 @@
       /*
        * Once the statement is read, the scroll packs the whole shot into
        * section 3's container — centred between the bar and the bottom edge —
-       * where the clip drops its veil and just plays, looping. Further scroll
+       * where the clip drops its veil and carries on under the same scroll.
+       * Further scroll
        * shrinks the box on and sends it out left while the next container
        * comes in from the right, grows to the same spot, and finally opens to
        * the full frame. The copy steps aside as the packing starts.
@@ -373,14 +413,6 @@
       if (white) white.style.opacity = String(t);
       if (chrome) chrome.style.backgroundColor = 'rgba(0, 0, 0, ' + t.toFixed(3) + ')';
 
-      /* The loop rests once its box has left the frame, and picks back up
-         the moment scrolling brings it back. */
-      if (u >= 1) {
-        if (!video.paused) video.pause();
-      } else if (video.paused) {
-        video.play().catch(function () {});
-      }
-
       /* The next chapter's box: in from the right, grow, then open up. */
       if (next && nextVideo) {
         var visible = u > 0;
@@ -408,9 +440,10 @@
           next.style.top = top2.toFixed(1) + 'px';
           next.style.width = w2.toFixed(1) + 'px';
           next.style.height = h2.toFixed(1) + 'px';
-          if (nextVideo.paused) nextVideo.play().catch(function () {});
-        } else if (!nextVideo.paused) {
-          nextVideo.pause();
+          if (seekNext && nextVideo.duration) {
+            var v = clamp01((p - SWAP_FROM) / (1 - SWAP_FROM));
+            seekNext(v * nextVideo.duration);
+          }
         }
       }
 

@@ -24,8 +24,8 @@ Two sections, each pinned while its own stretch of scroll plays out.
 
 **Hero** — Figma `Hero` (356:1231).
 
-The same clip loops as the background at its own scale, covering the frame and
-no more. The design crops it instead — 356:1233 blows it up to 2616x1472 and
+One clip loops as the background at its own scale, covering the frame and no
+more. The design crops it instead — 356:1233 blows it up to 2616x1472 and
 pulls it 100 left and 10 up, so the frame's window lands on the upper-left of
 the shot — and those four numbers are kept in a comment beside the rule in case
 that is wanted back. The copy is back on the left
@@ -33,9 +33,16 @@ margin: label, 72px title, lead line and the primary button all stack on x 56
 and centre on the frame. `Progress you can verify` rests on the bottom-right,
 directly on top of the partner row.
 
-The scroll fades the copy over the first stretch, then a white sheet whites the
-frame out — the hand-off into the section below, met by its twin sheet lifting
-there.
+The scroll fades the copy over the first stretch. With the copy gone the frame
+crosses to the transition clip, which never plays on its own — the scroll drives
+it frame by frame to its end, where its own flare has filled the screen. A white
+sheet closes the last of that, and the section below lifts its twin sheet off
+video 3, so the seam between the two is white on white and the whole thing reads
+as one shot: into the light, through it, out into the tunnel.
+
+`VIDEO2_FROM` / `VIDEO2_BY` in `js/scene.js` set which stretch of the hero's
+scroll the transition is mapped onto, and `FLASH_IN_FROM` where the sheet starts
+closing.
 
 The tag line above the headline rotates through five points on its own clock
 (`TAG_LINES` / `TAG_PERIOD` in `js/scene.js`): the next line tips in from below
@@ -57,8 +64,9 @@ into the same canvas and hangs off the button on every side.
 **Our role** — Figma `section 2` (238:2674) through `section 2.1` (242:2673)
 and into `section 3` (242:2681), all on one scroll.
 
-Video 3 loops on its own as the background — it is not scroll-driven. The
-scroll animates the statement and the container moves only.
+Video 3 answers to the scroll from its first frame, and so does the clip in the
+container that follows it — neither ever plays on its own. The same scroll
+writes the statement on and moves the containers.
 
 The statement writes itself on once the flash is gone. Every character is its
 own span, and two edges move through them: a head that writes characters on and
@@ -84,7 +92,10 @@ the shape of Figma's `section 3.1` reference. The constants for every phase sit
 at the top of `js/scene.js`.
 
 Our role puts a 30% veil over its media — the media-at-70% from the design,
-kept as a sheet. The hero frame has no veil and runs its clip at full strength.
+kept as a sheet. The hero frame has no veil and runs its clips at full strength.
+
+Nothing plays on its own anywhere except the hero's idle loop and the partner
+row.
 
 The constants at the top of `js/scene.js` control the intro length and both
 fades; `--scene-length-hero` and `--scene-length-role` in the CSS control how

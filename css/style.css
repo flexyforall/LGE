@@ -136,7 +136,7 @@
   --frame-min-width: 980px;
 
   /* How much scroll each camera move is spread over. */
-  --scene-length-hero: 260vh;
+  --scene-length-hero: 380vh;
   --scene-length-role: 560vh;
 }
 
@@ -251,18 +251,37 @@ img {
 }
 
 /*
- * The hero clip at its own scale: it covers the frame and no more.
+ * The hero's two clips, stacked. Each covers the frame at its own scale and no
+ * more.
  *
- * 356:1233 crops it instead — blown up to 2616 x 1472 and pulled 100 left and
- * 10 up, so the frame's window lands on the upper-left of the shot. That is
- * kept here in case it is wanted back; swapping the two rules is the whole
- * change.
+ * 356:1233 crops the first one instead — blown up to 2616 x 1472 and pulled
+ * 100 left and 10 up, so the frame's window lands on the upper-left of the
+ * shot. That is kept here in case it is wanted back; swapping it into the rule
+ * below is the whole change.
  *
  *   left: -6.9444%; top: -1.2346%; width: 181.6667%; height: 181.7284%;
  */
-[data-hero-video='1'] {
+[data-hero-video='1'],
+[data-hero-video='2'] {
   position: absolute;
   inset: 0;
+  transition: opacity 420ms linear;
+}
+
+/*
+ * The two shots are unrelated, so the hand-off crosses rather than cuts. The
+ * transition waits at its first frame until the scroll asks for it.
+ */
+[data-hero-video='2'] {
+  opacity: 0;
+}
+
+[data-hero-stage='2'] [data-hero-video='1'] {
+  opacity: 0;
+}
+
+[data-hero-stage='2'] [data-hero-video='2'] {
+  opacity: 1;
 }
 
 /* 242:2689 — the container the shot packs itself into; js/scene.js drives its
@@ -336,6 +355,10 @@ img {
 
   [data-hero-video='1'] {
     background: url('../assets/videos/video-1-poster.jpg') center / cover no-repeat;
+  }
+
+  [data-hero-video='2'] {
+    display: none;
   }
 
   [data-role-video] {
@@ -752,8 +775,9 @@ img {
 /* --- Our role ------------------------------------------------------------- */
 
 /*
- * 238:2675 — centred: 764 wide on the frame's midline, its middle 84px above
- * the frame's (321 on the 810 design). Mozilla Text Regular 56/56, -2.24.
+ * 330:497 — centred: 764 wide on the frame's midline, its top 84px above the
+ * frame's middle (321 on the 810 design). headline/H1: Stack Sans Headline
+ * Regular 64/72, tracking -0.8.
  */
 .role__statement {
   position: absolute;
@@ -762,11 +786,11 @@ img {
   margin: 0;
   width: 764px;
   transform: translateX(-50%);
-  font-family: var(--font-display);
+  font-family: var(--font-headline);
   font-weight: 400;
-  font-size: 56px;
-  line-height: 1;
-  letter-spacing: -2.24px;
+  font-size: 64px;
+  line-height: 72px;
+  letter-spacing: -0.8px;
   text-align: center;
   color: var(--color-fg);
 }
@@ -832,7 +856,12 @@ img {
   background: var(--color-fg);
 }
 
-/* 238:2679 — Neue Montreal Regular 14, tracking -0.28 */
+/*
+ * 238:2679 — Neue Montreal Regular 14, tracking -0.28. Still the older frame's
+ * spec: 330:489 restyles the statement only, and this row is not in it. Moving
+ * it onto the label face the rest of the site uses shifts the row off the
+ * design's y, so it waits for a frame that asks for it.
+ */
 .role__label {
   flex: none;
   font-family: var(--font-body);

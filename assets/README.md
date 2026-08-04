@@ -49,26 +49,30 @@ sources that are **not committed** — keep copies if they might need re-encodin
 
 | File | Where | Source | Encoded |
 | --- | --- | --- | --- |
-| `video-1.*` | hero, background loop | 3840x2160, 12s | source res, 24fps, crf 19 |
-| `video-3.*` | our role + containers | 3840x2160, 5s | 2560 wide, 24fps, crf 21 |
+| `video-1.*` | hero, the loop that idles | 3840x2160, 12s | source res, 24fps, crf 19 |
+| `video-2.*` | hero, the transition | 3840x2160, 8s | source res, 24fps, crf 20, keyframe every 8 |
+| `video-3.*` | our role + containers | 2754x1536, 12s | source res, 24fps, crf 21, keyframe every 8 |
 
 **MP4 is the primary source and WebM the fallback.** That order is deliberate:
-VP9 handles video 3's light streaks badly — the same quality costs 16 MB against
-H.264's 3 MB — so the WebM is a smaller, softer safety net for engines without
-H.264 rather than the preferred file.
+VP9 handles the light streaks badly — the same quality costs many times the
+bytes — so the WebM is a smaller, softer safety net for engines without H.264
+rather than the preferred file.
 
 Three things shape the encodes:
 
-- **Video 1 keeps its source resolution** and near-transparent crf, so retina
-  screens finally get the clip as delivered. Video 3 sits at 2560 — its
-  light streaks are brutally expensive to code, and the full-4K version came
-  out at 41 MB for five seconds; 2560 is the sane ceiling.
+- **Every clip keeps its source resolution** and a near-transparent crf, so
+  retina screens get them as delivered.
 - **Anything the scroll drives gets a keyframe every 8 frames.** The scroll sets
   `currentTime` directly, and seeking is only as precise as the nearest
-  keyframe. Video 1 just plays, so it keeps a normal GOP.
-- **Quality beats weight here — and it now costs real weight.** ~61 MB of MP4
-  all told. If that ever matters, the crf 20-24 encodes of the previous pass
-  were the best quality-per-byte trade.
+  keyframe. Video 1 just loops, so it keeps a normal GOP; videos 2 and 3 are
+  both cameras and both need the tight one.
+- **Quality beats weight here — and it costs real weight.** ~81 MB of MP4 all
+  told, the transition alone being 28 MB for eight seconds. If that ever
+  matters, dropping video 2 to 2560 wide is the first thing to try.
+
+Video 2 ends on white: its mean luminance climbs from 65 at the six-second mark
+to 255 over the last half second. The hero's white sheet only has to close the
+last of it — see the note beside `.hero__flash` in the CSS.
 
 ```bash
 # video 1 — loops in the background
@@ -76,15 +80,19 @@ ffmpeg -i 1.mp4 -vf "fps=24,setsar=1" \
   -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 18 -preset slow -g 24 \
   -an -movflags +faststart video-1.mp4
 
-# video 3 — scroll-driven, streak-heavy
-ffmpeg -i 3.mp4 -vf "fps=24,scale=2560:-2,setsar=1" \
+# videos 2 and 3 — scroll-driven, so a keyframe every 8 frames
+ffmpeg -i 2.mp4 -vf "fps=24,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 20 -preset medium \
+  -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-2.mp4
+
+ffmpeg -i 3.mp4 -vf "fps=24,setsar=1" \
   -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 21 -preset medium \
   -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-3.mp4
 
 # posters, and the WebM fallbacks (smaller and softer on purpose)
-ffmpeg -i 1.mp4 -frames:v 1 -vf "scale=1600:-2" -q:v 6 video-1-poster.jpg
-ffmpeg -i 1.mp4 -vf "fps=24,scale=1280:-2,setsar=1" -c:v libvpx-vp9 \
-  -crf 42 -b:v 0 -row-mt 1 -g 24 -pix_fmt yuv420p -an video-1.webm
+ffmpeg -i video-2.mp4 -frames:v 1 -vf "scale=1600:-2" -q:v 6 video-2-poster.jpg
+ffmpeg -i video-2.mp4 -vf "fps=24,scale=1280:-2,setsar=1" -c:v libvpx-vp9 \
+  -crf 42 -b:v 0 -row-mt 1 -g 8 -keyint_min 8 -pix_fmt yuv420p -an video-2.webm
 ```
 
 ## Notes on the exports that arrived

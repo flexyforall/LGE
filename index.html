@@ -53,11 +53,19 @@
     <div class="frame" data-node-id="356:1231" data-design-frame>
 
       <div class="frame__bg" aria-hidden="true">
-        <!-- 356:1233 — the clip, cropped by the frame -->
+        <!-- 356:1233 — the clip that idles here, looping -->
         <video class="frame__video" data-hero-video="1" muted playsinline loop
                preload="auto" poster="assets/videos/video-1-poster.jpg">
           <source src="assets/videos/video-1.mp4" type="video/mp4">
           <source src="assets/videos/video-1.webm" type="video/webm">
+        </video>
+        <!-- The transition. It never plays on its own: once the copy has gone
+             the scroll takes the frame across to it and drives it to the last
+             frame, where the light has filled the screen. -->
+        <video class="frame__video" data-hero-video="2" muted playsinline
+               preload="auto" poster="assets/videos/video-2-poster.jpg">
+          <source src="assets/videos/video-2.mp4" type="video/mp4">
+          <source src="assets/videos/video-2.webm" type="video/webm">
         </video>
       </div>
 
@@ -183,7 +191,7 @@
       <!-- The whole shot. Full-bleed through section 2, then the scroll packs
            it into the 478 x 626 container of section 3 (242:2689). -->
       <div class="role__shrink" data-role-shrink aria-hidden="true">
-        <!-- 238:2673 — video 3 -->
+        <!-- 238:2673 — video 3, driven by the scroll from its first frame -->
         <video class="frame__video" data-role-video muted playsinline preload="auto"
                poster="assets/videos/video-3-poster.jpg">
           <source src="assets/videos/video-3.mp4" type="video/mp4">
@@ -197,8 +205,8 @@
            edge during the swap, grows to centre, then opens full-bleed.
            Placeholder media: the same tunnel, looping. -->
       <div class="role__next" data-role-next aria-hidden="true">
-        <video class="frame__video" data-role-next-video muted playsinline loop
-               preload="metadata" poster="assets/videos/video-3-poster.jpg">
+        <video class="frame__video" data-role-next-video muted playsinline
+               preload="auto" poster="assets/videos/video-3-poster.jpg">
           <source src="assets/videos/video-3.mp4" type="video/mp4">
           <source src="assets/videos/video-3.webm" type="video/webm">
         </video>

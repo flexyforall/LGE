@@ -24,14 +24,12 @@ const FRAME = 1 / 24;
 const ALLOWED_OFF_TARGET = FRAME * 1.5;
 
 /*
- * The hero's camera must come to rest exactly where the scroll asks. The role
- * clip stops being a camera once it parks in the container — from there it
- * loops free, exits, and the next container's clip takes the frame — so what
- * is asserted instead is that the hand-off happened: the box1 clip may wrap
- * but never partially rewinds, and the incoming clip is playing at the end.
+ * Every camera here must come to rest exactly where the scroll asks: the
+ * hero's transition and the tunnel are both scrubbed from first frame to last.
  */
 const SCENES = [
-  { name: 'role', video: '[data-role-video]', restsOnTarget: false },
+  { name: 'hero', video: '[data-hero-video="2"]', restsOnTarget: true },
+  { name: 'role', video: '[data-role-video]', restsOnTarget: true },
 ];
 
 const browser = await chromium.launch({
@@ -131,7 +129,7 @@ for (const scene of SCENES) {
           }
           out.push([Math.round(elapsed), el.currentTime]);
           if (elapsed < 3200) requestAnimationFrame(tick);
-          else resolve({ samples: out, end: +(section.dataset.cameraEnd || 0) });
+          else resolve({ samples: out, end: el.duration || 0 });
         })();
       }),
     scene
@@ -155,16 +153,27 @@ ${scene.name.padEnd(7)} ${atScrollEnd.toFixed(3)}s when the scroll stopped, sett
   }
 }
 
-/* At the very end of the role scroll, the next chapter's clip owns the frame. */
+/*
+ * At the very end of the role scroll the next chapter's clip owns the frame.
+ * It is scrubbed like everything else, so what proves the hand-off is that the
+ * scroll has carried it off its first frame — and that nothing is playing on
+ * its own anywhere.
+ */
 const handoff = await page.evaluate(() => {
   const nextVideo = document.querySelector('[data-role-next-video]');
   const exiting = document.querySelector('[data-role-video]');
-  return { nextPlaying: nextVideo && !nextVideo.paused, exitingPaused: exiting.paused };
+  const idle = document.querySelector('[data-hero-video="1"]');
+  return {
+    nextAt: nextVideo ? nextVideo.currentTime : 0,
+    running: [...document.querySelectorAll('video')]
+      .filter((v) => !v.paused && v !== idle)
+      .map((v) => v.dataset.heroVideo || v.className),
+  };
 });
 console.log(`
-handoff next clip playing: ${handoff.nextPlaying}; exited clip paused: ${handoff.exitingPaused}`);
-if (!handoff.nextPlaying) failures.push('the incoming container clip is not playing at the end');
-if (!handoff.exitingPaused) failures.push('the exited clip is still running offscreen');
+handoff next clip at ${handoff.nextAt.toFixed(2)}s; cameras playing on their own: ${handoff.running.length}`);
+if (handoff.nextAt <= 0) failures.push('the scroll never moved the incoming container clip');
+if (handoff.running.length) failures.push(`a camera is running on its own (${handoff.running.join(', ')})`);
 
 await browser.close();
 

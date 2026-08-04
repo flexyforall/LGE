@@ -37,8 +37,9 @@ const BOXES = [
   ['356:1236', null, 668.5, 72, 1, 'its rule'],
   ['356:1267', 0, 679, 1440, 132, 'partner row'],
 
-  // --- section 2 (our role), 238:2674 ---
-  ['238:2675', 338, 321, 764, 168, 'statement'],
+  // --- section 2 (our role), 238:2674, restyled by 330:489 ---
+  // three lines of headline/H1 at 72 — the 64/72 the Intro frame sets
+  ['238:2675', 338, 321, 764, 216, 'statement'],
   ['238:2680', 607, 763, 8, 8, 'dot (left)'],
 ];
 
