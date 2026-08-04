@@ -251,37 +251,18 @@ img {
 }
 
 /*
- * The hero's two clips, stacked. Each covers the frame at its own scale and no
- * more.
+ * The hero clip covers the frame at its own scale and no more.
  *
- * 356:1233 crops the first one instead — blown up to 2616 x 1472 and pulled
- * 100 left and 10 up, so the frame's window lands on the upper-left of the
- * shot. That is kept here in case it is wanted back; swapping it into the rule
- * below is the whole change.
+ * 356:1233 crops it instead — blown up to 2616 x 1472 and pulled 100 left and
+ * 10 up, so the frame's window lands on the upper-left of the shot. That is
+ * kept here in case it is wanted back; swapping it into the rule below is the
+ * whole change.
  *
  *   left: -6.9444%; top: -1.2346%; width: 181.6667%; height: 181.7284%;
  */
-[data-hero-video='1'],
-[data-hero-video='2'] {
+[data-hero-video] {
   position: absolute;
   inset: 0;
-  transition: opacity 420ms linear;
-}
-
-/*
- * The two shots are unrelated, so the hand-off crosses rather than cuts. The
- * transition waits at its first frame until the scroll asks for it.
- */
-[data-hero-video='2'] {
-  opacity: 0;
-}
-
-[data-hero-stage='2'] [data-hero-video='1'] {
-  opacity: 0;
-}
-
-[data-hero-stage='2'] [data-hero-video='2'] {
-  opacity: 1;
 }
 
 /* 242:2689 — the container the shot packs itself into; js/scene.js drives its
@@ -317,10 +298,10 @@ img {
 }
 
 /* 242:2681 — section 3's page colour, revealed as the shot shrinks. */
-.role__white {
+.role__page {
   position: absolute;
   inset: 0;
-  background: #ffffff;
+  background: #030303;
   opacity: 0;
   pointer-events: none;
 }
@@ -353,12 +334,8 @@ img {
     display: none;
   }
 
-  [data-hero-video='1'] {
-    background: url('../assets/videos/video-1-poster.jpg') center / cover no-repeat;
-  }
-
-  [data-hero-video='2'] {
-    display: none;
+  [data-hero-video] {
+    background: url('../assets/videos/video-hero-poster.jpg') center / cover no-repeat;
   }
 
   [data-role-video] {
@@ -528,20 +505,15 @@ img {
 }
 
 /*
- * buttonPrimary2.svg — the lit outline with a 20% black wash inside it, so the
- * clip still reads through the button but the label has something to sit on.
- * Blurred glows at the corners come with it.
- *
- * The export draws the button at 42.36 / 56.91 inside a 264 x 148 canvas at
- * 202.61 x 51, which is not the frame's 210 x 56 — so the canvas is scaled
- * until the shape lands exactly on the button's own box, and offset by where
- * the shape starts. Vector, so the stretch costs nothing.
+ * buttonPrimary.svg — the solid plate, its glow drawn into the same canvas at
+ * 47 / 60 inside 314 x 163, so the glow hangs off the button by exactly that
+ * much and needs no clipping. Opaque, so the label always has its own ground.
  */
 .button--dark .button__plate {
-  top: -62.494px;
-  left: -43.904px;
-  width: 273.634px;
-  height: 162.509px;
+  top: -60px;
+  left: -47px;
+  width: 314px;
+  height: 163px;
 }
 
 .button--dark .button__label {
@@ -699,11 +671,11 @@ img {
   gap: 9px;
 }
 
-/* 356:1235 — label/M in caps */
+/* 356:1235 — label/S in caps */
 .verify__text {
   font-family: var(--font-label);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 20px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
@@ -712,12 +684,12 @@ img {
   white-space: nowrap;
 }
 
-/* 356:1236 — a 72px hairline */
+/* 356:1236 — a 72px hairline, kept faint so the label carries the line */
 .verify__rule {
   flex: none;
   width: 72px;
   height: 1px;
-  background: var(--color-fg);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 
@@ -796,6 +768,14 @@ img {
 }
 
 /*
+ * Both passages sit on the same spot — the second only starts writing once the
+ * first has rubbed itself out, so they never share the frame.
+ */
+.role__statement + .role__statement {
+  top: calc(50% - 84px);
+}
+
+/*
  * The statement writes itself on as the section is scrolled: js/scene.js wraps
  * every character in its own span and moves two edges through them, and what
  * one character does on its turn is all here.
@@ -831,44 +811,4 @@ img {
     color: var(--color-fg);
     transition: none;
   }
-}
-
-/*
- * 238:2682 — y 760 on the 810 frame, centred, 72 gap either side of the label.
- * Anchored to the bottom edge for the same reason as the hero footer.
- */
-.role__footer {
-  position: absolute;
-  bottom: 36px;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 72px;
-  transform: translateX(-50%);
-}
-
-/* 238:2680 / 238:2681 — 8 x 8 */
-.role__dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  background: var(--color-fg);
-}
-
-/*
- * 238:2679 — Neue Montreal Regular 14, tracking -0.28. Still the older frame's
- * spec: 330:489 restyles the statement only, and this row is not in it. Moving
- * it onto the label face the rest of the site uses shifts the row off the
- * design's y, so it waits for a frame that asks for it.
- */
-.role__label {
-  flex: none;
-  font-family: var(--font-body);
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 1;
-  letter-spacing: -0.28px;
-  color: var(--color-fg);
-  white-space: nowrap;
 }

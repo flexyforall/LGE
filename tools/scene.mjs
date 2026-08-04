@@ -30,8 +30,7 @@ await page.evaluate(() => document.fonts.ready);
 const read = () =>
   page.evaluate(() => {
     const el = (s) => document.querySelector(s);
-    const v1 = el('[data-hero-video="1"]');
-    const v2 = el('[data-hero-video="2"]');
+    const v1 = el('[data-hero-video]');
     const v3 = el('[data-role-video]');
     const copy = el('[data-scene-copy]');
     /* the statement's sliding window: written on, and rubbed out behind */
@@ -44,7 +43,6 @@ const read = () =>
     });
     return {
       v1: v1.currentTime,
-      v2: v2 ? v2.currentTime : 0,
       v3: v3.currentTime,
       copy: +getComputedStyle(copy).opacity,
       readPct: letters.length ? read / letters.length : 0,
@@ -72,7 +70,7 @@ const scenes = await page.evaluate(() =>
 );
 
 for (const scene of scenes) {
-  console.log(`${scene.name}\n  scroll      y   video 1   video 2   video 3    copy      lit    gone`);
+  console.log(`${scene.name}\n  scroll      y      hero   video 3    copy      lit    gone`);
   for (const frac of STOPS) {
     await page.evaluate(
       (y) => window.scrollTo(0, y),
@@ -84,7 +82,6 @@ for (const scene of scenes) {
       `${String(Math.round(frac * 100)).padStart(7)}% ` +
         `${String(Math.round(s.y)).padStart(6)} ` +
         `${s.v1.toFixed(2).padStart(8)}s ` +
-        `${s.v2.toFixed(2).padStart(8)}s ` +
         `${s.v3.toFixed(2).padStart(8)}s ` +
         `${s.copy.toFixed(2).padStart(7)} ` +
         `${(s.readPct * 100).toFixed(0).padStart(6)}% ` +

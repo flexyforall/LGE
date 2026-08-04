@@ -44,55 +44,56 @@ committing it.
 
 ## Video
 
-Three clips, named the way the brief names them. All are derived from ~30 MB
-sources that are **not committed** — keep copies if they might need re-encoding.
+Two clips. Both are derived from ~30 MB sources that are **not committed** —
+keep copies if they might need re-encoding.
 
 | File | Where | Source | Encoded |
 | --- | --- | --- | --- |
-| `video-1.*` | hero, the loop that idles | 3840x2160, 12s | source res, 24fps, crf 19 |
-| `video-2.*` | hero, the transition | 3840x2160, 8s | source res, 24fps, crf 20, keyframe every 8 |
+| `video-hero.*` | hero | two 3840x2160 clips, 12s + 8s | source res, 24fps, crf 23, keyframe every 8 |
 | `video-3.*` | our role + containers | 2754x1536, 12s | source res, 24fps, crf 21, keyframe every 8 |
+
+`video-hero` is the old videos 1 and 2 joined into one file. They were generated
+as one continuous shot — the second begins on **exactly** the frame the first
+ends on, checked pixel for pixel — so the join is invisible and the hero can
+treat the whole 20s as a single camera move. That is what lets the scroll pick
+the clip up from wherever its idle loop happens to be rather than cutting to a
+second element. `video-1.*` and `video-2.*` are gone; this replaces both.
 
 **MP4 is the primary source and WebM the fallback.** That order is deliberate:
 VP9 handles the light streaks badly — the same quality costs many times the
 bytes — so the WebM is a smaller, softer safety net for engines without H.264
 rather than the preferred file.
 
-Three things shape the encodes:
+Two things shape the encodes:
 
-- **Every clip keeps its source resolution** and a near-transparent crf, so
-  retina screens get them as delivered.
-- **Anything the scroll drives gets a keyframe every 8 frames.** The scroll sets
-  `currentTime` directly, and seeking is only as precise as the nearest
-  keyframe. Video 1 just loops, so it keeps a normal GOP; videos 2 and 3 are
-  both cameras and both need the tight one.
-- **Quality beats weight here — and it costs real weight.** ~81 MB of MP4 all
-  told, the transition alone being 28 MB for eight seconds. If that ever
-  matters, dropping video 2 to 2560 wide is the first thing to try.
+- **Both keep their source resolution.** The hero is at crf 23 rather than the
+  21 its parts used, which is what keeps a 20-second 4K file under GitHub's
+  50 MB warning. For reference, the same encode measured 58 MB at crf 21 and
+  33 MB at 2560 wide — if the hero ever needs to be lighter, dropping the width
+  is the bigger lever and the one to reach for first.
+- **Both get a keyframe every 8 frames**, because the scroll sets `currentTime`
+  directly and seeking is only as precise as the nearest keyframe. That tight
+  GOP is most of why these files are as big as they are.
 
-Video 2 ends on white: its mean luminance climbs from 65 at the six-second mark
-to 255 over the last half second. The hero's white sheet only has to close the
-last of it — see the note beside `.hero__flash` in the CSS.
+The hero clip ends on white: its mean luminance climbs from 65 at the
+eighteen-second mark to 255 over the last half second. The white sheet only has
+to close the last of it — see the note beside `.hero__flash` in the CSS.
 
 ```bash
-# video 1 — loops in the background
-ffmpeg -i 1.mp4 -vf "fps=24,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 18 -preset slow -g 24 \
-  -an -movflags +faststart video-1.mp4
-
-# videos 2 and 3 — scroll-driven, so a keyframe every 8 frames
-ffmpeg -i 2.mp4 -vf "fps=24,setsar=1" \
-  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 20 -preset medium \
-  -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-2.mp4
+# the hero — two sources concatenated, then encoded once
+printf "file '1.mp4'\nfile '2.mp4'\n" > join.txt
+ffmpeg -f concat -safe 0 -i join.txt -vf "fps=24,setsar=1" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 23 -preset medium \
+  -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-hero.mp4
 
 ffmpeg -i 3.mp4 -vf "fps=24,setsar=1" \
   -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 21 -preset medium \
   -g 8 -keyint_min 8 -sc_threshold 0 -an -movflags +faststart video-3.mp4
 
 # posters, and the WebM fallbacks (smaller and softer on purpose)
-ffmpeg -i video-2.mp4 -frames:v 1 -vf "scale=1600:-2" -q:v 6 video-2-poster.jpg
-ffmpeg -i video-2.mp4 -vf "fps=24,scale=1280:-2,setsar=1" -c:v libvpx-vp9 \
-  -crf 42 -b:v 0 -row-mt 1 -g 8 -keyint_min 8 -pix_fmt yuv420p -an video-2.webm
+ffmpeg -i video-hero.mp4 -frames:v 1 -vf "scale=1600:-2" -q:v 6 video-hero-poster.jpg
+ffmpeg -i video-hero.mp4 -vf "fps=24,scale=1280:-2,setsar=1" -c:v libvpx-vp9 \
+  -crf 42 -b:v 0 -row-mt 1 -g 8 -keyint_min 8 -pix_fmt yuv420p -an video-hero.webm
 ```
 
 ## Notes on the exports that arrived
@@ -128,15 +129,16 @@ may still call for them. The PP faces arrived as `.otf` — converting them to
 | File | Where | Figma node |
 | --- | --- | --- |
 | `images/buttonSecondary.svg` | the bar's BECOME A PARTNER | `356:1254` — 188x44 |
-| `images/buttonPrimary2.svg` | the hero's BECOME PARTNER | `356:1266` — a lit outline over a 20% black wash, drawn at 42.36/56.91 inside a 264x148 canvas at 202.61x51 |
-| `images/buttonPrimaryTransparent.svg` | — | the same outline over a 5% white wash. Kept as the lighter of the two |
-| `images/buttonPrimary.svg` | — | the original solid plate, at 47/60 inside 314x163. Kept in case the opaque button is wanted back |
+| `images/buttonPrimary.svg` | the hero's BECOME PARTNER | `356:1266` — the solid plate, drawn at 47/60 inside a 314x163 canvas so its glow comes with it |
+| `images/buttonPrimary2.svg` | — | the same outline over a 20% black wash, see-through. Drawn at 42.36/56.91 inside 264x148 at 202.61x51 |
+| `images/buttonPrimaryTransparent.svg` | — | as above but a 5% white wash — the lightest of the three |
 | `icons/plus.svg` | both buttons, twice each | `341:1405` — 20x20, white |
 
-Both outline bases measure 202.61 x 51, not the frame's 210 x 56, so the CSS
-scales the canvas until the shape lands exactly on the button's own box and
-offsets it by where the shape starts. It is vector, so the stretch costs
-nothing; the numbers are derived in the rule's comment.
+The solid plate is drawn at the frame's own 210 x 56 and needs no adjustment.
+The two see-through bases measure 202.61 x 51 instead, so using either means
+scaling its canvas until the shape lands on the button's box and offsetting it
+by where the shape starts — the numbers are derived in git history, in the
+commit that first wired one up.
 
 `icons/plus.svg` was uploaded as `plus icon.svg`; the space was taken out of the
 name so the URL needs no escaping. The plus is white, which is what the dark

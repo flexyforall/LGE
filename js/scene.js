@@ -22,8 +22,16 @@
 
   var COPY_FADE = 0.3; // fraction of the hero scroll the copy fades over
   var COPY_RISE = 48; // px the copy drifts up as it goes
-  var VIDEO2_FROM = 0.3; // the transition takes the frame once the copy has gone
-  var VIDEO2_BY = 0.92; // ...and the scroll has driven it to its last frame by here
+  /*
+   * The hero clip is one continuous shot — the flight, and the transition that
+   * follows it — so it idles on a loop that runs a couple of seconds into the
+   * transition rather than stopping at the join. Whatever frame the loop is on
+   * when the scroll arrives is where the scroll picks it up, which is what
+   * keeps it feeling like one camera moving rather than a cut to another shot.
+   */
+  var HERO_LOOP_END = 14; // seconds — the flight plus two of the transition
+  var HERO_SCRUB_FROM = 0.02; // where the scroll takes the clip off its loop...
+  var HERO_SCRUB_BY = 0.92; // ...and has carried it to the last frame by here
   var FLASH_IN_FROM = 0.86; // the sheet closes whatever white the clip left short
   var TAG_LINES = [
     'WELCOME TO CORE SPACE',
@@ -34,19 +42,26 @@
   ];
   var TAG_PERIOD = 2800; // ms between rotations
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
-  var TEXT_FILL_FROM = 0.12; // the statement starts writing on once the flash is gone
-  var TEXT_FILL_BY = 0.38; // ...and has written itself out again by here
+  /*
+   * Each passage writes itself on and rubs itself out over its own stretch, and
+   * the stretches do not overlap — so the first is gone before the second
+   * starts and they never share the frame.
+   */
+  var TEXT_SPANS = [
+    [0.12, 0.34],
+    [0.38, 0.6],
+  ];
   /*
    * How many characters stay lit behind the head before they start dissolving.
    * The whole effect is this one number: raise it past the statement's length
    * and nothing ever dissolves, leaving a plain reveal.
    */
   var TEXT_TRAIL = 26;
-  var SHRINK_FROM = 0.44; // once read, the shot starts packing itself...
-  var SHRINK_BY = 0.58; // ...into section 3's container, where it plays free
-  var SWAP_FROM = 0.66; // then it shrinks on and exits left...
-  var SWAP_BY = 0.84; // ...while the next container comes in from the right
-  var OPEN_FROM = 0.87; // which then opens up...
+  var SHRINK_FROM = 0.64; // once read, the shot starts packing itself...
+  var SHRINK_BY = 0.76; // ...into section 3's container, where it plays free
+  var SWAP_FROM = 0.8; // then it shrinks on and exits left...
+  var SWAP_BY = 0.9; // ...while the next container comes in from the right
+  var OPEN_FROM = 0.92; // which then opens up...
   var OPEN_BY = 1; // ...to the full frame
   var SHRINK_W = 478; // the container, from Figma 242:2689
   var SHRINK_H = 626;
@@ -194,9 +209,7 @@
     var scene = document.querySelector('[data-scene="hero"]');
     if (!scene) return;
 
-    var frame = scene.querySelector('.frame');
-    var video = scene.querySelector('[data-hero-video="1"]');
-    var transition = scene.querySelector('[data-hero-video="2"]');
+    var video = scene.querySelector('[data-hero-video]');
     var copy = scene.querySelector('[data-scene-copy]');
     var flash = scene.querySelector('[data-hero-flash]');
     var chrome = scene.querySelector('[data-hero-chrome]');
@@ -209,32 +222,44 @@
       return;
     }
 
-    /* Video 1 is a background: it loops on its own until the scroll takes over. */
-    video.loop = true;
-    video.play().catch(function () {});
+    var seek = seeker(video);
+    var anchor = null;
 
-    var seekTransition = transition ? seeker(transition) : null;
-    if (transition) transition.pause();
+    /*
+     * The idle loop. `video.loop` would cycle at the end of the file, which is
+     * two seconds past where this wants to turn over, so the turn is made here
+     * instead — on the frame clock, because `timeupdate` fires about four times
+     * a second and would let it run well into the transition first.
+     */
+    video.play().catch(function () {});
+    (function idle() {
+      requestAnimationFrame(idle);
+      if (anchor !== null) return;
+      if (video.currentTime >= HERO_LOOP_END) video.currentTime = 0;
+    })();
 
     register(function () {
       var p = progressOf(scene);
 
       /*
-       * The hand-off. The two shots are unrelated, so the frame crosses to the
-       * transition rather than cutting, and the idle loop rests while it is
-       * off screen — picking back up the moment scrolling brings it back.
+       * Off the loop, the scroll drives the clip on from exactly the frame the
+       * loop was showing — not from a fixed mark — so there is nothing to jump
+       * over. The anchor is dropped when the scroll comes back to the top, and
+       * the loop picks up again from wherever it was left.
        */
-      if (transition && frame) {
-        var live = p >= VIDEO2_FROM;
-        frame.dataset.heroStage = live ? '2' : '1';
-        if (live) {
-          if (!video.paused) video.pause();
-          if (transition.duration) {
-            var t = clamp01((p - VIDEO2_FROM) / (VIDEO2_BY - VIDEO2_FROM));
-            seekTransition(t * transition.duration);
-          }
-        } else if (video.paused) {
+      if (p < HERO_SCRUB_FROM) {
+        if (anchor !== null) {
+          anchor = null;
           video.play().catch(function () {});
+        }
+      } else {
+        if (anchor === null) {
+          anchor = video.currentTime;
+          video.pause();
+        }
+        if (video.duration) {
+          var t = clamp01((p - HERO_SCRUB_FROM) / (HERO_SCRUB_BY - HERO_SCRUB_FROM));
+          seek(anchor + t * (video.duration - anchor));
         }
       }
 
@@ -309,24 +334,25 @@
 
     var frame = scene.querySelector('.frame');
     var video = scene.querySelector('[data-role-video]');
-    var statement = scene.querySelector('[data-role-text]');
+    var statements = scene.querySelectorAll('[data-role-text]');
     var flash = scene.querySelector('[data-role-flash]');
     var chrome = scene.querySelector('[data-role-chrome]');
-    var footer = scene.querySelector('[data-role-footer]');
     var shrink = scene.querySelector('[data-role-shrink]');
-    var white = scene.querySelector('[data-role-white]');
+    var page = scene.querySelector('[data-role-page]');
     var overlay = shrink ? shrink.querySelector('.frame__overlay') : null;
     var next = scene.querySelector('[data-role-next]');
     var nextVideo = scene.querySelector('[data-role-next-video]');
-    if (!video || !statement) return;
+    if (!video || !statements.length) return;
 
-    var letters = splitCharacters(statement);
+    var passages = [].map.call(scene.querySelectorAll('[data-role-text]'), splitCharacters);
 
     if (reduced) {
       scene.style.height = 'auto';
       if (flash) flash.style.display = 'none';
       if (chrome) chrome.style.opacity = '1';
-      for (var i = 0; i < letters.length; i++) letters[i].className = 'is-in';
+      /* Nothing to scroll through, so only the first passage has a place. */
+      for (var i = 0; i < passages[0].length; i++) passages[0][i].className = 'is-in';
+      for (var j = 1; j < passages.length; j++) statements[j].style.display = 'none';
       return;
     }
 
@@ -410,7 +436,7 @@
 
       /* Inside the container the clip plays clean — the veil goes with t. */
       if (overlay) overlay.style.opacity = String(1 - t);
-      if (white) white.style.opacity = String(t);
+      if (page) page.style.opacity = String(t);
       if (chrome) chrome.style.backgroundColor = 'rgba(0, 0, 0, ' + t.toFixed(3) + ')';
 
       /* The next chapter's box: in from the right, grow, then open up. */
@@ -447,28 +473,24 @@
         }
       }
 
-      var aside = clamp01((p - SHRINK_FROM) / 0.06);
-      statement.style.opacity = String(1 - aside);
-      statement.style.visibility = aside === 1 ? 'hidden' : '';
-      if (footer) {
-        footer.style.opacity = String(1 - aside);
-        footer.style.visibility = aside === 1 ? 'hidden' : '';
-      }
 
       /*
-       * The statement writes itself on, one character at a time, and rubs
-       * itself out the same way a fixed distance behind — so what is on screen
-       * is a window of TEXT_TRAIL characters sliding through the sentence
-       * rather than the whole thing.
+       * Each passage writes itself on, one character at a time, and rubs itself
+       * out the same way a fixed distance behind — so what is on screen is a
+       * window of TEXT_TRAIL characters sliding through the sentence rather
+       * than the whole of it.
        *
        * Only the two edges move, so only the characters they cross are
        * touched; the class each one lands in decides the rest, and the timing
        * of a single character's turn is the CSS transition, not this.
        */
-      var fill = clamp01((p - TEXT_FILL_FROM) / (TEXT_FILL_BY - TEXT_FILL_FROM));
-      var head = Math.round(fill * (letters.length + TEXT_TRAIL));
-      var tail = Math.max(0, head - TEXT_TRAIL);
-      write(letters, head, tail);
+      for (var s = 0; s < passages.length; s++) {
+        var span = TEXT_SPANS[s] || TEXT_SPANS[TEXT_SPANS.length - 1];
+        var letters = passages[s];
+        var fill = clamp01((p - span[0]) / (span[1] - span[0]));
+        var head = Math.round(fill * (letters.length + TEXT_TRAIL));
+        write(letters, head, Math.max(0, head - TEXT_TRAIL));
+      }
 
     });
   }

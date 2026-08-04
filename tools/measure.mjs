@@ -33,14 +33,15 @@ const BOXES = [
   ['356:1264', 56, 269, null, 160, 'headline'],
   ['356:1265', 56, 453, 677, 28, 'lead'],
   ['356:1266', 56, 521, 210, 56, 'become-partner button'],
-  ['356:1234', 1166, 659, null, 20, 'progress-you-can-verify'],
+  // the frame sets this row's label at 14; it is 12 on request, so the row is
+  // narrower than the design's and its left edge follows from the right edge
+  ['356:1234', null, 659, null, 20, 'progress-you-can-verify'],
   ['356:1236', null, 668.5, 72, 1, 'its rule'],
   ['356:1267', 0, 679, 1440, 132, 'partner row'],
 
   // --- section 2 (our role), 238:2674, restyled by 330:489 ---
   // three lines of headline/H1 at 72 — the 64/72 the Intro frame sets
-  ['238:2675', 338, 321, 764, 216, 'statement'],
-  ['238:2680', 607, 763, 8, 8, 'dot (left)'],
+  ['330:497', 338, 321, 764, 216, 'statement'],
 ];
 
 /**
@@ -49,9 +50,7 @@ const BOXES = [
  * the spacing between them is covered by GAPS below.
  */
 const TEXT_ORIGINS = [
-  ['356:1235', 1166, 659, 'progress you can verify'],
-  ['238:2679', 687, 760, 'our-role label'],
-  ['238:2682', 607, 760, 'our-role row'],
+  ['356:1235', null, 659, 'progress you can verify'],
 ];
 
 /** [fromNodeId, toNodeId, expectedGap, label] — the paddings and margins themselves. */
@@ -67,8 +66,6 @@ const GAPS = [
   ['356:1264', '356:1265', 24, 'headline -> lead'],
   ['356:1265', '356:1266', 40, 'lead -> button'],
   ['356:1235', '356:1236', 9, 'verify: text -> rule'],
-  ['238:2680', '238:2679', 72, 'dot -> OUR ROLE'],
-  ['238:2679', '238:2681', 72, 'OUR ROLE -> dot'],
 ];
 
 const TOL = 0.5;

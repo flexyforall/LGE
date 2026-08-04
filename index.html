@@ -52,20 +52,20 @@
   <div class="scene__stage">
     <div class="frame" data-node-id="356:1231" data-design-frame>
 
+      <!--
+        356:1233 — one continuous shot: the hero clip and the transition that
+        follows it, joined into a single file. The second begins on exactly the
+        frame the first ends on, so there is no cut in it anywhere.
+
+        It idles on a loop that runs a couple of seconds into the transition,
+        and the scroll then carries it forward from wherever the loop happens
+        to be — never a jump to a different frame. See js/scene.js.
+      -->
       <div class="frame__bg" aria-hidden="true">
-        <!-- 356:1233 — the clip that idles here, looping -->
-        <video class="frame__video" data-hero-video="1" muted playsinline loop
-               preload="auto" poster="assets/videos/video-1-poster.jpg">
-          <source src="assets/videos/video-1.mp4" type="video/mp4">
-          <source src="assets/videos/video-1.webm" type="video/webm">
-        </video>
-        <!-- The transition. It never plays on its own: once the copy has gone
-             the scroll takes the frame across to it and drives it to the last
-             frame, where the light has filled the screen. -->
-        <video class="frame__video" data-hero-video="2" muted playsinline
-               preload="auto" poster="assets/videos/video-2-poster.jpg">
-          <source src="assets/videos/video-2.mp4" type="video/mp4">
-          <source src="assets/videos/video-2.webm" type="video/webm">
+        <video class="frame__video" data-hero-video muted playsinline
+               preload="auto" poster="assets/videos/video-hero-poster.jpg">
+          <source src="assets/videos/video-hero.mp4" type="video/mp4">
+          <source src="assets/videos/video-hero.webm" type="video/webm">
         </video>
       </div>
 
@@ -125,8 +125,8 @@
                inside its own canvas so it hangs off the button on every
                side. -->
           <a class="button button--dark" href="#partner" data-node-id="356:1266">
-            <img class="button__plate" src="assets/images/buttonPrimary2.svg"
-                 alt="" width="274" height="163" aria-hidden="true">
+            <img class="button__plate" src="assets/images/buttonPrimary.svg"
+                 alt="" width="314" height="163" aria-hidden="true">
             <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
             <span class="button__label">Become partner</span>
             <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
@@ -185,8 +185,8 @@
   <div class="scene__stage">
     <div class="frame" data-node-id="238:2674">
 
-      <!-- 242:2681 — section 3 is white; revealed as the shot shrinks. -->
-      <div class="role__white" data-role-white aria-hidden="true"></div>
+      <!-- 242:2681 — section 3's page colour, revealed as the shot shrinks. -->
+      <div class="role__page" data-role-page aria-hidden="true"></div>
 
       <!-- The whole shot. Full-bleed through section 2, then the scroll packs
            it into the 478 x 626 container of section 3 (242:2689). -->
@@ -212,14 +212,13 @@
         </video>
       </div>
 
-      <p class="role__statement" data-role-text data-node-id="238:2675">We don’t build orbital data centers. We enable the companies that do.</p>
-
-      <!-- Figma: "Frame 2147227361" (238:2682) -->
-      <div class="role__footer" data-role-footer data-node-id="238:2682">
-        <span class="role__dot" data-node-id="238:2680"></span>
-        <span class="role__label" data-node-id="238:2679">OUR ROLE</span>
-        <span class="role__dot" data-node-id="238:2681"></span>
-      </div>
+      <!--
+        Two passages, one after the other on the same spot. Each writes itself
+        on and rubs itself out over its own stretch of the scroll, so the first
+        is gone before the second starts — see js/scene.js.
+      -->
+      <p class="role__statement" data-role-text data-node-id="330:497">We don’t build orbital data centers. We enable the companies that do.</p>
+      <p class="role__statement" data-role-text>Keep scrolling to learn more about how we revolutionize the space.</p>
 
       <!-- The same bar; fades in as the white lifts, and takes the black
            plate of section 3 (242:2690) as the shot shrinks. -->

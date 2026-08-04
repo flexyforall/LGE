@@ -28,7 +28,12 @@ const ALLOWED_OFF_TARGET = FRAME * 1.5;
  * hero's transition and the tunnel are both scrubbed from first frame to last.
  */
 const SCENES = [
-  { name: 'hero', video: '[data-hero-video="2"]', restsOnTarget: true },
+  /*
+   * The hero clip idles on a loop and the scroll picks it up from whatever
+   * frame the loop was on, so where it comes to rest is its own end but where
+   * it starts is not fixed — only the resting place can be asserted.
+   */
+  { name: 'hero', video: '[data-hero-video]', restsOnTarget: true },
   { name: 'role', video: '[data-role-video]', restsOnTarget: true },
 ];
 
@@ -74,7 +79,7 @@ const failures = [];
 const intro = await page.evaluate(
   () =>
     new Promise((resolve) => {
-      const video = document.querySelector('[data-hero-video="1"]');
+      const video = document.querySelector('[data-hero-video]');
       const a = [];
       const t0 = performance.now();
       (function tick() {
@@ -162,7 +167,7 @@ ${scene.name.padEnd(7)} ${atScrollEnd.toFixed(3)}s when the scroll stopped, sett
 const handoff = await page.evaluate(() => {
   const nextVideo = document.querySelector('[data-role-next-video]');
   const exiting = document.querySelector('[data-role-video]');
-  const idle = document.querySelector('[data-hero-video="1"]');
+  const idle = document.querySelector('[data-hero-video]');
   return {
     nextAt: nextVideo ? nextVideo.currentTime : 0,
     running: [...document.querySelectorAll('video')]

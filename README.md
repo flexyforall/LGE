@@ -24,25 +24,27 @@ Two sections, each pinned while its own stretch of scroll plays out.
 
 **Hero** — Figma `Hero` (356:1231).
 
-One clip loops as the background at its own scale, covering the frame and no
-more. The design crops it instead — 356:1233 blows it up to 2616x1472 and
-pulls it 100 left and 10 up, so the frame's window lands on the upper-left of
-the shot — and those four numbers are kept in a comment beside the rule in case
-that is wanted back. The copy is back on the left
-margin: label, 72px title, lead line and the primary button all stack on x 56
-and centre on the frame. `Progress you can verify` rests on the bottom-right,
-directly on top of the partner row.
+One clip runs the whole hero. It is the flight and the transition that follows
+it joined into a single file — they were generated as one continuous shot, the
+second starting on exactly the frame the first ends on — so there is no cut in
+it anywhere.
 
-The scroll fades the copy over the first stretch. With the copy gone the frame
-crosses to the transition clip, which never plays on its own — the scroll drives
-it frame by frame to its end, where its own flare has filled the screen. A white
-sheet closes the last of that, and the section below lifts its twin sheet off
-video 3, so the seam between the two is white on white and the whole thing reads
-as one shot: into the light, through it, out into the tunnel.
+At rest it idles on a loop that runs a couple of seconds into the transition
+(`HERO_LOOP_END`), and the scroll then carries it on **from whatever frame the
+loop happens to be showing** rather than from a fixed mark. That is the whole
+point: nothing is ever crossed, faded or jumped to, so it reads as one camera
+continuing to move rather than a cut to another shot. Measured across the
+hand-off, the largest single-frame step in the playhead is under one frame.
 
-`VIDEO2_FROM` / `VIDEO2_BY` in `js/scene.js` set which stretch of the hero's
-scroll the transition is mapped onto, and `FLASH_IN_FROM` where the sheet starts
-closing.
+The copy fades over the first stretch. The scroll drives the clip on to its
+end, where its own flare has filled the screen; a white sheet closes the last of
+that, and the section below lifts its twin sheet off video 3, so the seam
+between the two is white on white and the whole thing reads as one shot: into
+the light, through it, out into the tunnel.
+
+`HERO_SCRUB_FROM` / `HERO_SCRUB_BY` in `js/scene.js` set which stretch of the
+hero's scroll the clip is mapped onto, and `FLASH_IN_FROM` where the sheet
+starts closing.
 
 The tag line above the headline rotates through five points on its own clock
 (`TAG_LINES` / `TAG_PERIOD` in `js/scene.js`): the next line tips in from below
@@ -56,19 +58,21 @@ exactly one copy's width, which puts every logo back where its twin was, so the
 loop has no seam. `--logos-period` in the CSS sets the pace.
 
 Both buttons are the uploaded exports — `assets/images/buttonSecondary.svg` for
-the light one in the bar, `buttonPrimary2.svg` for the primary one under the
-lead. That one is a lit outline over a 20% black wash, so the clip still reads
-through the button while the label keeps something to sit on; its glow is drawn
-into the same canvas and hangs off the button on every side.
+the light one in the bar, `buttonPrimary.svg` for the primary one under the
+lead. That one is the solid plate, so the label always has its own ground; its
+glow is drawn into the same canvas and hangs off the button on every side. Two
+see-through variants of it sit beside it in the folder.
 
 **Our role** — Figma `section 2` (238:2674) through `section 2.1` (242:2673)
 and into `section 3` (242:2681), all on one scroll.
 
 Video 3 answers to the scroll from its first frame, and so does the clip in the
 container that follows it — neither ever plays on its own. The same scroll
-writes the statement on and moves the containers.
+writes the copy on and moves the containers.
 
-The statement writes itself on once the flash is gone. Every character is its
+Two passages write themselves on in turn once the flash is gone, one after the
+other on the same spot, each over its own stretch of the scroll (`TEXT_SPANS`)
+so the first is gone before the second starts and they never share the frame. Every character is its
 own span, and two edges move through them: a head that writes characters on and
 a tail that rubs them out a fixed distance behind, so what is on screen is a
 window of about 26 characters sliding through the sentence rather than the whole
@@ -82,10 +86,11 @@ length and nothing ever dissolves, leaving a plain reveal. The timing of one
 character's turn is the CSS transition on `.role__statement span`, not the
 script — the script only ever moves the two edges.
 
-Once it is read, the scroll packs the whole shot into section 3's 478x626
+Once both are read, the scroll packs the whole shot into section 3's 478x626
 container — centred between the bar and the bottom edge, equal air above and
 below — where it drops its veil and simply plays, looping. Further scroll
-shrinks the box on and sends it out through the left edge while the next
+shrinks the box on and sends it out through the left edge, over the #030303
+page the section reveals behind it, while the next
 chapter's container (placeholder: the same tunnel, looping) comes in from the
 right at 0.4x, grows to the same spot, and finally opens up to the full frame —
 the shape of Figma's `section 3.1` reference. The constants for every phase sit
