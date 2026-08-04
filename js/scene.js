@@ -57,16 +57,17 @@
    * and nothing ever dissolves, leaving a plain reveal.
    */
   var TEXT_TRAIL = 26;
+  /* The cards section is not pinned; these are fractions of the window. */
+  var CARDS_FILL_FROM = 0.8; // the heading starts filling here...
+  var CARDS_FILL_BY = 0.34; // ...and is fully read by here
+  var CARDS_RISE_FROM = 0.92; // a card rises as its top reaches here
+  var CARDS_RISE_BY = 0.8;
   var SHRINK_FROM = 0.64; // once read, the shot starts packing itself...
   var SHRINK_BY = 0.76; // ...into section 3's container, where it plays free
-  var SWAP_FROM = 0.8; // then it shrinks on and exits left...
-  var SWAP_BY = 0.9; // ...while the next container comes in from the right
-  var OPEN_FROM = 0.92; // which then opens up...
-  var OPEN_BY = 1; // ...to the full frame
+  var FOLD_FROM = 0.84; // and then folds shut...
+  var FOLD_BY = 0.98; // ...until there is nothing left of it
   var SHRINK_W = 478; // the container, from Figma 242:2689
   var SHRINK_H = 626;
-  var EXIT_SCALE = 0.81; // the leaving box's scale as it goes (251:2811)
-  var ENTER_SCALE = 0.4; // the incoming box's scale at the right edge (251:2833)
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -77,6 +78,17 @@
 
   function clamp01(v) {
     return v < 0 ? 0 : v > 1 ? 1 : v;
+  }
+
+  /**
+   * How far a block that is not pinned has travelled up the window, 0 to 1 —
+   * measured from its top passing `from` to its top passing `to`, both as a
+   * fraction of the window's height.
+   */
+  function progressUp(el, from, to) {
+    var h = window.innerHeight;
+    var top = el.getBoundingClientRect().top;
+    return clamp01((h * from - top) / (h * from - h * to));
   }
 
   /** How far through a pinned section the scroll has travelled, 0 to 1. */
@@ -340,8 +352,6 @@
     var shrink = scene.querySelector('[data-role-shrink]');
     var page = scene.querySelector('[data-role-page]');
     var overlay = shrink ? shrink.querySelector('.frame__overlay') : null;
-    var next = scene.querySelector('[data-role-next]');
-    var nextVideo = scene.querySelector('[data-role-next-video]');
     if (!video || !statements.length) return;
 
     var passages = [].map.call(scene.querySelectorAll('[data-role-text]'), splitCharacters);
@@ -357,15 +367,11 @@
     }
 
     /*
-     * Both clips here are cameras, not backgrounds: neither ever plays on its
-     * own. The tunnel answers to the section's scroll from its first frame,
-     * and the clip in the container that follows it answers to the stretch of
-     * scroll that brings that container in.
+     * The tunnel is a camera, not a background: it never plays on its own, and
+     * answers to the section's scroll from its first frame.
      */
     var seekTunnel = seeker(video);
-    var seekNext = nextVideo ? seeker(nextVideo) : null;
     video.pause();
-    if (nextVideo) nextVideo.pause();
 
     register(function () {
       var p = progressOf(scene);
@@ -396,8 +402,7 @@
        * the full frame. The copy steps aside as the packing starts.
        */
       var t = clamp01((p - SHRINK_FROM) / (SHRINK_BY - SHRINK_FROM));
-      var u = clamp01((p - SWAP_FROM) / (SWAP_BY - SWAP_FROM));
-      var o = clamp01((p - OPEN_FROM) / (OPEN_BY - OPEN_FROM));
+      var f = clamp01((p - FOLD_FROM) / (FOLD_BY - FOLD_FROM));
 
       var fw = frame ? frame.clientWidth : 0;
       var fh = frame ? frame.clientHeight : 0;
@@ -406,28 +411,17 @@
       var boxH = Math.min(SHRINK_H, below - 100);
       var boxW = SHRINK_W * (boxH / SHRINK_H);
       var boxTop = 84 + (below - boxH) / 2;
-      var boxCy = boxTop + boxH / 2;
 
       if (shrink && frame) {
-        var w1;
-        var h1;
-        var left1;
-        var top1;
-        if (u <= 0) {
-          /* Packing in: full bleed down onto the parked spot. */
-          w1 = fw + (boxW - fw) * t;
-          h1 = fh + (boxH - fh) * t;
-          left1 = (fw - w1) / 2;
-          top1 = boxTop * t;
-        } else {
-          /* The hand-off: shrinking on and leaving through the left edge. */
-          var s1 = 1 - (1 - EXIT_SCALE) * u;
-          w1 = boxW * s1;
-          h1 = boxH * s1;
-          var cx1 = fw / 2 + (-boxW / 2 - fw / 2) * u;
-          left1 = cx1 - w1 / 2;
-          top1 = boxCy - h1 / 2;
-        }
+        /*
+         * Packing in: full bleed down onto the parked spot. Then the fold —
+         * the box loses its height about its own middle until there is nothing
+         * left, which is why the top comes down as the height goes.
+         */
+        var w1 = fw + (boxW - fw) * t;
+        var h1 = (fh + (boxH - fh) * t) * (1 - f);
+        var left1 = (fw - w1) / 2;
+        var top1 = boxTop * t + ((fh + (boxH - fh) * t) - h1) / 2;
         shrink.style.left = left1.toFixed(1) + 'px';
         shrink.style.top = top1.toFixed(1) + 'px';
         shrink.style.width = w1.toFixed(1) + 'px';
@@ -438,41 +432,6 @@
       if (overlay) overlay.style.opacity = String(1 - t);
       if (page) page.style.opacity = String(t);
       if (chrome) chrome.style.backgroundColor = 'rgba(0, 0, 0, ' + t.toFixed(3) + ')';
-
-      /* The next chapter's box: in from the right, grow, then open up. */
-      if (next && nextVideo) {
-        var visible = u > 0;
-        /* The stylesheet parks it hidden, so visible must be said outright. */
-        next.style.visibility = visible ? 'visible' : 'hidden';
-        if (visible) {
-          var w2;
-          var h2;
-          var left2;
-          var top2;
-          if (o > 0) {
-            w2 = boxW + (fw - boxW) * o;
-            h2 = boxH + (fh - boxH) * o;
-            left2 = (fw - w2) / 2;
-            top2 = boxTop * (1 - o);
-          } else {
-            var s2 = ENTER_SCALE + (1 - ENTER_SCALE) * u;
-            w2 = boxW * s2;
-            h2 = boxH * s2;
-            var cx2 = fw + w2 / 2 + (fw / 2 - fw - w2 / 2) * u;
-            left2 = cx2 - w2 / 2;
-            top2 = boxCy - h2 / 2;
-          }
-          next.style.left = left2.toFixed(1) + 'px';
-          next.style.top = top2.toFixed(1) + 'px';
-          next.style.width = w2.toFixed(1) + 'px';
-          next.style.height = h2.toFixed(1) + 'px';
-          if (seekNext && nextVideo.duration) {
-            var v = clamp01((p - SWAP_FROM) / (1 - SWAP_FROM));
-            seekNext(v * nextVideo.duration);
-          }
-        }
-      }
-
 
       /*
        * Each passage writes itself on, one character at a time, and rubs itself
@@ -495,10 +454,56 @@
     });
   }
 
+  /* ------------------------------------------------------------------ *
+   * Cards
+   * ------------------------------------------------------------------ */
+
+  /*
+   * The section is not pinned — it scrolls past like any other block — so what
+   * drives it is how far it has come up the window rather than a scroll offset
+   * inside it.
+   *
+   * The heading fills in reading order, which is the state 339:374 is drawn
+   * in: read characters go transparent and let the paragraph's gradient
+   * through, the rest keep their 20%. The cards rise as they arrive, the wide
+   * one a beat before the narrow one.
+   */
+  function setUpCards() {
+    var section = document.querySelector('[data-cards]');
+    if (!section) return;
+
+    var heading = section.querySelector('[data-cards-text]');
+    var cards = section.querySelectorAll('[data-card]');
+    if (!heading) return;
+
+    var letters = splitCharacters(heading);
+
+    if (reduced) {
+      for (var i = 0; i < letters.length; i++) letters[i].className = 'is-read';
+      return;
+    }
+
+    register(function () {
+      var fill = progressUp(heading, CARDS_FILL_FROM, CARDS_FILL_BY);
+      var read = Math.round(fill * letters.length);
+      for (var i = 0; i < letters.length; i++) {
+        var want = i < read ? 'is-read' : '';
+        if (letters[i].className !== want) letters[i].className = want;
+      }
+
+      for (var c = 0; c < cards.length; c++) {
+        /* Each card waits its turn: the second is a tenth of a window later. */
+        var up = progressUp(cards[c], CARDS_RISE_FROM - c * 0.1, CARDS_RISE_BY);
+        cards[c].classList.toggle('is-in', up > 0);
+      }
+    });
+  }
+
   /* ------------------------------------------------------------------ */
 
   setUpHero();
   setUpRole();
+  setUpCards();
 
   if (!reduced) {
     window.addEventListener('scroll', onScroll, { passive: true });

@@ -284,19 +284,6 @@ img {
   opacity: 1;
 }
 
-/* 251:2833 — the incoming container. Geometry is driven by js/scene.js;
-   hidden until the swap brings it in from the right edge. */
-.role__next {
-  position: absolute;
-  overflow: hidden;
-  visibility: hidden;
-}
-
-.role__next .frame__video {
-  position: absolute;
-  inset: 0;
-}
-
 /* 242:2681 — section 3's page colour, revealed as the shot shrinks. */
 .role__page {
   position: absolute;
@@ -809,6 +796,283 @@ img {
   .role__statement span {
     opacity: 1;
     color: var(--color-fg);
+    transition: none;
+  }
+}
+
+
+/* --- Cards ---------------------------------------------------------------
+   Figma 339:343. Not a pinned scene — it scrolls past normally, and what the
+   scroll drives is the heading's fill and the cards rising into place.
+   ------------------------------------------------------------------------- */
+
+/* 339:343 — 160 down each end, 56 in from each side, 80 between the two blocks */
+.cards {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 80px;
+  padding: 160px 56px;
+  background: #030303;
+  overflow: hidden;
+}
+
+/*
+ * 342:576 — a 1456 x 1555 wash hung 309 above the section and dodged over it,
+ * which is what lifts the black without greying it.
+ */
+.cards__wash {
+  position: absolute;
+  top: -309px;
+  left: calc(50% + 9px);
+  width: 1456px;
+  height: 1555px;
+  transform: translateX(-50%);
+  background: url('../assets/images/cards-wash.png') center / cover no-repeat;
+  mix-blend-mode: color-dodge;
+  pointer-events: none;
+}
+
+/* 339:486 — 24 between the label and the heading */
+.cards__head {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* 339:481 — the same 8px squares and 40px air as the hero's label */
+.cards__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.cards__square {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--color-fg);
+}
+
+/* 339:484 — label/M in caps */
+.cards__labelText {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  white-space: nowrap;
+}
+
+/*
+ * 339:374 — headline/H3 at 44/52, tracking -0.5, on 843.
+ *
+ * The frame draws this half read: the part that has been read carries a
+ * gradient that fades away at both ends of the line, and the rest sits at 20%.
+ * The gradient belongs to the paragraph rather than to any character, so it is
+ * painted here and clipped to the text; a character that has been read goes
+ * transparent and lets it through, and one that has not paints its own 20%
+ * over the top. js/scene.js decides which is which.
+ */
+.cards__headline {
+  position: relative;
+  margin: 0;
+  width: 843px;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 44px;
+  line-height: 52px;
+  letter-spacing: -0.5px;
+  text-align: center;
+  background-image: linear-gradient(
+    270deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    #ffffff 44.748%,
+    #ffffff 68.858%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.cards__headline span {
+  color: rgba(255, 255, 255, 0.2);
+  transition: color 260ms ease;
+}
+
+.cards__headline span.is-read {
+  color: transparent;
+}
+
+/* 339:353 — 600 tall, 8 apart, on the section's full width */
+.cards__row {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  height: 600px;
+}
+
+/*
+ * 339:354 / 339:365 — #070707 inside a #292929 hairline. The hairline is an
+ * inset shadow rather than a border so that everything placed inside is
+ * positioned against the card's own edge, and each offset below can be the
+ * design's number verbatim — a border would move the containing block in by a
+ * pixel and put every one of them out.
+ */
+.card {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: #070707;
+  box-shadow: inset 0 0 0 1px #292929;
+  /* the rise; js/scene.js releases them one after the other */
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 700ms ease, transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.card.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* 339:354 — 915 of the 1328 the section leaves */
+.card--wide {
+  flex: none;
+  width: 915px;
+}
+
+/* 339:365 — and the rest */
+.card--narrow {
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+/*
+ * 339:355 — the media band is wider than the card it sits in: 203.5 past each
+ * edge, at 544:306, so the card crops it on both sides.
+ */
+.card__media {
+  position: absolute;
+  top: -0.5px;
+  left: -203.5px;
+  right: -203.5px;
+  aspect-ratio: 544 / 306;
+  background: url('../assets/images/card-partner.png') center / cover no-repeat;
+}
+
+/* 339:372 — 380 square, on the middle line, 139.5 in */
+.card__figure {
+  position: absolute;
+  top: 50%;
+  left: 139.5px;
+  width: 380px;
+  height: 380px;
+  transform: translateY(-50%);
+  background: url('../assets/images/card-integrate.png') center / contain no-repeat;
+}
+
+/* 339:356 etc — a 4px tick 5.5 in from each corner */
+.card__tick {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--color-fg);
+}
+
+.card__tick--tl {
+  top: 5.5px;
+  left: 5.5px;
+}
+
+.card__tick--tr {
+  top: 5.5px;
+  right: 5.5px;
+}
+
+.card__tick--bl {
+  bottom: 5.5px;
+  left: 5.5px;
+}
+
+.card__tick--br {
+  bottom: 5.5px;
+  right: 5.5px;
+}
+
+/* 339:360 — headline/Overline: Notch Regular 16/20, tracking 0.4, in caps */
+.card__overline {
+  position: absolute;
+  top: 23.5px;
+  left: 23.5px;
+  margin: 0;
+  width: 360px;
+  font-family: var(--font-label);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--color-fg);
+}
+
+/* 339:366 */
+.card__overline--dim {
+  opacity: 0.6;
+}
+
+/*
+ * 339:361 — the copy is read out of the card's own colour rising behind it,
+ * so the media it sits over never fights it.
+ */
+.card__foot {
+  position: absolute;
+  right: -0.5px;
+  bottom: -0.5px;
+  left: -0.5px;
+  display: flex;
+  align-items: center;
+  padding: 140px 60px 24px 24px;
+  background: linear-gradient(to bottom, rgba(7, 7, 7, 0) 0%, #070707 76.155%);
+}
+
+/* 339:362 / 339:367 — headline/H5 at 24/32 */
+.card__body {
+  margin: 0;
+  width: 547px;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 32px;
+  color: var(--color-fg);
+}
+
+/* 339:367 — no gradient behind this one, so it is placed directly */
+.card__body--plain {
+  position: absolute;
+  bottom: 23.5px;
+  left: 23.5px;
+  width: 529px;
+}
+
+/* Reduced motion: everything simply stands where it belongs. */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .cards__headline span {
+    color: transparent;
     transition: none;
   }
 }

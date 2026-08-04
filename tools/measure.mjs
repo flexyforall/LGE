@@ -42,6 +42,18 @@ const BOXES = [
   // --- section 2 (our role), 238:2674, restyled by 330:489 ---
   // three lines of headline/H1 at 72 — the 64/72 the Intro frame sets
   ['330:497', 338, 321, 764, 216, 'statement'],
+
+  // --- cards, 339:343 (measured against the section, which is its own origin)
+  // 160 + [label 20 + 24 + four 52px lines] + 80 + 600 + 160
+  ['339:343', 0, 0, 1440, 1252, 'cards section'],
+  ['339:486', null, 160, null, 252, 'label + heading'],
+  ['339:481', null, 160, null, 20, 'label row'],
+  ['339:374', null, 204, 843, 208, 'heading'],
+  ['339:353', 56, 492, 1328, 600, 'card row'],
+  ['339:354', 56, 492, 915, 600, 'wide card'],
+  ['339:365', 979, 492, 405, 600, 'narrow card'],
+  ['339:360', 79.5, 515.5, 360, null, 'wide card overline'],
+  ['339:372', 1118.5, 602, 380, 380, 'narrow card figure'],
 ];
 
 /**
@@ -66,6 +78,8 @@ const GAPS = [
   ['356:1264', '356:1265', 24, 'headline -> lead'],
   ['356:1265', '356:1266', 40, 'lead -> button'],
   ['356:1235', '356:1236', 9, 'verify: text -> rule'],
+  ['339:481', '339:374', 24, 'cards: label -> heading'],
+  ['339:354', '339:365', 8, 'cards: wide -> narrow'],
 ];
 
 const TOL = 0.5;
@@ -79,6 +93,17 @@ const browser = await chromium.launch({
 const page = await browser.newPage({ viewport: { width: 1440, height: 810 } });
 await page.goto(target, { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
+/*
+ * The cards rise into place as they are scrolled to. Parity is about where
+ * they come to rest, so they are landed here rather than scrolled to — the
+ * pinned sections above them have to stay at the top of their scroll.
+ */
+await page.evaluate(() =>
+  document.querySelectorAll('[data-card]').forEach((c) => {
+    c.style.transition = 'none';
+    c.classList.add('is-in');
+  })
+);
 await page.waitForTimeout(300);
 
 /*
@@ -99,7 +124,11 @@ const rects = await page.evaluate(() => {
     };
   }
   for (const el of document.querySelectorAll('[data-node-id]')) {
-    const frame = el.closest('.frame');
+    /*
+     * Pinned sections are measured against their own frame; the cards section
+     * is not pinned and is its own origin.
+     */
+    const frame = el.closest('.frame') || el.closest('[data-cards]');
     if (!frame) continue;
     const origin = frame.getBoundingClientRect();
     const r = el.getBoundingClientRect();

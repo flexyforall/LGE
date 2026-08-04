@@ -147,6 +147,20 @@ would have coloured it from `currentcolor`, but a mask is a fetch and a fetch
 from a `file://` page is blocked, and the page has to keep working on a
 double-click.
 
+### Still needed — the cards section
+
+`339:343` uses three bitmaps that could not be exported: figma.com is
+unreachable from here, so they have to be uploaded. The section is built and
+measured against the frame; these are the only things missing from it, and each
+is referenced by a CSS `background-image`, so until they land the slots simply
+render empty rather than broken.
+
+| Put it here | Figma node | Size | What it is |
+| --- | --- | --- | --- |
+| `images/cards-wash.png` | `342:576` | 1456 x 1555 | the wash behind the whole section, dodged over the black |
+| `images/card-partner.png` | `339:355` | 544 x 306 ratio | the band across the top of the wide card |
+| `images/card-integrate.png` | `339:372` | 380 x 380 | the square on the narrow card |
+
 ### Partner logos
 
 `logos/` holds the nine marks from the design's bottom row. **Seven are in

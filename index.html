@@ -189,7 +189,8 @@
       <div class="role__page" data-role-page aria-hidden="true"></div>
 
       <!-- The whole shot. Full-bleed through section 2, then the scroll packs
-           it into the 478 x 626 container of section 3 (242:2689). -->
+           it into the 478 x 626 container of section 3 (242:2689), and finally
+           folds it shut until nothing is left. -->
       <div class="role__shrink" data-role-shrink aria-hidden="true">
         <!-- 238:2673 — video 3, driven by the scroll from its first frame -->
         <video class="frame__video" data-role-video muted playsinline preload="auto"
@@ -199,17 +200,6 @@
         </video>
         <!-- 238:2673 runs at 70% over black — the same 30% veil. -->
         <div class="frame__overlay"></div>
-      </div>
-
-      <!-- 251:2833 — the next chapter's container. Enters from the right
-           edge during the swap, grows to centre, then opens full-bleed.
-           Placeholder media: the same tunnel, looping. -->
-      <div class="role__next" data-role-next aria-hidden="true">
-        <video class="frame__video" data-role-next-video muted playsinline
-               preload="auto" poster="assets/videos/video-3-poster.jpg">
-          <source src="assets/videos/video-3.mp4" type="video/mp4">
-          <source src="assets/videos/video-3.webm" type="video/webm">
-        </video>
       </div>
 
       <!--
@@ -250,6 +240,62 @@
     </div>
   </div>
 </div>
+
+
+<!-- =====================================================================
+     Figma: "Cards" (339:343) — 1440 wide, on #030303.
+
+     Not a pinned scene: it scrolls past normally. The heading fills in
+     reading order as it comes up the window — the frame draws it half read,
+     which is the state this animates through — and the cards rise into place
+     behind it. See js/scene.js.
+     ===================================================================== -->
+<section class="cards" data-cards data-node-id="339:343">
+
+  <!-- 342:576 — the wash behind everything, dodged over the page -->
+  <div class="cards__wash" data-node-id="342:576" aria-hidden="true"></div>
+
+  <!-- 339:486 — label and heading, 24 apart -->
+  <div class="cards__head" data-node-id="339:486">
+    <div class="cards__label" data-node-id="339:481">
+      <span class="cards__square" data-node-id="339:482"></span>
+      <span class="cards__labelText" data-node-id="339:484">Our role</span>
+      <span class="cards__square" data-node-id="339:485"></span>
+    </div>
+
+    <p class="cards__headline" data-cards-text data-node-id="339:374">Core Space works alongside operators and platform builders, providing the critical systems they need to deploy, scale and operate in orbit.</p>
+  </div>
+
+  <!-- 339:353 — 600 tall, 8 between the two -->
+  <div class="cards__row" data-node-id="339:353">
+
+    <!-- 339:354 — the wide one: a media band across the top, the copy read
+         out of a gradient at the foot -->
+    <article class="card card--wide" data-card data-node-id="339:354">
+      <div class="card__media" data-node-id="339:355" aria-hidden="true"></div>
+      <span class="card__tick card__tick--tl" data-node-id="339:356"></span>
+      <span class="card__tick card__tick--tr" data-node-id="339:357"></span>
+      <span class="card__tick card__tick--bl" data-node-id="339:363"></span>
+      <span class="card__tick card__tick--br" data-node-id="339:364"></span>
+      <p class="card__overline" data-node-id="339:360">Partner, not competitor</p>
+      <div class="card__foot" data-node-id="339:361">
+        <p class="card__body" data-node-id="339:362">We strengthen the platforms our partners build and operate, without entering their markets or competing with them.</p>
+      </div>
+    </article>
+
+    <!-- 339:365 — the narrow one: a square of media on the middle line -->
+    <article class="card card--narrow" data-card data-node-id="339:365">
+      <div class="card__figure" data-node-id="339:372" aria-hidden="true"></div>
+      <span class="card__tick card__tick--tl" data-node-id="339:368"></span>
+      <span class="card__tick card__tick--tr" data-node-id="339:369"></span>
+      <span class="card__tick card__tick--bl" data-node-id="339:370"></span>
+      <span class="card__tick card__tick--br" data-node-id="339:371"></span>
+      <p class="card__overline card__overline--dim" data-node-id="339:366">Designed to integrate and scale</p>
+      <p class="card__body card__body--plain" data-node-id="339:367">Modular systems designed for existing and next-generation platforms, from deployment to long-term operations.</p>
+    </article>
+
+  </div>
+</section>
 
 
 <script src="js/smooth.js"></script>

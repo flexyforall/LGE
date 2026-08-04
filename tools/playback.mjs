@@ -158,27 +158,16 @@ ${scene.name.padEnd(7)} ${atScrollEnd.toFixed(3)}s when the scroll stopped, sett
   }
 }
 
-/*
- * At the very end of the role scroll the next chapter's clip owns the frame.
- * It is scrubbed like everything else, so what proves the hand-off is that the
- * scroll has carried it off its first frame — and that nothing is playing on
- * its own anywhere.
- */
-const handoff = await page.evaluate(() => {
-  const nextVideo = document.querySelector('[data-role-next-video]');
-  const exiting = document.querySelector('[data-role-video]');
+/* Nothing anywhere should be running under its own power except the idle loop. */
+const running = await page.evaluate(() => {
   const idle = document.querySelector('[data-hero-video]');
-  return {
-    nextAt: nextVideo ? nextVideo.currentTime : 0,
-    running: [...document.querySelectorAll('video')]
-      .filter((v) => !v.paused && v !== idle)
-      .map((v) => v.dataset.heroVideo || v.className),
-  };
+  return [...document.querySelectorAll('video')]
+    .filter((v) => !v.paused && v !== idle)
+    .map((v) => v.className || 'video');
 });
 console.log(`
-handoff next clip at ${handoff.nextAt.toFixed(2)}s; cameras playing on their own: ${handoff.running.length}`);
-if (handoff.nextAt <= 0) failures.push('the scroll never moved the incoming container clip');
-if (handoff.running.length) failures.push(`a camera is running on its own (${handoff.running.join(', ')})`);
+cameras playing on their own: ${running.length}`);
+if (running.length) failures.push(`a camera is running on its own (${running.join(', ')})`);
 
 await browser.close();
 
