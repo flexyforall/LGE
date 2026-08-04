@@ -716,17 +716,45 @@ img {
   gap: 9px;
 }
 
-/* 356:1235 — label/S in caps */
+/*
+ * 356:1235 — label/S in caps. The box turns its line over the way the tag
+ * does; lines anchor right, so the rule beside them never moves while the
+ * width glides.
+ */
 .verify__text {
+  position: relative;
+  flex: none;
+  height: 20px;
+  overflow: hidden;
+  perspective: 400px;
+  transition: width 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.verify__line {
+  position: absolute;
+  top: 0;
+  right: 0;
   font-family: var(--font-label);
   font-weight: 500;
   font-size: 12px;
   line-height: 20px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  text-align: right;
   color: var(--color-fg);
   white-space: nowrap;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.45s ease;
+}
+
+.verify__line.is-out {
+  transform: translateY(-115%) rotateX(75deg);
+  opacity: 0;
+}
+
+.verify__line.is-in {
+  transform: translateY(115%) rotateX(-75deg);
+  opacity: 0;
 }
 
 /* 356:1236 — a 72px hairline, kept faint so the label carries the line */

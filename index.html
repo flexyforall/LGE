@@ -142,7 +142,9 @@
 
         <!-- Figma: 356:1234 — 80% across, y 659; the rule runs to the edge -->
         <div class="verify" data-node-id="356:1234">
-          <span class="verify__text" data-node-id="356:1235">Progress you can verify</span>
+          <!-- Turns over like the tag above the title, on a lazier clock —
+               VERIFY_LINES / VERIFY_PERIOD in js/scene.js. -->
+          <span class="verify__text" data-verify-rotate data-node-id="356:1235"><span class="verify__line">Progress you can verify</span></span>
           <span class="verify__rule" data-node-id="356:1236"></span>
         </div>
 

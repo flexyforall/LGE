@@ -41,6 +41,14 @@
     'ENGINEERED FOR VLEO',
   ];
   var TAG_PERIOD = 2800; // ms between rotations
+  /* The bottom-right line turns over too, at a lazier clock than the tag. */
+  var VERIFY_LINES = [
+    'Progress you can verify',
+    'Milestones on record',
+    'Telemetry you can trace',
+    'Built in the open',
+  ];
+  var VERIFY_PERIOD = 5600;
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
   /*
    * Each passage writes itself on and rubs itself out over its own stretch, and
@@ -181,10 +189,19 @@
    * its 40px of air.
    */
   function setUpTag(scene) {
-    var box = scene.querySelector('[data-hero-tag]');
+    rotator(scene.querySelector('[data-hero-tag]'), 'hero__tagLine', TAG_LINES, TAG_PERIOD);
+  }
+
+  /*
+   * The generalised turn-over: one line lives in the box at a time, each new
+   * one tipping in from below while the old tips up and away, and the box's
+   * width gliding to the new line's. Which edge holds still is the CSS's
+   * business — the tag's lines anchor left, the verify row's right.
+   */
+  function rotator(box, lineClass, LINES, period) {
     if (!box) return;
 
-    var current = box.querySelector('.hero__tagLine');
+    var current = box.querySelector('.' + lineClass);
     var frame = box.closest('.frame');
     var idx = 0;
 
@@ -201,7 +218,7 @@
 
     function widthOf(text) {
       var probe = document.createElement('span');
-      probe.className = 'hero__tagLine';
+      probe.className = lineClass;
       probe.style.visibility = 'hidden';
       probe.textContent = text;
       box.appendChild(probe);
@@ -211,7 +228,7 @@
     }
 
     function fit() {
-      box.style.width = widthOf(TAG_LINES[idx]) + 'px';
+      box.style.width = widthOf(LINES[idx]) + 'px';
     }
 
     /* Fonts land late and change the measurement — fit again when they do. */
@@ -222,11 +239,11 @@
     if (reduced) return;
 
     setInterval(function () {
-      idx = (idx + 1) % TAG_LINES.length;
+      idx = (idx + 1) % LINES.length;
 
       var next = document.createElement('span');
-      next.className = 'hero__tagLine is-in';
-      next.textContent = TAG_LINES[idx];
+      next.className = lineClass + ' is-in';
+      next.textContent = LINES[idx];
       box.appendChild(next);
       fit();
 
@@ -243,7 +260,7 @@
       setTimeout(function () {
         if (old) old.remove();
       }, 650);
-    }, TAG_PERIOD);
+    }, period);
   }
 
   function setUpHero() {
@@ -256,6 +273,12 @@
     if (!video || !copy) return;
 
     setUpTag(scene);
+    rotator(
+      scene.querySelector('[data-verify-rotate]'),
+      'verify__line',
+      VERIFY_LINES,
+      VERIFY_PERIOD
+    );
 
     if (reduced) {
       scene.style.height = 'auto';
