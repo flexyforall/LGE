@@ -58,16 +58,20 @@
    */
   var TEXT_TRAIL = 26;
   /* The cards section is not pinned; these are fractions of the window. */
-  var CARDS_FILL_FROM = 0.8; // the heading starts filling here...
-  var CARDS_FILL_BY = 0.34; // ...and is fully read by here
+  var CARDS_FILL_FROM = 0.86; // the heading starts filling here...
+  var CARDS_FILL_BY = 0.06; // ...and is fully read only once it is near the top
   var CARDS_RISE_FROM = 0.92; // a card rises as its top reaches here
   var CARDS_RISE_BY = 0.8;
-  var SHRINK_FROM = 0.64; // once read, the shot starts packing itself...
-  var SHRINK_BY = 0.76; // ...into section 3's container, where it plays free
-  var FOLD_FROM = 0.84; // and then folds shut...
-  var FOLD_BY = 0.98; // ...until there is nothing left of it
-  var SHRINK_W = 478; // the container, from Figma 242:2689
-  var SHRINK_H = 626;
+  var CARDS_OPEN_FROM = 0.9; // the pair start trading width here...
+  var CARDS_OPEN_BY = 0.3; // ...and have settled on the frame's split by here
+  /*
+   * Leaving Our role: the tunnel stays full-bleed to the last and simply goes
+   * dark, while the section below rides up over it — the cover is CSS, this is
+   * only the dimming. Both finish together, so the incoming edge never sweeps
+   * across a lit frame.
+   */
+  var DIM_FROM = 0.84;
+  var DIM_BY = 1;
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -349,9 +353,7 @@
     var statements = scene.querySelectorAll('[data-role-text]');
     var flash = scene.querySelector('[data-role-flash]');
     var chrome = scene.querySelector('[data-role-chrome]');
-    var shrink = scene.querySelector('[data-role-shrink]');
-    var page = scene.querySelector('[data-role-page]');
-    var overlay = shrink ? shrink.querySelector('.frame__overlay') : null;
+    var dark = scene.querySelector('[data-role-dark]');
     if (!video || !statements.length) return;
 
     var passages = [].map.call(scene.querySelectorAll('[data-role-text]'), splitCharacters);
@@ -390,7 +392,6 @@
         flash.style.opacity = String(1 - lift);
         flash.style.visibility = lift === 1 ? 'hidden' : '';
       }
-      if (chrome) chrome.style.opacity = String(lift);
 
       /*
        * Once the statement is read, the scroll packs the whole shot into
@@ -401,37 +402,12 @@
        * comes in from the right, grows to the same spot, and finally opens to
        * the full frame. The copy steps aside as the packing starts.
        */
-      var t = clamp01((p - SHRINK_FROM) / (SHRINK_BY - SHRINK_FROM));
-      var f = clamp01((p - FOLD_FROM) / (FOLD_BY - FOLD_FROM));
-
-      var fw = frame ? frame.clientWidth : 0;
-      var fh = frame ? frame.clientHeight : 0;
-      /* The bar ends 84px down; the box centres in what is left below it. */
-      var below = fh - 84;
-      var boxH = Math.min(SHRINK_H, below - 100);
-      var boxW = SHRINK_W * (boxH / SHRINK_H);
-      var boxTop = 84 + (below - boxH) / 2;
-
-      if (shrink && frame) {
-        /*
-         * Packing in: full bleed down onto the parked spot. Then the fold —
-         * the box loses its height about its own middle until there is nothing
-         * left, which is why the top comes down as the height goes.
-         */
-        var w1 = fw + (boxW - fw) * t;
-        var h1 = (fh + (boxH - fh) * t) * (1 - f);
-        var left1 = (fw - w1) / 2;
-        var top1 = boxTop * t + ((fh + (boxH - fh) * t) - h1) / 2;
-        shrink.style.left = left1.toFixed(1) + 'px';
-        shrink.style.top = top1.toFixed(1) + 'px';
-        shrink.style.width = w1.toFixed(1) + 'px';
-        shrink.style.height = h1.toFixed(1) + 'px';
+      var dim = clamp01((p - DIM_FROM) / (DIM_BY - DIM_FROM));
+      if (dark) dark.style.opacity = String(dim);
+      if (chrome) {
+        chrome.style.opacity = String(lift * (1 - dim));
+        chrome.style.visibility = dim === 1 ? 'hidden' : '';
       }
-
-      /* Inside the container the clip plays clean — the veil goes with t. */
-      if (overlay) overlay.style.opacity = String(1 - t);
-      if (page) page.style.opacity = String(t);
-      if (chrome) chrome.style.backgroundColor = 'rgba(0, 0, 0, ' + t.toFixed(3) + ')';
 
       /*
        * Each passage writes itself on, one character at a time, and rubs itself
@@ -474,6 +450,7 @@
 
     var heading = section.querySelector('[data-cards-text]');
     var cards = section.querySelectorAll('[data-card]');
+    var row = section.querySelector('[data-card-row]');
     if (!heading) return;
 
     var letters = splitCharacters(heading);
@@ -482,6 +459,9 @@
       for (var i = 0; i < letters.length; i++) letters[i].className = 'is-read';
       return;
     }
+
+    /* They start the other way round, and open as the row is scrolled to. */
+    if (row) row.style.setProperty('--card-open', '0');
 
     register(function () {
       var fill = progressUp(heading, CARDS_FILL_FROM, CARDS_FILL_BY);
@@ -495,6 +475,17 @@
         /* Each card waits its turn: the second is a tenth of a window later. */
         var up = progressUp(cards[c], CARDS_RISE_FROM - c * 0.1, CARDS_RISE_BY);
         cards[c].classList.toggle('is-in', up > 0);
+      }
+
+      /*
+       * The pair trade width as the row comes up: the right one gives way while
+       * the left is revealed, settling on the frame's 915 / 405.
+       */
+      if (row) {
+        row.style.setProperty(
+          '--card-open',
+          progressUp(row, CARDS_OPEN_FROM, CARDS_OPEN_BY).toFixed(4)
+        );
       }
     });
   }

@@ -265,27 +265,12 @@ img {
   inset: 0;
 }
 
-/* 242:2689 — the container the shot packs itself into; js/scene.js drives its
-   box directly, so only the constants live here. */
-.role__shrink {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.role__shrink .frame__video {
-  position: absolute;
-  inset: 0;
-}
-
-/* js/scene.js fades this away as the shot packs itself into the container —
-   inside it the clip plays clean. */
-.role__shrink .frame__overlay {
-  opacity: 1;
-}
-
-/* 242:2681 — section 3's page colour, revealed as the shot shrinks. */
-.role__page {
+/*
+ * Leaving Our role, the shot goes dark in place while the section below rides
+ * up over it. Both finish together, which is what stops the incoming edge
+ * sweeping across a lit frame. js/scene.js drives the opacity.
+ */
+.role__dark {
   position: absolute;
   inset: 0;
   background: #030303;
@@ -806,9 +791,19 @@ img {
    scroll drives is the heading's fill and the cards rising into place.
    ------------------------------------------------------------------------- */
 
-/* 339:343 — 160 down each end, 56 in from each side, 80 between the two blocks */
+/*
+ * 339:343 — 160 down each end, 56 in from each side, 80 between the two blocks.
+ *
+ * The section is pulled a window up into the one above it, so the last stretch
+ * of that section's scroll rides this one up over its pinned stage rather than
+ * pushing it along. That is the whole cover: no script, just the overlap and a
+ * stacking order. The shot underneath goes dark over the same stretch.
+ */
 .cards {
   position: relative;
+  z-index: 1;
+  margin-top: -100vh;
+  margin-top: -100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -944,13 +939,18 @@ img {
   transform: none;
 }
 
-/* 339:354 — 915 of the 1328 the section leaves */
+/*
+ * 339:354 / 339:365 — the frame draws the pair settled at 915 and 405 of the
+ * 1328 the section leaves. They arrive the other way round and trade width as
+ * the section comes up the window: the right one gives way while the left is
+ * revealed. js/scene.js sets --card-open; the two widths are read off it, so
+ * they always sum to the row.
+ */
 .card--wide {
   flex: none;
-  width: 915px;
+  width: calc(405px + 510px * var(--card-open, 1));
 }
 
-/* 339:365 — and the rest */
 .card--narrow {
   flex: 1 0 0;
   min-width: 0;

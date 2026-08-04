@@ -185,13 +185,8 @@
   <div class="scene__stage">
     <div class="frame" data-node-id="238:2674">
 
-      <!-- 242:2681 — section 3's page colour, revealed as the shot shrinks. -->
-      <div class="role__page" data-role-page aria-hidden="true"></div>
-
-      <!-- The whole shot. Full-bleed through section 2, then the scroll packs
-           it into the 478 x 626 container of section 3 (242:2689), and finally
-           folds it shut until nothing is left. -->
-      <div class="role__shrink" data-role-shrink aria-hidden="true">
+      <!-- The shot holds the full frame for the whole section. -->
+      <div class="frame__bg" aria-hidden="true">
         <!-- 238:2673 — video 3, driven by the scroll from its first frame -->
         <video class="frame__video" data-role-video muted playsinline preload="auto"
                poster="assets/videos/video-3-poster.jpg">
@@ -237,6 +232,10 @@
 
       <div class="role__flash" data-role-flash aria-hidden="true"></div>
 
+      <!-- Leaving the section: the shot goes dark under the one riding up
+           over it, so the incoming edge never crosses a lit frame. -->
+      <div class="role__dark" data-role-dark aria-hidden="true"></div>
+
     </div>
   </div>
 </div>
@@ -267,7 +266,7 @@
   </div>
 
   <!-- 339:353 — 600 tall, 8 between the two -->
-  <div class="cards__row" data-node-id="339:353">
+  <div class="cards__row" data-card-row data-node-id="339:353">
 
     <!-- 339:354 — the wide one: a media band across the top, the copy read
          out of a gradient at the foot -->

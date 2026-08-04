@@ -21,7 +21,7 @@ tools/              optional checks, not needed to run the site
 ## The sections
 
 Three: two pinned while their own stretch of scroll plays out, then one that
-simply scrolls past.
+rides up over the second.
 
 **Hero** — Figma `Hero` (356:1231).
 
@@ -87,21 +87,22 @@ length and nothing ever dissolves, leaving a plain reveal. The timing of one
 character's turn is the CSS transition on `.role__statement span`, not the
 script — the script only ever moves the two edges.
 
-Once both are read, the scroll packs the whole shot into section 3's 478x626
-container — centred between the bar and the bottom edge, equal air above and
-below — where it drops its veil and carries on under the same scroll, over the
-#030303 page the section reveals behind it. Further scroll folds the container
-shut about its own middle until there is nothing left of it, and the section
-below takes the page. The constants for every phase sit at the top of
-`js/scene.js`.
+The shot is never packed away: it holds the full frame to the last and goes
+dark in place as the section below rides up over it. That cover is the overlap
+itself — the cards section is pulled a window up into this one, so the last
+stretch of scroll here carries it over the pinned stage rather than pushing it
+along. The dimming and the cover finish together, which is what stops the
+incoming edge sweeping across a lit frame.
 
 **Cards** — Figma `Cards` (339:343).
 
 Not a pinned scene: it scrolls past like any other block, so what drives it is
 how far it has come up the window rather than an offset inside it
 (`progressUp`). The heading fills in reading order — which is the state the
-frame draws it in, half read — and the two cards rise into place as they
-arrive, the wide one a beat before the narrow one.
+frame draws it in, half read — the two cards rise into place as they arrive,
+and the pair trade width: they come in the other way round and the right one
+gives way while the left is revealed, settling on the frame's 915 / 405. The
+two widths are read off one `--card-open` so they always sum to the row.
 
 The heading's gradient belongs to the paragraph rather than to any character:
 it is painted on the paragraph and clipped to the text, a character that has

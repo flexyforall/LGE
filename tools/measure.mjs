@@ -94,16 +94,18 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 810 } });
 await page.goto(target, { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
 /*
- * The cards rise into place as they are scrolled to. Parity is about where
- * they come to rest, so they are landed here rather than scrolled to — the
- * pinned sections above them have to stay at the top of their scroll.
+ * The cards rise into place and trade width as they are scrolled to. Parity is
+ * about where they come to rest, so they are landed here rather than scrolled
+ * to — the pinned sections above them have to stay at the top of their scroll.
  */
-await page.evaluate(() =>
+await page.evaluate(() => {
+  const row = document.querySelector('[data-card-row]');
+  if (row) row.style.setProperty('--card-open', '1');
   document.querySelectorAll('[data-card]').forEach((c) => {
     c.style.transition = 'none';
     c.classList.add('is-in');
-  })
-);
+  });
+});
 await page.waitForTimeout(300);
 
 /*
