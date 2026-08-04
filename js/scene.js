@@ -68,13 +68,13 @@
   var CARD_WIDE = 915; // the frame's split, and the gap between the pair
   var CARD_GAP = 8;
 
-  var REVEAL_MS = 520; // one line's wipe
-  var REVEAL_STAGGER = 130; // ms between lines setting off
+  var REVEAL_MS = 950; // one line's wipe — unhurried enough to be watched
+  var REVEAL_STAGGER = 220; // ms between lines setting off
   var SWAP_PHRASES = [
     'orbital data centers',
     'power generation',
     'data transmission',
-    'space operations sustainability',
+    'sustainability in space',
   ];
   var TYPE_HOLD = 2400; // ms a phrase stands before retyping
   var TYPE_DEL = 38; // ms per character on the way out
@@ -514,16 +514,36 @@
     swap.parentNode.insertBefore(cursor, swap.nextSibling);
     var idx = 0;
 
+    /*
+     * The tail is kept as one node per character so each can arrive the way
+     * the tunnel's copy does — in the accent, settling to white a beat later.
+     * Spaces stay bare text nodes; they have no colour to settle.
+     */
+    function put(ch) {
+      if (ch === ' ') {
+        swap.appendChild(document.createTextNode(' '));
+        return;
+      }
+      var span = document.createElement('span');
+      span.textContent = ch;
+      swap.appendChild(span);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          span.className = 'is-set';
+        });
+      });
+    }
+
     function retype(next, done) {
       (function del() {
-        if (swap.textContent.length) {
-          swap.textContent = swap.textContent.slice(0, -1);
+        if (swap.lastChild) {
+          swap.removeChild(swap.lastChild);
           setTimeout(del, TYPE_DEL);
         } else {
           var i = 0;
           (function add() {
             if (i < next.length) {
-              swap.textContent = next.slice(0, ++i);
+              put(next.charAt(i++));
               setTimeout(add, TYPE_ADD);
             } else {
               done();
@@ -899,7 +919,23 @@
     var menu = document.querySelector('[data-site-menu]');
     var hero = document.querySelector('[data-scene="hero"]');
     var role = document.querySelector('[data-scene="role"]');
-    if (!menu || !hero || !role || reduced) return;
+    if (!menu || !hero || !role) return;
+
+    /*
+     * The logo restarts the page: a fresh load from the very top, not a
+     * scroll. Restoration is switched off first or the browser would put the
+     * reloaded page straight back at the old scroll position.
+     */
+    var logo = menu.querySelector('.menu__logo');
+    if (logo) {
+      logo.addEventListener('click', function (event) {
+        event.preventDefault();
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        window.location.reload();
+      });
+    }
+
+    if (reduced) return;
 
     register(function () {
       var rp = progressOf(role);

@@ -221,6 +221,20 @@ img {
   opacity: 1;
 }
 
+/*
+ * A typed character arrives the way the tunnel's copy does: holding the
+ * accent, then settling to white a beat later — so the tail being typed
+ * trails off into blue at its leading edge.
+ */
+[data-hero-swap] span {
+  color: var(--color-accent);
+  transition: color 300ms ease 140ms;
+}
+
+[data-hero-swap] span.is-set {
+  color: var(--color-fg);
+}
+
 
 /* --- Scenes --------------------------------------------------------------
    Each section is taller than the window; the stage inside it is pinned to the
