@@ -108,8 +108,8 @@
   --color-bg: #000000;
   --color-fg: #ffffff;
   --color-fg-inverse: #000000;
-  /* 238:2675 — the not-yet-read part of the statement */
-  --color-unread: rgba(255, 255, 255, 0.2);
+  /* the colour a character arrives in before it settles to white */
+  --color-accent: #5f92ff;
 
   --font-display: 'Mozilla Text', system-ui, sans-serif;
   --font-body: 'PP Neue Montreal', 'Mozilla Text', system-ui, sans-serif;
@@ -768,16 +768,45 @@ img {
   line-height: 1;
   letter-spacing: -2.24px;
   text-align: center;
-  color: var(--color-unread);
+  color: var(--color-fg);
 }
 
 /*
- * Filled in reading order as the section is scrolled. js/scene.js wraps every
- * character in its own span and flips them one at a time, which is what gives
- * the mid-word edge the design shows.
+ * The statement writes itself on as the section is scrolled: js/scene.js wraps
+ * every character in its own span and moves two edges through them, and what
+ * one character does on its turn is all here.
+ *
+ * A character rests unwritten — no opacity, and already holding the accent.
+ * `is-in` brings it up over 140ms, so it lands in the accent colour, and only
+ * then does the delayed colour transition carry it to white: the arriving
+ * edge reads as a coloured leading character trailing off into the settled
+ * white behind it. `is-out` takes it away again, from white, so the accent
+ * never shows on the way out.
  */
-.role__statement .is-read {
+.role__statement span {
+  opacity: 0;
+  color: var(--color-accent);
+  transition: opacity 140ms linear, color 260ms ease 130ms;
+}
+
+.role__statement span.is-in {
+  opacity: 1;
   color: var(--color-fg);
+}
+
+.role__statement span.is-out {
+  opacity: 0;
+  color: var(--color-fg);
+  transition: opacity 300ms linear;
+}
+
+/* Reduced motion: the sentence simply stands there. */
+@media (prefers-reduced-motion: reduce) {
+  .role__statement span {
+    opacity: 1;
+    color: var(--color-fg);
+    transition: none;
+  }
 }
 
 /*

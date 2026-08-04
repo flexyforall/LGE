@@ -58,10 +58,21 @@ into the same canvas and hangs off the button on every side.
 and into `section 3` (242:2681), all on one scroll.
 
 Video 3 loops on its own as the background — it is not scroll-driven. The
-scroll animates the statement's reading fill and the container moves only. The
-statement (centred, per the updated frame) fills once the flash is gone; every
-character is its own span, so the edge lands mid-word exactly as the design has
-it.
+scroll animates the statement and the container moves only.
+
+The statement writes itself on once the flash is gone. Every character is its
+own span, and two edges move through them: a head that writes characters on and
+a tail that rubs them out a fixed distance behind, so what is on screen is a
+window of about 26 characters sliding through the sentence rather than the whole
+of it. A character arrives holding the accent blue and settles to white about a
+third of a second later, which is what makes the leading edge read as coloured
+and the body behind it plain — and it leaves from white, so the accent never
+shows on the way out.
+
+The whole effect is `TEXT_TRAIL` in `js/scene.js`: raise it past the statement's
+length and nothing ever dissolves, leaving a plain reveal. The timing of one
+character's turn is the CSS transition on `.role__statement span`, not the
+script — the script only ever moves the two edges.
 
 Once it is read, the scroll packs the whole shot into section 3's 478x626
 container — centred between the bar and the bottom edge, equal air above and

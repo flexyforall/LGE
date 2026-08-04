@@ -33,16 +33,20 @@ const read = () =>
     const v1 = el('[data-hero-video="1"]');
     const v3 = el('[data-role-video]');
     const copy = el('[data-scene-copy]');
+    /* the statement's sliding window: written on, and rubbed out behind */
     const letters = document.querySelectorAll('[data-role-text] span');
     let read = 0;
+    let gone = 0;
     letters.forEach((s) => {
-      if (s.className === 'is-read') read++;
+      if (s.className === 'is-in') read++;
+      if (s.className === 'is-out') gone++;
     });
     return {
       v1: v1.currentTime,
       v3: v3.currentTime,
       copy: +getComputedStyle(copy).opacity,
       readPct: letters.length ? read / letters.length : 0,
+      gonePct: letters.length ? gone / letters.length : 0,
       y: window.scrollY,
       pageH: document.documentElement.scrollHeight,
       winH: window.innerHeight,
@@ -66,7 +70,7 @@ const scenes = await page.evaluate(() =>
 );
 
 for (const scene of scenes) {
-  console.log(`${scene.name}\n  scroll      y   video 1   video 3    copy    read`);
+  console.log(`${scene.name}\n  scroll      y   video 1   video 3    copy      lit    gone`);
   for (const frac of STOPS) {
     await page.evaluate(
       (y) => window.scrollTo(0, y),
@@ -80,7 +84,8 @@ for (const scene of scenes) {
         `${s.v1.toFixed(2).padStart(8)}s ` +
         `${s.v3.toFixed(2).padStart(8)}s ` +
         `${s.copy.toFixed(2).padStart(7)} ` +
-        `${(s.readPct * 100).toFixed(0).padStart(6)}%`
+        `${(s.readPct * 100).toFixed(0).padStart(6)}% ` +
+        `${(s.gonePct * 100).toFixed(0).padStart(6)}%`
     );
     await page.screenshot({
       path: path.join(outDir, `scene-${scene.name}-${Math.round(frac * 100)}.png`),

@@ -27,8 +27,14 @@
   ];
   var TAG_PERIOD = 2800; // ms between rotations
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
-  var TEXT_FILL_FROM = 0.12; // the statement starts filling once the flash is gone
-  var TEXT_FILL_BY = 0.38; // ...and is fully read by here
+  var TEXT_FILL_FROM = 0.12; // the statement starts writing on once the flash is gone
+  var TEXT_FILL_BY = 0.38; // ...and has written itself out again by here
+  /*
+   * How many characters stay lit behind the head before they start dissolving.
+   * The whole effect is this one number: raise it past the statement's length
+   * and nothing ever dissolves, leaving a plain reveal.
+   */
+  var TEXT_TRAIL = 26;
   var SHRINK_FROM = 0.44; // once read, the shot starts packing itself...
   var SHRINK_BY = 0.58; // ...into section 3's container, where it plays free
   var SWAP_FROM = 0.66; // then it shrinks on and exits left...
@@ -224,9 +230,9 @@
    * ------------------------------------------------------------------ */
 
   /**
-   * Wraps every character in its own span so the statement can be filled one
-   * character at a time — which is what gives the mid-word edge the design
-   * shows. Spaces stay as bare text nodes so lines still break normally.
+   * Wraps every character in its own span so the statement can be written on
+   * one character at a time. Spaces stay as bare text nodes so lines still
+   * break normally.
    */
   function splitCharacters(el) {
     var text = el.textContent;
@@ -247,6 +253,23 @@
     el.textContent = '';
     el.appendChild(frag);
     return spans;
+  }
+
+  /*
+   * Puts every character in the class its position asks for: nothing ahead of
+   * the head, lit between the head and the tail, gone behind the tail.
+   *
+   * It reads every character each frame — the statement is one sentence, so
+   * that is cheaper than tracking which ones moved — but only writes to the
+   * ones whose class actually changed, which is what keeps it off the DOM.
+   * Deriving the class from the position rather than stepping a cursor is also
+   * what makes scrolling backwards undo it exactly.
+   */
+  function write(letters, head, tail) {
+    for (var i = 0; i < letters.length; i++) {
+      var want = i >= head ? '' : i < tail ? 'is-out' : 'is-in';
+      if (letters[i].className !== want) letters[i].className = want;
+    }
   }
 
   function setUpRole() {
@@ -272,7 +295,7 @@
       scene.style.height = 'auto';
       if (flash) flash.style.display = 'none';
       if (chrome) chrome.style.opacity = '1';
-      for (var i = 0; i < letters.length; i++) letters[i].className = 'is-read';
+      for (var i = 0; i < letters.length; i++) letters[i].className = 'is-in';
       return;
     }
 
@@ -282,8 +305,6 @@
      */
     video.loop = true;
     video.play().catch(function () {});
-
-    var read = 0;
 
     register(function () {
       var p = progressOf(scene);
@@ -401,14 +422,20 @@
         footer.style.visibility = aside === 1 ? 'hidden' : '';
       }
 
+      /*
+       * The statement writes itself on, one character at a time, and rubs
+       * itself out the same way a fixed distance behind — so what is on screen
+       * is a window of TEXT_TRAIL characters sliding through the sentence
+       * rather than the whole thing.
+       *
+       * Only the two edges move, so only the characters they cross are
+       * touched; the class each one lands in decides the rest, and the timing
+       * of a single character's turn is the CSS transition, not this.
+       */
       var fill = clamp01((p - TEXT_FILL_FROM) / (TEXT_FILL_BY - TEXT_FILL_FROM));
-      var want = Math.round(fill * letters.length);
-      if (want > read) {
-        for (var i = read; i < want; i++) letters[i].className = 'is-read';
-      } else if (want < read) {
-        for (var j = read - 1; j >= want; j--) letters[j].className = '';
-      }
-      read = want;
+      var head = Math.round(fill * (letters.length + TEXT_TRAIL));
+      var tail = Math.max(0, head - TEXT_TRAIL);
+      write(letters, head, tail);
 
     });
   }
