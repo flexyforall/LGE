@@ -124,7 +124,11 @@ much scroll each move is spread over.
 The wide card above opens out in two moves, and it is the whole card that
 moves — frame, ticks and copy together, with the clip filling it throughout.
 First it widens across the space both cards held, keeping its own height and
-its place in the row. Then it carries on into the window, and its copy fades as
+its place in the row — and the narrow card folds against it, pinned to the
+row's right edge and giving up exactly the width the wide one gains, their
+facing edges closing on the 8px gap. It folds in the same frozen frame the
+wide card grows in, sharing its top and height throughout; left in the page it
+would go on scrolling up while the wide card held still. Then it carries on into the window, and its copy fades as
 it goes, so that by the time the clip has the screen nothing is left of the
 card but the picture. Only then does the clip start to run; it holds its first
 frame for the whole of the opening.

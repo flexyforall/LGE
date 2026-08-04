@@ -515,20 +515,30 @@
    * once, so arriving at any scroll position lands on the right box.
    */
   /*
-   * The narrow card would take the whole row the moment the wide one lifts out
-   * of it, so while that is happening it is held at the width the pair leave
-   * it. Passing 0 hands it back to the stylesheet.
+   * The narrow card folds as the wide one takes the row: pinned to the row's
+   * right edge, it gives up exactly the width the wide one gains — their
+   * facing edges close on the 8px gap — until nothing of it is left. It never
+   * simply stands behind the widening card.
+   *
+   * It folds in the same frozen frame the wide card grows in. Left in the
+   * page it would go on scrolling up while the wide card held still, and the
+   * pair's edges would drift apart mid-fold.
    */
-  function keepNarrow(row, rowWidth) {
+  function foldNarrow(row, frozen) {
     var narrow = row.querySelector('.card--narrow');
     if (!narrow) return;
-    if (!rowWidth) {
-      narrow.style.flex = '';
-      narrow.style.width = '';
+    if (!frozen) {
+      narrow.classList.remove('is-opening');
+      narrow.style.cssText = '';
       return;
     }
-    narrow.style.flex = 'none';
-    narrow.style.width = (rowWidth - CARD_WIDE - CARD_GAP).toFixed(1) + 'px';
+    var w = Math.max(0, frozen.rowWidth - frozen.ww - CARD_GAP);
+    narrow.classList.add('is-opening');
+    narrow.style.left = (frozen.x0 + frozen.rowWidth - w).toFixed(1) + 'px';
+    /* The wide card's own box, so the pair share top and height throughout. */
+    narrow.style.top = frozen.y.toFixed(1) + 'px';
+    narrow.style.width = w.toFixed(1) + 'px';
+    narrow.style.height = frozen.h.toFixed(1) + 'px';
   }
 
   function setUpFlight() {
@@ -597,14 +607,23 @@
         var vh = window.innerHeight;
 
         card.classList.add('is-opening');
-        keepNarrow(row, rowBox.width);
+        foldNarrow(row, {
+          x0: x0,
+          y: y0 * (1 - zoom),
+          h: h0 + (vh - h0) * zoom,
+          ww: ww,
+          rowWidth: rowBox.width,
+        });
         card.style.left = (wx * (1 - zoom)).toFixed(1) + 'px';
         card.style.top = (y0 * (1 - zoom)).toFixed(1) + 'px';
         card.style.width = (ww + (vw - ww) * zoom).toFixed(1) + 'px';
         card.style.height = (h0 + (vh - h0) * zoom).toFixed(1) + 'px';
       } else if (open) {
         card.classList.add('is-opening');
-        if (row) keepNarrow(row, row.getBoundingClientRect().width);
+        if (row) {
+          var rb = row.getBoundingClientRect();
+          foldNarrow(row, { x0: rb.left, y: 0, h: window.innerHeight, ww: rb.width, rowWidth: rb.width });
+        }
         card.style.left = '0px';
         card.style.top = '0px';
         card.style.width = '100%';
@@ -612,7 +631,7 @@
       } else {
         card.classList.remove('is-opening');
         card.style.cssText = '';
-        if (row) keepNarrow(row, 0);
+        if (row) foldNarrow(row, null);
       }
       /* The copy goes over the second move only, and is gone by the end of it. */
       card.style.setProperty('--card-copy', String(1 - zoom));

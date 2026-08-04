@@ -939,7 +939,6 @@ img {
   height: 100%;
   overflow: hidden;
   background: #070707;
-  box-shadow: inset 0 0 0 1px #292929;
   /* the rise; js/scene.js releases them one after the other */
   opacity: 0;
   transform: translateY(40px);
@@ -949,6 +948,20 @@ img {
 .card.is-in {
   opacity: 1;
   transform: none;
+}
+
+/*
+ * The hairline lives in an ::after so it paints over the content. It used to
+ * be an inset shadow on the card itself, but a shadow sits under the content —
+ * fine while the media stopped short of the edges, invisible once the clip
+ * filled the card, which read as the picture spilling out of an unframed box.
+ */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 1px #292929;
+  pointer-events: none;
 }
 
 /*
@@ -1029,12 +1042,9 @@ img {
  */
 .card--wide .card__overline,
 .card--wide .card__foot,
-.card--wide .card__tick {
+.card--wide .card__tick,
+.card--wide::after {
   opacity: var(--card-copy, 1);
-}
-
-.card--wide.is-opening {
-  box-shadow: inset 0 0 0 1px rgba(41, 41, 41, var(--card-copy, 1));
 }
 
 /* 339:360 — headline/Overline: Notch Regular 16/20, tracking 0.4, in caps */
