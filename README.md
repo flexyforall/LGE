@@ -53,7 +53,7 @@ the reveal's edge, the lines setting off a beat apart (`REVEAL_MS` /
 `REVEAL_STAGGER`). Once its line has been revealed, the tail of the second line
 retypes itself on a loop through `SWAP_PHRASES` — orbital data centers, power
 generation, data transmission, sustainability in space — a character at
-a time, the reveal's rectangle standing in as the cursor. The flight's device
+a time, each typed character arriving in the accent and settling to white the way the tunnel's copy does, the reveal's rectangle standing in as the cursor. The flight's device
 copy and both cards' copy run the same wipe every time they come on.
 
 The tag line above the headline rotates through five points on its own clock

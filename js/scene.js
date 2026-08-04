@@ -514,16 +514,36 @@
     swap.parentNode.insertBefore(cursor, swap.nextSibling);
     var idx = 0;
 
+    /*
+     * The tail is kept as one node per character so each can arrive the way
+     * the tunnel's copy does — in the accent, settling to white a beat later.
+     * Spaces stay bare text nodes; they have no colour to settle.
+     */
+    function put(ch) {
+      if (ch === ' ') {
+        swap.appendChild(document.createTextNode(' '));
+        return;
+      }
+      var span = document.createElement('span');
+      span.textContent = ch;
+      swap.appendChild(span);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          span.className = 'is-set';
+        });
+      });
+    }
+
     function retype(next, done) {
       (function del() {
-        if (swap.textContent.length) {
-          swap.textContent = swap.textContent.slice(0, -1);
+        if (swap.lastChild) {
+          swap.removeChild(swap.lastChild);
           setTimeout(del, TYPE_DEL);
         } else {
           var i = 0;
           (function add() {
             if (i < next.length) {
-              swap.textContent = next.slice(0, ++i);
+              put(next.charAt(i++));
               setTimeout(add, TYPE_ADD);
             } else {
               done();
