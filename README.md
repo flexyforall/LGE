@@ -24,9 +24,11 @@ Two sections, each pinned while its own stretch of scroll plays out.
 
 **Hero** — Figma `Hero` (356:1231).
 
-The same clip loops as the background, cropped the way the frame crops it
-(356:1233 blows it up to 2616x1472 and pulls it 100 left and 10 up, so the
-window sits on the upper-left of the shot). The copy is back on the left
+The same clip loops as the background at its own scale, covering the frame and
+no more. The design crops it instead — 356:1233 blows it up to 2616x1472 and
+pulls it 100 left and 10 up, so the frame's window lands on the upper-left of
+the shot — and those four numbers are kept in a comment beside the rule in case
+that is wanted back. The copy is back on the left
 margin: label, 72px title, lead line and the primary button all stack on x 56
 and centre on the frame. `Progress you can verify` rests on the bottom-right,
 directly on top of the partner row.

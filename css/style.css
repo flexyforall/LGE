@@ -251,18 +251,18 @@ img {
 }
 
 /*
- * 356:1233 — the frame does not simply cover itself with the clip: it blows it
- * up to 2616 x 1472 and pulls it 100 left and 10 up, so the window lands on
- * the upper-left of the shot. Held as ratios of the frame so the same crop
- * survives any window size.
+ * The hero clip at its own scale: it covers the frame and no more.
+ *
+ * 356:1233 crops it instead — blown up to 2616 x 1472 and pulled 100 left and
+ * 10 up, so the frame's window lands on the upper-left of the shot. That is
+ * kept here in case it is wanted back; swapping the two rules is the whole
+ * change.
+ *
+ *   left: -6.9444%; top: -1.2346%; width: 181.6667%; height: 181.7284%;
  */
 [data-hero-video='1'] {
   position: absolute;
-  left: -6.9444%;
-  top: -1.2346%;
-  width: 181.6667%;
-  height: 181.7284%;
-  object-fit: cover;
+  inset: 0;
 }
 
 /* 242:2689 — the container the shot packs itself into; js/scene.js drives its
