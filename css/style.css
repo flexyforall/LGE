@@ -307,17 +307,6 @@ img {
 }
 
 /*
- * 238:2673 runs its media at 70% opacity over black; this is the same 30%
- * veil, kept as a sheet so it stacks the same way over every clip.
- */
-.frame__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  pointer-events: none;
-}
-
-/*
  * The hero clip covers the frame at its own scale and no more.
  *
  * 356:1233 crops it instead — blown up to 2616 x 1472 and pulled 100 left and

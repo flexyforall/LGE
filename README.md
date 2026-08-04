@@ -118,8 +118,7 @@ it is painted on the paragraph and clipped to the text, a character that has
 been read goes transparent and lets it through, and one that has not paints its
 own 20% over the top.
 
-Our role puts a 30% veil over its media — the media-at-70% from the design,
-kept as a sheet. The hero frame has no veil and runs its clips at full strength.
+No section veils its media — every clip runs at full strength.
 
 Nothing plays on its own anywhere except the hero's idle loop and the partner
 row.
