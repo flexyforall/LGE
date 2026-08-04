@@ -68,6 +68,18 @@
   var CARD_WIDE = 915; // the frame's split, and the gap between the pair
   var CARD_GAP = 8;
 
+  var REVEAL_MS = 520; // one line's wipe
+  var REVEAL_STAGGER = 130; // ms between lines setting off
+  var SWAP_PHRASES = [
+    'orbital data centers',
+    'power generation',
+    'data transmission',
+    'space operations sustainability',
+  ];
+  var TYPE_HOLD = 2400; // ms a phrase stands before retyping
+  var TYPE_DEL = 38; // ms per character on the way out
+  var TYPE_ADD = 58; // ...and on the way in
+
   /* Outside the spacecraft — fractions of that section's own scroll. */
   var FLIGHT_PREROLL = 1.2; // seconds the clip creeps through while the card scales
   var FLIGHT_WIDEN_BY = 0.09; // the card has widened across both by here...
@@ -76,6 +88,7 @@
   var TEXT_IN_FROM = 0.26; // the intro copy writes on over the flight...
   var TEXT_IN_BY = 0.6; // ...and has written itself out again by here
   var DEVICE_FROM = 0.68; // the device copy arrives with the satellite
+  var LABEL_OUT_FROM = 0.46; // HOW IT WORKS leaves as its sentence starts to go
   /*
    * Leaving Our role: the tunnel stays full-bleed to the last and simply goes
    * dark, while the section below rides up over it — the cover is CSS, this is
@@ -249,6 +262,33 @@
       return;
     }
 
+    /*
+     * The reveal. Both blocks hide before first paint and wipe on once the
+     * fonts have landed — splitting sooner would measure fallback metrics.
+     * The tail starts retyping only after its own line has been revealed.
+     */
+    var headline = scene.querySelector('.hero__headline');
+    var lead = scene.querySelector('.hero__lead');
+    var swap = scene.querySelector('[data-hero-swap]');
+    if (headline) headline.style.opacity = '0';
+    if (lead) lead.style.opacity = '0';
+    var fontsReady =
+      document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    fontsReady.then(function () {
+      if (headline) {
+        headline.style.opacity = '';
+        blockReveal(headline, function () {
+          if (swap) startTyper(swap);
+        });
+      }
+      if (lead) {
+        setTimeout(function () {
+          lead.style.opacity = '';
+          blockReveal(lead);
+        }, 2 * REVEAL_STAGGER);
+      }
+    });
+
     var seek = seeker(video);
     var anchor = null;
 
@@ -346,6 +386,163 @@
       var want = i >= head ? '' : i < tail ? 'is-out' : 'is-in';
       if (letters[i].className !== want) letters[i].className = want;
     }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * The block reveal
+   * ------------------------------------------------------------------ */
+
+  /*
+   * Splits a piece of copy into its rendered lines. Copy with explicit <br>s
+   * keeps its nodes — the headline's retyping span has to survive by
+   * reference — and plain text is measured word by word: each word in a probe
+   * span, grouped by the row it landed on, then rebuilt as one span per line.
+   */
+  function splitIntoLines(el) {
+    var lines = [];
+
+    function buildLine(nodes) {
+      var line = document.createElement('span');
+      line.className = 'rv-line';
+      var text = document.createElement('span');
+      text.className = 'rv-text';
+      for (var i = 0; i < nodes.length; i++) text.appendChild(nodes[i]);
+      var block = document.createElement('span');
+      block.className = 'rv-block';
+      line.appendChild(text);
+      line.appendChild(block);
+      el.appendChild(line);
+      lines.push({ line: line, text: text, block: block });
+    }
+
+    if (el.querySelector('br')) {
+      var segments = [[]];
+      var nodes = [].slice.call(el.childNodes);
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].nodeName === 'BR') segments.push([]);
+        else segments[segments.length - 1].push(nodes[i]);
+      }
+      el.textContent = '';
+      for (var j = 0; j < segments.length; j++) buildLine(segments[j]);
+    } else {
+      var words = el.textContent.split(/\s+/).filter(Boolean);
+      el.textContent = '';
+      var probes = [];
+      for (var k = 0; k < words.length; k++) {
+        var probe = document.createElement('span');
+        probe.style.display = 'inline-block';
+        probe.textContent = words[k];
+        el.appendChild(probe);
+        el.appendChild(document.createTextNode(' '));
+        probes.push(probe);
+      }
+      var groups = [];
+      for (var m = 0; m < probes.length; m++) {
+        var top = probes[m].offsetTop;
+        if (!groups.length || Math.abs(top - groups[groups.length - 1].top) > 2) {
+          groups.push({ top: top, words: [] });
+        }
+        groups[groups.length - 1].words.push(probes[m].textContent);
+      }
+      el.textContent = '';
+      for (var n = 0; n < groups.length; n++) {
+        buildLine([document.createTextNode(groups[n].words.join(' '))]);
+      }
+    }
+    return lines;
+  }
+
+  /** The not-yet-revealed state — also what makes a replay possible. */
+  function hideReveal(lines) {
+    for (var i = 0; i < lines.length; i++) {
+      lines[i].text.style.clipPath = 'inset(-0.25em 101% -0.25em 0)';
+      lines[i].block.style.display = '';
+      lines[i].block.style.opacity = '0';
+      lines[i].block.style.transform = '';
+    }
+  }
+
+  /*
+   * The wipe: each line is uncovered left to right, the white rectangle
+   * riding the reveal's edge and stepping off past the end of the text; the
+   * lines set off REVEAL_STAGGER apart. When the last one lands, the clips
+   * come off entirely so nothing later — the retyping tail — is ever cropped.
+   */
+  function runReveal(lines, done) {
+    var t0 = null;
+    function frame(now) {
+      if (t0 === null) t0 = now;
+      var settled = true;
+      for (var i = 0; i < lines.length; i++) {
+        var raw = (now - t0 - i * REVEAL_STAGGER) / REVEAL_MS;
+        if (raw < 1) settled = false;
+        var k = 1 - Math.pow(1 - clamp01(raw), 3);
+        var l = lines[i];
+        l.text.style.clipPath = 'inset(-0.25em ' + ((1 - k) * 101).toFixed(2) + '% -0.25em 0)';
+        l.block.style.transform = 'translateX(' + (k * l.text.offsetWidth).toFixed(1) + 'px)';
+        l.block.style.opacity = raw >= 0 && raw < 1 ? '1' : '0';
+      }
+      if (!settled) {
+        requestAnimationFrame(frame);
+      } else {
+        for (var j = 0; j < lines.length; j++) {
+          lines[j].text.style.clipPath = '';
+          lines[j].block.style.display = 'none';
+        }
+        if (done) done();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function blockReveal(el, done) {
+    var lines = splitIntoLines(el);
+    hideReveal(lines);
+    runReveal(lines, done);
+    return lines;
+  }
+
+  /*
+   * The headline's tail retypes itself through SWAP_PHRASES: hold, rub the
+   * old phrase out a character at a time, type the new one in, hold again.
+   * The cursor is the reveal's rectangle at text scale, on only while the
+   * tail is actually being retyped.
+   */
+  function startTyper(swap) {
+    var cursor = document.createElement('span');
+    cursor.className = 'hero__swapCursor';
+    swap.parentNode.insertBefore(cursor, swap.nextSibling);
+    var idx = 0;
+
+    function retype(next, done) {
+      (function del() {
+        if (swap.textContent.length) {
+          swap.textContent = swap.textContent.slice(0, -1);
+          setTimeout(del, TYPE_DEL);
+        } else {
+          var i = 0;
+          (function add() {
+            if (i < next.length) {
+              swap.textContent = next.slice(0, ++i);
+              setTimeout(add, TYPE_ADD);
+            } else {
+              done();
+            }
+          })();
+        }
+      })();
+    }
+
+    (function cycle() {
+      setTimeout(function () {
+        idx = (idx + 1) % SWAP_PHRASES.length;
+        cursor.classList.add('is-typing');
+        retype(SWAP_PHRASES[idx], function () {
+          cursor.classList.remove('is-typing');
+          cycle();
+        });
+      }, TYPE_HOLD);
+    })();
   }
 
   function setUpRole() {
@@ -536,8 +733,11 @@
     var card = video ? video.closest('[data-card]') : null;
     var row = card ? card.closest('[data-card-row]') : null;
     var intro = scene.querySelector('[data-flight-intro]');
+    var introLabel = scene.querySelector('.flight__label');
     var heading = scene.querySelector('[data-flight-text]');
     var device = scene.querySelector('[data-flight-device]');
+    var deviceOn = false;
+    var deviceLines = null;
     if (!video || !card || !heading) return;
 
     var letters = splitCharacters(heading);
@@ -651,8 +851,38 @@
         intro.style.visibility = shown === 0 ? 'hidden' : '';
       }
 
-      /* ...and the device copy arrives once the satellite is all that is left. */
-      if (device) device.classList.toggle('is-in', p >= DEVICE_FROM);
+      /*
+       * The label leaves ahead of its sentence — holding it to the end left
+       * HOW IT WORKS lingering over copy that had already written itself off.
+       */
+      if (introLabel) {
+        introLabel.style.opacity = String(1 - clamp01((p - LABEL_OUT_FROM) / 0.06));
+      }
+
+      /*
+       * ...and the device copy arrives once the satellite is all that is
+       * left, each line wiped on by the block reveal — and reset on the way
+       * back up, so scrolling through again replays it.
+       */
+      if (device) {
+        var on = p >= DEVICE_FROM;
+        if (on !== deviceOn) {
+          deviceOn = on;
+          device.classList.toggle('is-in', on);
+          if (on) {
+            if (!deviceLines) {
+              deviceLines = [];
+              device.querySelectorAll('p').forEach(function (el) {
+                deviceLines = deviceLines.concat(splitIntoLines(el));
+              });
+            }
+            hideReveal(deviceLines);
+            runReveal(deviceLines);
+          } else {
+            hideReveal(deviceLines);
+          }
+        }
+      }
     });
   }
 

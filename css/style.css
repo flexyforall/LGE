@@ -175,6 +175,53 @@ img {
 }
 
 
+/* --- The block reveal ----------------------------------------------------
+   js/scene.js splits a piece of copy into its lines and wipes each one on
+   left to right, a solid white rectangle riding the reveal's edge — sharp
+   corners, no fade. The hero's headline and lead run it on load; the flight's
+   device copy every time it comes on. All geometry is driven per frame from
+   the script; these are only the pieces.
+   ------------------------------------------------------------------------- */
+
+.rv-line {
+  display: block;
+  position: relative;
+}
+
+.rv-text {
+  display: inline-block;
+}
+
+/* the rectangle: full line height, sharp edges, white */
+.rv-block {
+  position: absolute;
+  top: 0.06em;
+  bottom: 0.06em;
+  left: 0;
+  width: 0.45em;
+  background: var(--color-fg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+ * The typing cursor for the headline's rotating tail: the same rectangle at
+ * text scale, visible only while the tail is being retyped.
+ */
+.hero__swapCursor {
+  display: inline-block;
+  width: 0.45em;
+  height: 0.72em;
+  margin-left: 0.08em;
+  background: var(--color-fg);
+  opacity: 0;
+}
+
+.hero__swapCursor.is-typing {
+  opacity: 1;
+}
+
+
 /* --- Scenes --------------------------------------------------------------
    Each section is taller than the window; the stage inside it is pinned to the
    top. That surplus height is the scroll js/scene.js maps the camera onto.
@@ -1253,14 +1300,12 @@ img {
   align-items: flex-start;
   gap: 16px;
   width: 420px;
+  /* its entrance is the block reveal, run by js/scene.js */
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 600ms ease, transform 600ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .flight__device.is-in {
   opacity: 1;
-  transform: none;
 }
 
 /* 342:1601 — headline/H3 at 44/52, tracking -0.5 */

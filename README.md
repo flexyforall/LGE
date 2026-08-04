@@ -47,6 +47,15 @@ the light, through it, out into the tunnel.
 hero's scroll the clip is mapped onto, and `FLASH_IN_FROM` where the sheet
 starts closing.
 
+The headline and the lead wipe on at load, line by line: each line is uncovered
+left to right with a solid white rectangle — sharp corners, no fade — riding
+the reveal's edge, the lines setting off a beat apart (`REVEAL_MS` /
+`REVEAL_STAGGER`). Once its line has been revealed, the tail of the second line
+retypes itself on a loop through `SWAP_PHRASES` — orbital data centers, power
+generation, data transmission, space operations sustainability — a character at
+a time, the reveal's rectangle standing in as the cursor. The flight's device
+copy runs the same wipe every time it comes on.
+
 The tag line above the headline rotates through five points on its own clock
 (`TAG_LINES` / `TAG_PERIOD` in `js/scene.js`): the next line tips in from below
 while the old one tips up and away, and the text box's width glides to the new
