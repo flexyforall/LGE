@@ -505,17 +505,19 @@ img {
 }
 
 /*
- * buttonPrimaryTransparent.svg — a hairline ring with a gradient running along
- * it and blurred glows around it; nothing fills the inside, so the video shows
- * through. The export draws the ring at 42.36 / 56.91 inside a 264 x 148
- * canvas at 202.61 x 51, which is not the frame's 210 x 56 — so the canvas is
- * scaled until the ring lands exactly on the button's own box, and offset by
- * where the ring starts. Vector, so the stretch costs nothing.
+ * buttonPrimary2.svg — the lit outline with a 20% black wash inside it, so the
+ * clip still reads through the button but the label has something to sit on.
+ * Blurred glows at the corners come with it.
+ *
+ * The export draws the button at 42.36 / 56.91 inside a 264 x 148 canvas at
+ * 202.61 x 51, which is not the frame's 210 x 56 — so the canvas is scaled
+ * until the shape lands exactly on the button's own box, and offset by where
+ * the shape starts. Vector, so the stretch costs nothing.
  */
 .button--dark .button__plate {
   top: -62.494px;
-  left: -43.903px;
-  width: 273.632px;
+  left: -43.904px;
+  width: 273.634px;
   height: 162.509px;
 }
 

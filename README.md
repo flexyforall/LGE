@@ -49,10 +49,10 @@ exactly one copy's width, which puts every logo back where its twin was, so the
 loop has no seam. `--logos-period` in the CSS sets the pace.
 
 Both buttons are the uploaded exports — `assets/images/buttonSecondary.svg` for
-the light one in the bar, `buttonPrimaryTransparent.svg` for the primary one
-under the lead. That one is a lit ring with nothing inside it, so the clip runs
-straight through the button; its glow is drawn into the same canvas and hangs
-off the button on every side.
+the light one in the bar, `buttonPrimary2.svg` for the primary one under the
+lead. That one is a lit outline over a 20% black wash, so the clip still reads
+through the button while the label keeps something to sit on; its glow is drawn
+into the same canvas and hangs off the button on every side.
 
 **Our role** — Figma `section 2` (238:2674) through `section 2.1` (242:2673)
 and into `section 3` (242:2681), all on one scroll.

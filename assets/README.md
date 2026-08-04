@@ -120,13 +120,14 @@ may still call for them. The PP faces arrived as `.otf` — converting them to
 | File | Where | Figma node |
 | --- | --- | --- |
 | `images/buttonSecondary.svg` | the bar's BECOME A PARTNER | `356:1254` — 188x44 |
-| `images/buttonPrimaryTransparent.svg` | the hero's BECOME PARTNER | `356:1266` — a lit ring with no fill; the ring is drawn at 42.36/56.91 inside a 264x148 canvas at 202.61x51 |
-| `images/buttonPrimary.svg` | — | the filled version of the same button, at 47/60 inside 314x163. Superseded by the transparent one; kept in case the solid plate is wanted back |
+| `images/buttonPrimary2.svg` | the hero's BECOME PARTNER | `356:1266` — a lit outline over a 20% black wash, drawn at 42.36/56.91 inside a 264x148 canvas at 202.61x51 |
+| `images/buttonPrimaryTransparent.svg` | — | the same outline over a 5% white wash. Kept as the lighter of the two |
+| `images/buttonPrimary.svg` | — | the original solid plate, at 47/60 inside 314x163. Kept in case the opaque button is wanted back |
 | `icons/plus.svg` | both buttons, twice each | `341:1405` — 20x20, white |
 
-The transparent base's ring measures 202.61 x 51, not the frame's 210 x 56, so
-the CSS scales its canvas until the ring lands exactly on the button's own box
-and offsets it by where the ring starts. It is vector, so the stretch costs
+Both outline bases measure 202.61 x 51, not the frame's 210 x 56, so the CSS
+scales the canvas until the shape lands exactly on the button's own box and
+offsets it by where the shape starts. It is vector, so the stretch costs
 nothing; the numbers are derived in the rule's comment.
 
 `icons/plus.svg` was uploaded as `plus icon.svg`; the space was taken out of the
