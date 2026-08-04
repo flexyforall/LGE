@@ -137,6 +137,7 @@
 
   /* How much scroll each camera move is spread over. */
   --scene-length-hero: 380vh;
+  --scene-length-flight: 520vh;
   --scene-length-role: 560vh;
 }
 
@@ -988,7 +989,7 @@ img {
   width: 380px;
   height: 380px;
   transform: translateY(-50%);
-  background: url('../assets/images/card-integrate.png') center / contain no-repeat;
+  background: url('../assets/images/card.png') center / contain no-repeat;
 }
 
 /* 339:356 etc — a 4px tick 5.5 in from each corner */
@@ -1017,6 +1018,12 @@ img {
 .card__tick--br {
   bottom: 5.5px;
   right: 5.5px;
+}
+
+/* The wide card's own copy goes as it opens out — js/scene.js sets the value. */
+.card--wide .card__overline,
+.card--wide .card__foot {
+  opacity: var(--card-copy, 1);
 }
 
 /* 339:360 — headline/Overline: Notch Regular 16/20, tracking 0.4, in caps */
@@ -1084,6 +1091,174 @@ img {
 
   .cards__headline span {
     color: transparent;
+    transition: none;
+  }
+}
+
+
+/* --- Outside the spacecraft ----------------------------------------------
+   Figma 342:1556 into 342:1597. The wide card above opens out until it fills
+   the window, and the clip inside it only starts once it has. js/scene.js
+   drives the box, the clip and both blocks of copy.
+   ------------------------------------------------------------------------- */
+
+[data-scene='flight'] {
+  height: var(--scene-length-flight);
+}
+
+/*
+ * The clip is lifted out of the card and fixed to the window, which puts it
+ * above the page — so this stage has to sit above it again for the copy to
+ * read, and the frame gives up its black so the clip shows through.
+ */
+[data-scene='flight'] .scene__stage {
+  z-index: 41;
+}
+
+[data-scene='flight'] .frame {
+  background: transparent;
+}
+
+/*
+ * The card's media is the clip. While the card is opening out, js/scene.js
+ * lifts this box out of the card and grows it to the window — so it has to be
+ * able to leave, which is what the fixed position at that moment is for.
+ */
+.card__media.is-opening {
+  position: fixed;
+  z-index: 40;
+  inset: auto;
+  aspect-ratio: auto;
+  object-fit: cover;
+}
+
+/* 342:1559 — 764 wide on the frame's middle, 21 between label and headline */
+.flight__copy {
+  position: absolute;
+  top: calc(50% + 0.5px);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 21px;
+  width: 764px;
+  transform: translate(-50%, -50%);
+}
+
+/* 342:1560 — the same label as everywhere else */
+.flight__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.flight__square {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--color-fg);
+}
+
+.flight__labelText {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  white-space: nowrap;
+}
+
+/* 342:1565 — headline/H1 at 64/72, tracking -0.8 */
+.flight__headline {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 64px;
+  line-height: 72px;
+  letter-spacing: -0.8px;
+  text-align: center;
+  color: var(--color-fg);
+}
+
+/*
+ * The same writing-on as the tunnel's passages: a window of characters slides
+ * through the sentence, each arriving in the accent and settling to white.
+ */
+.flight__headline span {
+  opacity: 0;
+  color: var(--color-accent);
+  transition: opacity 140ms linear, color 260ms ease 130ms;
+}
+
+.flight__headline span.is-in {
+  opacity: 1;
+  color: var(--color-fg);
+}
+
+.flight__headline span.is-out {
+  opacity: 0;
+  color: var(--color-fg);
+  transition: opacity 300ms linear;
+}
+
+/* 342:1600 — bottom left, x 56 / y 638, 420 wide, 16 between the two */
+.flight__device {
+  position: absolute;
+  top: 638px;
+  left: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  width: 420px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 600ms ease, transform 600ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.flight__device.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* 342:1601 — headline/H3 at 44/52, tracking -0.5 */
+.flight__deviceTitle {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 44px;
+  line-height: 52px;
+  letter-spacing: -0.5px;
+  color: var(--color-fg);
+}
+
+/* 342:1602 — paragraph/M at 16/24, at 60% */
+.flight__deviceBody {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  opacity: 0.6;
+  color: var(--color-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flight__headline span {
+    opacity: 1;
+    color: var(--color-fg);
+    transition: none;
+  }
+
+  .flight__device {
+    opacity: 1;
+    transform: none;
     transition: none;
   }
 }

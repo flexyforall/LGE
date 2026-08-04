@@ -160,9 +160,13 @@ render empty rather than broken.
 | --- | --- | --- | --- |
 | `images/cards-wash.png` | `342:576` | 1456 x 1555 | the wash behind the whole section, dodged over the black |
 | `images/card-partner.png` | `339:355` | 544 x 306 ratio | the band across the top of the wide card |
-| `images/card-integrate.png` | `339:372` | 380 x 380 | the satellite on the narrow card |
-| `images/shot-cupola.png` | `342:1558` | 1440 x 955 | the still the outside-spacecraft section opens on |
-| `images/shot-device.png` | `342:1599` | 1555 x 1031 | the still behind the Power copy |
+
+`342:1558` and `342:1599` are not on this list: both are stills of the same
+cupola footage, so `video-cupola` stands in for them and the section is built
+from the clip rather than from two bitmaps.
+
+`images/card.png` is the satellite on the narrow card (`339:372`), uploaded
+under that name rather than the one suggested.
 
 ### Partner logos
 

@@ -20,8 +20,8 @@ tools/              optional checks, not needed to run the site
 
 ## The sections
 
-Three: two pinned while their own stretch of scroll plays out, then one that
-rides up over the second.
+Four: two pinned while their own stretch of scroll plays out, one that rides up
+over the second, and a last one the third opens out into.
 
 **Hero** — Figma `Hero` (356:1231).
 
@@ -118,6 +118,24 @@ row.
 The constants at the top of `js/scene.js` control the intro length and both
 fades; `--scene-length-hero` and `--scene-length-role` in the CSS control how
 much scroll each move is spread over.
+
+**Outside the spacecraft** — Figma `Shot 2` (342:1556) into `Shot 3` (342:1597).
+
+The wide card above opens out until it fills the window — its own copy fading
+as it goes — and only once it has does the clip inside it start to run. Growing
+it means taking it out of the card, so over that stretch the box is fixed and
+its rect is interpolated from wherever the card has it to the whole window; the
+card's rect is read every frame rather than captured once, so arriving at any
+scroll position lands on the right box.
+
+The clip then flies out through the illuminator to the satellite. The intro copy
+writes itself on the way the tunnel's passages do — a window of characters
+sliding through the sentence — and writes itself off again; the device copy
+arrives in the bottom-left once the satellite is all that is left.
+
+`FLIGHT_OPEN_BY` / `FLIGHT_RUN_BY` in `js/scene.js` set where the opening ends
+and the clip's run finishes; `TEXT_IN_FROM` / `TEXT_IN_BY` and `DEVICE_FROM` the
+two blocks of copy.
 
 ## Design parity
 

@@ -271,7 +271,13 @@
     <!-- 339:354 — the wide one: a media band across the top, the copy read
          out of a gradient at the foot -->
     <article class="card card--wide" data-card data-node-id="339:354">
-      <div class="card__media" data-node-id="339:355" aria-hidden="true"></div>
+      <!-- 339:355 — the media band. It is the cupola clip's first frame, held
+           still: the card opens out into it and only then does it play. -->
+      <video class="card__media" data-flight-video muted playsinline preload="auto"
+             poster="assets/videos/video-cupola-poster.jpg" data-node-id="339:355">
+        <source src="assets/videos/video-cupola.mp4" type="video/mp4">
+        <source src="assets/videos/video-cupola.webm" type="video/webm">
+      </video>
       <span class="card__tick card__tick--tl" data-node-id="339:356"></span>
       <span class="card__tick card__tick--tr" data-node-id="339:357"></span>
       <span class="card__tick card__tick--bl" data-node-id="339:363"></span>
@@ -295,6 +301,39 @@
 
   </div>
 </section>
+
+
+<!-- =====================================================================
+     Figma: "Shot 2 - Outside Spacecraft - Intro" (342:1556) into
+     "Shot 3 - Outside Spacecraft - Device" (342:1597).
+
+     The wide card above opens out until it fills the window — its own copy
+     fading as it goes — and only once it has does the clip inside it start
+     to run, flying out through the illuminator to the satellite. The intro
+     copy writes itself on the way the tunnel's does; the device copy arrives
+     in the bottom-left once the satellite is all that is left.
+     ===================================================================== -->
+<div class="scene" data-scene="flight">
+  <div class="scene__stage">
+    <div class="frame" data-node-id="342:1557">
+
+      <div class="flight__copy" data-flight-intro data-node-id="342:1559">
+        <div class="flight__label" data-node-id="342:1560">
+          <span class="flight__square" data-node-id="342:1561"></span>
+          <span class="flight__labelText" data-node-id="342:1563">How it works</span>
+          <span class="flight__square" data-node-id="342:1564"></span>
+        </div>
+        <p class="flight__headline" data-flight-text data-node-id="342:1565">One connected system, from orbit to ground.</p>
+      </div>
+
+      <div class="flight__device" data-flight-device data-node-id="342:1600">
+        <p class="flight__deviceTitle" data-node-id="342:1601">Power</p>
+        <p class="flight__deviceBody" data-node-id="342:1602">Generate and transfer power through plasma-based systems.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 
 <script src="js/smooth.js"></script>

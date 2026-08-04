@@ -64,6 +64,13 @@
   var CARDS_RISE_BY = 0.8;
   var CARDS_OPEN_FROM = 0.9; // the pair start trading width here...
   var CARDS_OPEN_BY = 0.3; // ...and have settled on the frame's split by here
+
+  /* Outside the spacecraft — fractions of that section's own scroll. */
+  var FLIGHT_OPEN_BY = 0.22; // the card has opened out to the window by here
+  var FLIGHT_RUN_BY = 0.86; // ...and the clip has run to its end by here
+  var TEXT_IN_FROM = 0.26; // the intro copy writes on over the flight...
+  var TEXT_IN_BY = 0.6; // ...and has written itself out again by here
+  var DEVICE_FROM = 0.68; // the device copy arrives with the satellite
   /*
    * Leaving Our role: the tunnel stays full-bleed to the last and simply goes
    * dark, while the section below rides up over it — the cover is CSS, this is
@@ -490,11 +497,102 @@
     });
   }
 
+  /* ------------------------------------------------------------------ *
+   * Outside the spacecraft
+   * ------------------------------------------------------------------ */
+
+  /*
+   * The wide card above opens out until it fills the window, and only then
+   * does the clip inside it start to run.
+   *
+   * Growing it means taking it out of the card, so over that stretch the box
+   * is fixed and its rect is interpolated from wherever the card has it to the
+   * whole window. The card's own rect is read every frame rather than captured
+   * once, so arriving at any scroll position lands on the right box.
+   */
+  function setUpFlight() {
+    var scene = document.querySelector('[data-scene="flight"]');
+    if (!scene) return;
+
+    var video = document.querySelector('[data-flight-video]');
+    var card = video ? video.closest('[data-card]') : null;
+    var intro = scene.querySelector('[data-flight-intro]');
+    var heading = scene.querySelector('[data-flight-text]');
+    var device = scene.querySelector('[data-flight-device]');
+    if (!video || !card || !heading) return;
+
+    var letters = splitCharacters(heading);
+    var seek = seeker(video);
+    video.pause();
+
+    if (reduced) {
+      scene.style.height = 'auto';
+      for (var i = 0; i < letters.length; i++) letters[i].className = 'is-in';
+      if (device) device.classList.add('is-in');
+      return;
+    }
+
+    register(function () {
+      var p = progressOf(scene);
+      var open = clamp01(p / FLIGHT_OPEN_BY);
+
+      /*
+       * The box. At 0 it is exactly where the card holds it; at 1 it is the
+       * window. The card's copy goes as it opens, so nothing rides the growth.
+       */
+      if (open > 0 && open < 1) {
+        var r = card.getBoundingClientRect();
+        video.classList.add('is-opening');
+        video.style.left = (r.left * (1 - open)).toFixed(1) + 'px';
+        video.style.top = (r.top * (1 - open)).toFixed(1) + 'px';
+        video.style.width =
+          (r.width + (window.innerWidth - r.width) * open).toFixed(1) + 'px';
+        video.style.height =
+          (r.height + (window.innerHeight - r.height) * open).toFixed(1) + 'px';
+      } else if (open >= 1) {
+        video.classList.add('is-opening');
+        video.style.left = '0px';
+        video.style.top = '0px';
+        video.style.width = '100%';
+        video.style.height = '100%';
+      } else {
+        video.classList.remove('is-opening');
+        video.style.cssText = '';
+      }
+      card.style.setProperty('--card-copy', String(1 - open));
+
+      /*
+       * The clip holds its first frame for the whole of the opening and only
+       * starts once the window is full.
+       */
+      if (video.duration) {
+        var run = clamp01((p - FLIGHT_OPEN_BY) / (FLIGHT_RUN_BY - FLIGHT_OPEN_BY));
+        seek(run * video.duration);
+      }
+
+      /* The intro copy writes itself on over the flight out through the glass. */
+      var fill = clamp01((p - TEXT_IN_FROM) / (TEXT_IN_BY - TEXT_IN_FROM));
+      var head = Math.round(fill * (letters.length + TEXT_TRAIL));
+      write(letters, head, Math.max(0, head - TEXT_TRAIL));
+      if (intro) {
+        /* In as the window fills, out once the sentence has written itself off. */
+        var shown =
+          clamp01((p - FLIGHT_OPEN_BY) / 0.04) * (1 - clamp01((p - TEXT_IN_BY) / 0.05));
+        intro.style.opacity = String(shown);
+        intro.style.visibility = shown === 0 ? 'hidden' : '';
+      }
+
+      /* ...and the device copy arrives once the satellite is all that is left. */
+      if (device) device.classList.toggle('is-in', p >= DEVICE_FROM);
+    });
+  }
+
   /* ------------------------------------------------------------------ */
 
   setUpHero();
   setUpRole();
   setUpCards();
+  setUpFlight();
 
   if (!reduced) {
     window.addEventListener('scroll', onScroll, { passive: true });
