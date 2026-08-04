@@ -96,17 +96,30 @@
       <a class="tab" href="#contact" data-node-id="356:1252">Contact</a>
     </nav>
 
-    <!-- 356:1254 — the light button; assets/images/buttonSecondary.svg is
-         the plate, at its own 188 x 44. -->
+    <!-- 356:1254 — the light button; assets/images/buttonBody.svg is the
+         plate, at its own 180 x 40. -->
     <a class="button button--light" href="#partner" data-node-id="356:1254">
-      <img class="button__plate" src="assets/images/buttonSecondary.svg"
-           alt="" width="188" height="44" aria-hidden="true">
+      <img class="button__plate" src="assets/images/buttonBody.svg"
+           alt="" width="180" height="40" aria-hidden="true">
       <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
       <span class="button__label">Become a partner</span>
       <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
     </a>
   </div>
 </header>
+
+<!-- =====================================================================
+     Figma: 378:2086 — the hero's cursor. The pointer is hidden while the hero
+     holds the screen and this stands in for it: a 7px square, the invitation,
+     and a second square, 20 apart. It follows the pointer with a little lag
+     so it trails rather than sticks, and steps aside over anything clickable
+     in its own right. js/scene.js owns it.
+     ===================================================================== -->
+<div class="cursor" data-hero-cursor aria-hidden="true" data-node-id="378:2086">
+  <span class="cursor__square" data-node-id="378:2087"></span>
+  <span class="cursor__label" data-node-id="378:2085">Click to explore</span>
+  <span class="cursor__square" data-node-id="378:2084"></span>
+</div>
 
 <div class="scene" data-scene="hero">
   <div class="scene__stage">
@@ -169,9 +182,7 @@
 
         <!-- Figma: 356:1234 — 80% across, y 659; the rule runs to the edge -->
         <div class="verify" data-node-id="356:1234">
-          <!-- Turns over like the tag above the title, on a lazier clock —
-               VERIFY_LINES / VERIFY_PERIOD in js/scene.js. -->
-          <span class="verify__text" data-verify-rotate data-node-id="356:1235"><span class="verify__line">Progress you can verify</span></span>
+          <span class="verify__text" data-node-id="356:1235">Progress you can verify</span>
           <span class="verify__rule" data-node-id="356:1236"></span>
         </div>
 

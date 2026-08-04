@@ -61,6 +61,18 @@ console.log(
     `page ${intro.pageH}px over a ${intro.winH}px window\n`
 );
 
+/*
+ * The hero is clicked through, not scrolled through — it holds the window
+ * until then, so the walk below cannot start until it has been let go. Its own
+ * stops are all one position as a result; what they show is its idle state.
+ */
+await page.evaluate(() =>
+  document
+    .querySelector('[data-scene="hero"]')
+    .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+);
+await page.waitForTimeout(4500);
+
 const scenes = await page.evaluate(() =>
   [...document.querySelectorAll('[data-scene]')].map((s) => ({
     name: s.dataset.scene,

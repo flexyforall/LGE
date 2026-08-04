@@ -23,7 +23,25 @@
     return document.documentElement.scrollHeight - window.innerHeight;
   }
 
+  /*
+   * The loader and the hero each hold the window, and say so with a class on
+   * the root. `overflow: hidden` stops the browser scrolling the page, but not
+   * this — scrollTo goes through regardless — so the hold has to be honoured
+   * here too, or the wheel would walk straight out of a section that is
+   * supposed to be waiting on a click.
+   */
+  function held() {
+    var root = document.documentElement.classList;
+    return root.contains('is-loading') || root.contains('is-held');
+  }
+
   function tick() {
+    /* A hold can land mid-glide; give the page up rather than coasting on. */
+    if (held()) {
+      raf = null;
+      target = window.scrollY;
+      return;
+    }
     current += (target - current) * EASE;
     if (Math.abs(target - current) < 0.5) {
       current = target;
@@ -40,6 +58,10 @@
       /* Pinch-zoom arrives as a ctrl-wheel — leave it to the browser. */
       if (event.ctrlKey) return;
       event.preventDefault();
+      if (held()) {
+        target = window.scrollY;
+        return;
+      }
 
       var delta = event.deltaY;
       if (event.deltaMode === 1) delta *= 16; // lines -> px

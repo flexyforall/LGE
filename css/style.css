@@ -135,8 +135,12 @@
    */
   --frame-min-width: 980px;
 
-  /* How much scroll each camera move is spread over. */
-  --scene-length-hero: 380vh;
+  /*
+   * How much scroll each camera move is spread over. The hero is the
+   * exception: it is clicked through rather than scrolled through, so it is
+   * exactly one window tall and has no surplus to map anything onto.
+   */
+  --scene-length-hero: 100vh;
   --scene-length-flight: 520vh;
   --scene-length-role: 560vh;
 }
@@ -255,6 +259,83 @@ img {
 /* Scroll holds still while the loader owns the screen. */
 html.is-loading {
   overflow: hidden;
+}
+
+/*
+ * ...and again while the hero does. The hero is not scrolled through: it
+ * holds the window until it is clicked, and only then does the page below it
+ * become reachable. js/scene.js takes this off as the transition lands.
+ */
+html.is-held {
+  overflow: hidden;
+}
+
+
+/* --- The hero's cursor ---------------------------------------------------
+   Figma: 378:2086 — a 7px square, CLICK TO EXPLORE, a second square, 20
+   apart. It replaces the pointer over the hero, which is why the pointer is
+   hidden there; it is centred on the pointer and trails it slightly.
+   ------------------------------------------------------------------------- */
+
+/*
+ * The pointer is only hidden while the hero is actually holding the screen —
+ * once it has been clicked through, the page is an ordinary one again.
+ */
+html.is-held [data-scene='hero'] {
+  cursor: none;
+}
+
+/* ...except over the things that are clickable in their own right. */
+html.is-held [data-scene='hero'] a,
+html.is-held [data-scene='hero'] button {
+  cursor: pointer;
+}
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  will-change: transform;
+}
+
+.cursor.is-on {
+  opacity: 1;
+}
+
+/* 378:2087 / 378:2084 — 7 x 7 */
+.cursor__square {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: #ffffff;
+}
+
+/* 378:2085 — label/S in caps, centred over the pointer */
+.cursor__label {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* No pointer to follow, and nothing to click through. */
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -595,10 +676,13 @@ html.is-loading {
   white-space: nowrap;
 }
 
-/* 356:1254 — 188 x 44, padding 8 / 12, label/S on #030303 */
+/*
+ * 356:1254 — label/S on #030303, at the plate's own 180 x 40. The padding
+ * follows from that: 12 above and below leaves exactly the label's 16px line.
+ */
 .button--light {
-  width: 188px;
-  height: 44px;
+  width: 180px;
+  height: 40px;
   padding: 12px 8px;
   color: #030303;
 }
@@ -610,8 +694,8 @@ html.is-loading {
 .button--light .button__plate {
   top: 0;
   left: 0;
-  width: 188px;
-  height: 44px;
+  width: 180px;
+  height: 40px;
 }
 
 .button--light .button__label {
@@ -707,11 +791,18 @@ html.is-loading {
 }
 
 /* 356:1260 / 356:1263 — 8 x 8 */
+/*
+ * The pair drift sideways under the pointer, each the opposite way, so the
+ * label breathes as the cursor crosses the hero. The offset is written to
+ * --drift by js/scene.js and is zero until the pointer moves, which is also
+ * what keeps the 40px either side measurable at rest.
+ */
 .hero__tagSquare {
   flex: none;
   width: 8px;
   height: 8px;
   background: var(--color-fg);
+  transform: translateX(var(--drift, 0px));
 }
 
 .hero__tagText {
@@ -794,24 +885,10 @@ html.is-loading {
   gap: 9px;
 }
 
-/*
- * 356:1235 — label/S in caps. The box turns its line over the way the tag
- * does; lines anchor right, so the rule beside them never moves while the
- * width glides.
- */
+/* 356:1235 — label/S in caps. One line, and it stands. */
 .verify__text {
-  position: relative;
   flex: none;
   height: 20px;
-  overflow: hidden;
-  perspective: 400px;
-  transition: width 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-
-.verify__line {
-  position: absolute;
-  top: 0;
-  right: 0;
   font-family: var(--font-label);
   font-weight: 500;
   font-size: 12px;
@@ -820,19 +897,6 @@ html.is-loading {
   text-transform: uppercase;
   color: var(--color-fg);
   white-space: nowrap;
-  transform-origin: 50% 50%;
-  backface-visibility: hidden;
-  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.45s ease;
-}
-
-.verify__line.is-out {
-  transform: translateY(-115%) rotateX(75deg);
-  opacity: 0;
-}
-
-.verify__line.is-in {
-  transform: translateY(115%) rotateX(-75deg);
-  opacity: 0;
 }
 
 /* 356:1236 — a 72px hairline, kept faint so the label carries the line */

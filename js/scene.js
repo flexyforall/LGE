@@ -4,12 +4,13 @@
  * Two pinned sections, each taller than the window. The surplus height is the
  * scroll their cameras are mapped onto.
  *
- *   Hero    video 1 loops as a background. Once the scroll has cleared the
- *           copy the frame crosses to video 2 — the transition — which never
- *           plays on its own: the scroll drives it to its last frame, where
- *           the light has filled the screen and the section below takes over.
- *           The tag line rotates on its own clock; the partner row runs on its
- *           own in CSS.
+ *   Hero    the one section that is not scrolled through at all: it holds the
+ *           window, its clip idling on a loop, until it is clicked. The click
+ *           runs the same move the scroll used to — the copy clears, the clip
+ *           carries on from whatever frame the loop was on to its last, where
+ *           the light has filled the screen — and then hands the page over to
+ *           the tunnel below. A cursor of its own says so. The tag line
+ *           rotates on its own clock; the partner row runs on its own in CSS.
  *
  *   Role    video 3 answers to the scroll from its first frame, and so does
  *           the clip in the container that follows it. The same scroll writes
@@ -30,9 +31,19 @@
    * keeps it feeling like one camera moving rather than a cut to another shot.
    */
   var HERO_LOOP_END = 14; // seconds — the flight plus two of the transition
-  var HERO_SCRUB_FROM = 0.02; // where the scroll takes the clip off its loop...
+  var HERO_SCRUB_FROM = 0.02; // where the run takes the clip off its loop...
   var HERO_SCRUB_BY = 0.92; // ...and has carried it to the last frame by here
   var FLASH_IN_FROM = 0.86; // the sheet closes whatever white the clip left short
+  /*
+   * The hero is not scrolled through — it holds the window until it is
+   * clicked. This is how long the click's run takes: the copy clears, the
+   * clip carries on to its last frame, and the white lands.
+   */
+  var HERO_RUN_MS = 3200;
+  var HERO_LAND_MS = 900; // ...and how long the white takes to lift off the tunnel
+  var CURSOR_EASE = 0.22; // fraction of the distance the cursor closes per frame
+  var SQUARE_DRIFT = 7; // px either square travels at the far edge of the window
+  var SQUARE_EASE = 0.06;
   var TAG_LINES = [
     'WELCOME TO CORE SPACE',
     'POWER GENERATION & TRANSMISSION',
@@ -41,14 +52,6 @@
     'ENGINEERED FOR VLEO',
   ];
   var TAG_PERIOD = 2800; // ms between rotations
-  /* The bottom-right line turns over too, at a lazier clock than the tag. */
-  var VERIFY_LINES = [
-    'Progress you can verify',
-    'Milestones on record',
-    'Telemetry you can trace',
-    'Built in the open',
-  ];
-  var VERIFY_PERIOD = 5600;
   var FLASH_FADE = 0.16; // fraction of the role scroll the white flash lifts over
   /*
    * Each passage writes itself on and rubs itself out over its own stretch, and
@@ -329,6 +332,91 @@
     }, period);
   }
 
+  /*
+   * The hero's own progress. Where every other section reads its position off
+   * the scroll, this one is written by the click's clock — the hero holds the
+   * window and never scrolls, so there is no scroll to read.
+   */
+  var heroP = 0;
+
+  /* Slow at both ends, so the run gathers and then settles rather than snaps. */
+  function easeInOut(k) {
+    return k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+  }
+
+  /** Eases the page from one scroll position to another over `ms`. */
+  function tweenScroll(from, to, ms, done) {
+    var t0 = null;
+    requestAnimationFrame(function step(now) {
+      if (t0 === null) t0 = now;
+      var k = clamp01((now - t0) / ms);
+      window.scrollTo(0, Math.round(from + (to - from) * easeInOut(k)));
+      if (k < 1) requestAnimationFrame(step);
+      else if (done) done();
+    });
+  }
+
+  /*
+   * The cursor that stands in for the pointer over the hero, and the drift it
+   * gives the two squares beside the tag: each goes the opposite way as the
+   * pointer crosses the window, a few pixels at the very edges. Both are eased
+   * toward their target rather than set to it, so the cursor trails the
+   * pointer and the squares glide instead of tracking.
+   */
+  function setUpCursor(scene, live) {
+    var el = document.querySelector('[data-hero-cursor]');
+    var squares = scene.querySelectorAll('.hero__tagSquare');
+    if (!el || reduced) return function () {};
+
+    var tx = 0, ty = 0, x = 0, y = 0, placed = false;
+    var driftTo = 0, drift = 0;
+    var on = false;
+
+    function show(next) {
+      if (next === on) return;
+      on = next;
+      el.classList.toggle('is-on', on);
+    }
+
+    scene.addEventListener('mousemove', function (event) {
+      tx = event.clientX;
+      ty = event.clientY;
+      if (!placed) {
+        placed = true;
+        x = tx;
+        y = ty;
+      }
+      /* Over a link or a button the pointer means what it usually means. */
+      show(live() && !event.target.closest('a, button'));
+      driftTo = ((tx / window.innerWidth) * 2 - 1) * SQUARE_DRIFT;
+    });
+
+    scene.addEventListener('mouseleave', function () {
+      show(false);
+      driftTo = 0;
+    });
+
+    (function follow() {
+      requestAnimationFrame(follow);
+      /* Nothing on screen and nothing left to settle — no work to do. */
+      if (!on && Math.abs(drift - driftTo) < 0.02 && Math.abs(tx - x) < 0.5) return;
+
+      x += (tx - x) * CURSOR_EASE;
+      y += (ty - y) * CURSOR_EASE;
+      el.style.transform =
+        'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) translate(-50%,-50%)';
+
+      drift += (driftTo - drift) * SQUARE_EASE;
+      if (squares[0]) squares[0].style.setProperty('--drift', drift.toFixed(2) + 'px');
+      if (squares[1]) squares[1].style.setProperty('--drift', (-drift).toFixed(2) + 'px');
+    })();
+
+    return function () {
+      show(false);
+      driftTo = 0;
+    };
+  }
+
   function setUpHero() {
     var scene = document.querySelector('[data-scene="hero"]');
     if (!scene) return;
@@ -339,12 +427,15 @@
     if (!video || !copy) return;
 
     setUpTag(scene);
-    rotator(
-      scene.querySelector('[data-verify-rotate]'),
-      'verify__line',
-      VERIFY_LINES,
-      VERIFY_PERIOD
-    );
+    /*
+     * The hero is clicked through exactly once. Its cursor belongs to that
+     * hold and is spent with it — afterwards the section is an ordinary one,
+     * with an ordinary pointer.
+     */
+    var spent = false;
+    var dropCursor = setUpCursor(scene, function () {
+      return !spent;
+    });
 
     if (reduced) {
       scene.style.height = 'auto';
@@ -394,14 +485,82 @@
       if (video.currentTime >= HERO_LOOP_END) video.currentTime = 0;
     })();
 
+    /*
+     * The hero holds the window from the moment the loader lifts. Restoration
+     * is switched off so a reload cannot drop the page somewhere below the
+     * held section, where nothing would scroll.
+     */
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+    loaderLifted.then(function () {
+      document.documentElement.classList.add('is-held');
+    });
+
+    /*
+     * The click. It runs the hero's progress from 0 to 1 on a clock, and every
+     * move below is mapped off that exactly as it was off the scroll — the
+     * copy clears, the clip carries on to its last frame, the sheet finishes
+     * the white. When the white is total the page is moved underneath it, so
+     * the jump to the tunnel happens on a frame with nothing in it, and the
+     * last beat lifts that white to leave the tunnel running.
+     */
+    function explore() {
+      if (spent || document.documentElement.classList.contains('is-loading')) return;
+      spent = true;
+      dropCursor();
+
+      var t0 = null;
+      requestAnimationFrame(function step(now) {
+        if (t0 === null) t0 = now;
+        var k = clamp01((now - t0) / HERO_RUN_MS);
+        heroP = easeInOut(k);
+        paint();
+        if (k < 1) return void requestAnimationFrame(step);
+
+        var role = document.querySelector('[data-scene="role"]');
+        document.documentElement.classList.remove('is-held');
+        if (!role) return;
+
+        var top = role.offsetTop;
+        var travel = role.offsetHeight - window.innerHeight;
+        window.scrollTo(0, top);
+        tweenScroll(top, top + travel * FLASH_FADE, HERO_LAND_MS, function () {
+          /*
+           * Put the hero back the way it was found. It is off screen by now,
+           * so none of this is seen — but scrolling back up should find the
+           * hero idling under its clip, not standing on the white frame it
+           * was left on.
+           */
+          heroP = 0;
+          paint();
+        });
+      });
+    }
+
+    scene.addEventListener('click', function (event) {
+      /* The button and the menu's tabs are clicks in their own right. */
+      if (event.target.closest('a, button')) return;
+      explore();
+    });
+
+    /* The same door, for anyone not using a pointer. */
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      if (!document.documentElement.classList.contains('is-held')) return;
+      var focused = document.activeElement;
+      if (focused && focused.closest('a, button')) return;
+      event.preventDefault();
+      explore();
+    });
+
     register(function () {
-      var p = progressOf(scene);
+      var p = heroP;
 
       /*
-       * Off the loop, the scroll drives the clip on from exactly the frame the
+       * Off the loop, the run drives the clip on from exactly the frame the
        * loop was showing — not from a fixed mark — so there is nothing to jump
-       * over. The anchor is dropped when the scroll comes back to the top, and
-       * the loop picks up again from wherever it was left.
+       * over. The anchor is dropped when the hero is put back, and the loop
+       * picks up again from wherever it was left.
        */
       if (p < HERO_SCRUB_FROM) {
         if (anchor !== null) {
@@ -1053,7 +1212,7 @@
       if (rp > 0) {
         o = clamp01(rp / FLASH_FADE);
       } else {
-        o = 1 - clamp01((progressOf(hero) - FLASH_IN_FROM) / (1 - FLASH_IN_FROM));
+        o = 1 - clamp01((heroP - FLASH_IN_FROM) / (1 - FLASH_IN_FROM));
       }
       menu.style.opacity = String(o);
       menu.style.visibility = o === 0 ? 'hidden' : '';

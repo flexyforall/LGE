@@ -21,7 +21,9 @@ const BOXES = [
   // --- hero ("Hero"), 356:1231 ---
   ['356:1237', 20, 20, 1400, 64, 'menu'],
   ['356:1240', 40, 35, 34, 34, 'logo'],
-  ['356:1254', 1212, 30, 188, 44, 'become-a-partner button'],
+  // the plate is 180 x 40, so the button is; it stays flush with the bar's
+  // right padding and centred on its 64
+  ['356:1254', 1220, 32, 180, 40, 'become-a-partner button'],
   ['356:1246', null, 36, null, 32, 'tab: TECHNOLOGY'],
   // label 20 + 16 + headline 160 + 24 + lead 28 + 40 + button 56 = 344,
   // centred on the frame

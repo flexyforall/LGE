@@ -27,15 +27,7 @@ const ALLOWED_OFF_TARGET = FRAME * 1.5;
  * Every camera here must come to rest exactly where the scroll asks: the
  * hero's transition and the tunnel are both scrubbed from first frame to last.
  */
-const SCENES = [
-  /*
-   * The hero clip idles on a loop and the scroll picks it up from whatever
-   * frame the loop was on, so where it comes to rest is its own end but where
-   * it starts is not fixed — only the resting place can be asserted.
-   */
-  { name: 'hero', video: '[data-hero-video]', restsOnTarget: true },
-  { name: 'role', video: '[data-role-video]', restsOnTarget: true },
-];
+const SCENES = [{ name: 'role', video: '[data-role-video]', restsOnTarget: true }];
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -99,7 +91,57 @@ if (heroDrop.worst > TOLERANCE) failures.push('the hero clip rewinds mid-loop');
 if (heroDrop.wraps === 0) failures.push('the hero loop never cycles');
 
 /*
- * 2. Each scrub: ramp the scroll across the section, then hold.
+ * 2. The hero's run. It is not scrolled through — a click sets it going and a
+ *    clock carries it — so it is driven by clicking the section and sampled
+ *    until it has landed. It picks the clip up from whatever frame the loop
+ *    was on, so where it starts is not fixed; where it comes to rest is, and
+ *    it must get there without ever stepping back.
+ */
+const heroRun = await page.evaluate(
+  () =>
+    new Promise((resolve) => {
+      const video = document.querySelector('[data-hero-video]');
+      const scene = document.querySelector('[data-scene="hero"]');
+      const out = [];
+      const t0 = performance.now();
+      scene.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      (function tick() {
+        const elapsed = performance.now() - t0;
+        out.push([Math.round(elapsed), video.currentTime]);
+        if (elapsed < 4600) requestAnimationFrame(tick);
+        else resolve({ samples: out, end: video.duration || 0 });
+      })();
+    })
+);
+
+{
+  const drop = worstDrop(heroRun.samples, false);
+  /*
+   * The hero is put back to its idle state once the page has moved on, which
+   * is a deliberate rewind — so the run is judged up to where it lands, not
+   * past it.
+   */
+  const landed = heroRun.samples.filter((s) => s[0] <= 3200);
+  const settled = landed[landed.length - 1][1];
+  const offTarget = Math.abs(settled - heroRun.end);
+  const dropUpToLanding = worstDrop(landed, false);
+
+  console.log(`
+hero    click ran the clip to ${settled.toFixed(3)}s of ${heroRun.end.toFixed(3)}s
+        largest backward step ${dropUpToLanding.worst.toFixed(4)}s${dropUpToLanding.at !== null ? ` at ${dropUpToLanding.at}ms` : ''}
+        off by ${offTarget.toFixed(3)}s (${(offTarget / FRAME).toFixed(1)} frames)`);
+
+  if (dropUpToLanding.worst > TOLERANCE) failures.push('the hero run steps backwards');
+  if (offTarget > ALLOWED_OFF_TARGET) {
+    failures.push('the hero camera rests off its last frame');
+  }
+  if (drop.worst > 0 && dropUpToLanding.worst === 0) {
+    console.log('        (and rewinds to its idle loop afterwards, as it should)');
+  }
+}
+
+/*
+ * 3. Each scrub: ramp the scroll across the section, then hold.
  *
  * It must not step backwards, and it must come to rest on the frame the scroll
  * is asking for. Settling forwards after the scrolling stops is expected — the
@@ -110,12 +152,20 @@ if (heroDrop.wraps === 0) failures.push('the hero loop never cycles');
 for (const scene of SCENES) {
   const run = await page.evaluate(
     ({ name, video }) =>
-      new Promise((resolve) => {
+      new Promise(async (resolve) => {
         const el = document.querySelector(video);
         const section = document.querySelector(`[data-scene="${name}"]`);
         const top = section.getBoundingClientRect().top + window.scrollY;
         const travel = section.offsetHeight - window.innerHeight;
         const out = [];
+        /*
+         * Park at the section's top and let the camera get there before the
+         * clock starts. The hero's click leaves the page a little way into
+         * this section, so sampling straight away would record the rewind
+         * this test itself asked for.
+         */
+        window.scrollTo(0, top);
+        await new Promise((r) => setTimeout(r, 400));
         const t0 = performance.now();
         let landed = false;
         (function tick() {
