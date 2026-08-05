@@ -122,11 +122,11 @@
    *
    * The lengths are the ones --scene-length-flight is built out of: the
    * cupola leg keeps the 420 of scroll it has always had, and the orbit that
-   * carries on from it is given 440 more. Changing either means changing that
+   * carries on from it is given 560 more. Changing either means changing that
    * custom property to match.
    */
   var FLIGHT_CUPOLA_VH = 420;
-  var FLIGHT_ORBIT_VH = 440;
+  var FLIGHT_ORBIT_VH = 560;
   var FLIGHT_SPLIT = FLIGHT_CUPOLA_VH / (FLIGHT_CUPOLA_VH + FLIGHT_ORBIT_VH);
   /*
    * The scroll the hand-over is dissolved across. The cupola clip's last
@@ -176,9 +176,18 @@
    * Fractions of the orbit leg: where the second and third points arrive.
    * Both wait out the stretch above — the copy should change on a camera
    * that is moving, not on one being held still.
+   *
+   * The third stands as far down the clip as the section will carry it. The
+   * two intervals cannot be made equal: the first runs from the first point,
+   * which arrives before the hand-over, all the way through the second's
+   * three-second wait into the clip, and the third would have to sit past
+   * the end of the clip to match it — the leg would have to be four times
+   * this long. So the third is put where it still has a window to be read in
+   * before the section below covers it, which halves the difference rather
+   * than closing it.
    */
   var POINT_2_FROM = 0.42;
-  var POINT_3_FROM = 0.6;
+  var POINT_3_FROM = 0.72;
   /*
    * The three points read off the orbit, in the order it brings them round.
    * The first is the one the frame draws, and stands from DEVICE_FROM on the

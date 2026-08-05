@@ -143,11 +143,11 @@
   --scene-length-hero: 100vh;
   /*
    * The flight is two clips end to end: one window of pin, then 420 of
-   * scroll for the cupola leg — what it has always had — and 440 more for
+   * scroll for the cupola leg — what it has always had — and 560 more for
    * the orbit that carries on from it. js/scene.js splits its progress on
    * exactly those two lengths, so they have to be changed together.
    */
-  --scene-length-flight: 960vh;
+  --scene-length-flight: 1080vh;
   --scene-length-role: 560vh;
   --scene-length-use: 640vh;
 }
