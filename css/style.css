@@ -2128,19 +2128,12 @@ html.is-held [data-scene='hero'] button {
   overflow: hidden;
   background: #030303;
   /*
-   * assets/images/base shape.png — a rectangle with the top left and bottom
-   * right corners taken off. Its own cut is 88 of 1965 across by 112 of 1365
-   * down; as shares of the box the same cut holds at any card size, and cut
-   * rather than masked it needs no fetch to draw.
+   * Plain rectangles for now. The corner cut of assets/images/base shape.png
+   * was here as a clip; taken off on request, to see whether it was behind
+   * the hairline along the edges. Measured it was not — the same card with
+   * the clip and without gave identical pixels along every straight edge —
+   * but the shape is only worth putting back once the edges are settled.
    */
-  clip-path: polygon(
-    4.48% 0,
-    100% 0,
-    100% 91.8%,
-    95.52% 100%,
-    0 100%,
-    0 8.2%
-  );
 }
 
 /*
@@ -2158,7 +2151,13 @@ html.is-held [data-scene='hero'] button {
   width: calc(100% + 2px);
   height: calc(100% + 2px);
   object-fit: cover;
-  will-change: transform;
+  /*
+   * No `will-change` here. It puts the picture on a compositing layer of its
+   * own, and a layer is rasterised apart from what is under it and pasted
+   * back — which can leave a seam along its edge that no screenshot taken
+   * headless will show, because that composites differently. The transform
+   * on it is written once a frame at most and does not need the promotion.
+   */
 }
 
 /* 424:3346 — label/M. The frame leaves 24 under the picture; 16 on request. */
