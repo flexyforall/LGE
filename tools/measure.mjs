@@ -57,19 +57,10 @@ const BOXES = [
   ['339:360', 79.5, 515.5, 360, null, 'wide card overline'],
   ['339:372', 1118.5, 602, 380, 380, 'narrow card figure'],
 
-  // --- use cases, 394:309. The head is held in the middle of the window on
-  // its own stretch, so it is measured against that stage rather than a
-  // frame: 764 wide, two lines of headline/H1 at 72. The card is measured in
-  // the pinned frame, on the row that leaves equal air above it (to the menu)
-  // and below it (to the window's edge) — at 810 and 650 tall, y 122.
-  ['394:317', 338, null, 764, 144, 'use: headline (landed)'],
-  ['394:381', 56, 122, 1328, 650, 'use: card'],
-  ['394:352', 56, 122, 664, 650, 'use: panel'],
-  ['394:370', 720, 122, 664, 650, 'use: picture half'],
-  ['394:354', 178, 361, 420, 172, 'use: copy block'],
-  ['394:405', 178, 361, 420, 108, 'use: title + body'],
-  ['394:382', 298, 493, 180, 40, 'use: button'],
-  ['396:938', null, 732, null, 16, 'use: tag row'],
+  // --- use cases, 402:2207. The last section is the one line, held in the
+  // middle of the window: headline/H1 at 110/120, two lines of it, centred.
+  // Measured landed — its characters take up no room until they arrive.
+  ['394:317', null, null, null, 240, 'use: headline (landed)'],
 ];
 
 /**
@@ -96,8 +87,6 @@ const GAPS = [
   ['356:1235', '356:1236', 9, 'verify: text -> rule'],
   ['339:481', '339:374', 24, 'cards: label -> heading'],
   ['339:354', '339:365', 8, 'cards: wide -> narrow'],
-  ['394:405', '394:382', 24, 'use: text -> button'],
-  ['394:352', '394:370', 0, 'use: panel meets the picture'],
 ];
 
 const TOL = 0.5;

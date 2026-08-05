@@ -143,10 +143,7 @@
   --scene-length-hero: 100vh;
   --scene-length-flight: 520vh;
   --scene-length-role: 560vh;
-  --scene-length-use: 760vh;
   --scene-length-use-intro: 240vh;
-  /* lifted off the page's #030303 so the section's own edge reads */
-  --use-bg: #121212;
 }
 
 
@@ -1464,32 +1461,16 @@ html.is-held [data-scene='hero'] button {
 
 
 /* --- Use cases -----------------------------------------------------------
-   Figma "Use Cases" (394:309), choreographed by "Use Cases Sequence"
-   (396:931). The one section drawn on white.
-
-   The card is 1328 x 600 on the frame's 56px margins. Where it sits is the
-   one measurement the design does not give as a number: the air above it —
-   from the menu's lower edge — and the air below it, to the window's edge,
-   are equal. At the design's 810 that resolves to the sequence's own y 147.
+   Figma "Use Cases" (402:2207) — the page's last section, and all of it is
+   the one line. It is held in the middle of the window over a stretch of
+   scroll, and across that stretch it assembles itself out of characters
+   arriving in no order at all. See js/scene.js.
    ------------------------------------------------------------------------- */
 
-/*
- * The section is lifted off the #030303 the page is otherwise on, so its edge
- * against the section above it can be seen rather than guessed at.
- */
-.frame--use {
-  background: var(--use-bg);
-}
-
-/*
- * Two stretches of scroll, one after the other: the head is held in the
- * middle of the window while it assembles itself, and only then do the cards
- * take the window.
- */
 .use__intro {
   position: relative;
   height: var(--scene-length-use-intro);
-  background: var(--use-bg);
+  background: var(--color-bg);
 }
 
 .use__introStage {
@@ -1502,39 +1483,17 @@ html.is-held [data-scene='hero'] button {
   height: 100dvh;
 }
 
-.use__pin {
-  position: relative;
-  height: var(--scene-length-use);
-}
-
-.frame--use {
-  --use-card-h: 650px;
-  /* the menu's own 20 inset plus its 64 */
-  --use-menu-b: 84px;
-  --use-top: calc(
-    var(--use-menu-b) + (var(--frame-height) - var(--use-menu-b) - var(--use-card-h)) / 2
-  );
-}
-
-.use__square {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  background: var(--color-fg);
-}
-
-.use__square--dim {
-  background: rgba(255, 255, 255, 0.7);
-}
-
-/* 394:317 — headline/H1: 64/72, tracking -0.8, centred on the frame */
+/*
+ * 402:2215 — headline/H1 at 110/120, tracking -0.8, centred. The size is
+ * held against the frame's own 1440 rather than set flat, so the two lines
+ * stay two lines at any width: at 1440 this is exactly the design's 110.
+ */
 .use__headline {
   margin: 0;
-  width: 764px;
   font-family: var(--font-headline);
   font-weight: 400;
-  font-size: 64px;
-  line-height: 72px;
+  font-size: min(110px, 7.6389vw);
+  line-height: 1.0909;
   letter-spacing: -0.8px;
   text-align: center;
   color: var(--color-fg);
@@ -1548,6 +1507,7 @@ html.is-held [data-scene='hero'] button {
  */
 .use__line {
   display: block;
+  white-space: nowrap;
 }
 
 .use__line::before {
@@ -1570,200 +1530,12 @@ html.is-held [data-scene='hero'] button {
   display: none;
 }
 
-/* --- the card ------------------------------------------------------------ */
-
-/* 394:381 — 1328 x 600 on the 56px margins */
-.use__card {
-  position: absolute;
-  top: var(--use-top);
-  left: 56px;
-  right: 56px;
-  height: var(--use-card-h);
-}
-
-/*
- * 394:352 — the black panel. It is unfolded leftward out of the picture's
- * edge rather than slid in, so nothing of it ever crosses the picture:
- * js/scene.js drives the clip, and the panel is only ever revealed into
- * space the picture does not occupy.
- */
-.use__panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  background: #030303;
-  clip-path: inset(0 0 0 100%);
-}
-
-.use__panelInner {
-  position: absolute;
-  inset: 0;
-}
-
-/* 394:358 / 394:362 — 8px ticks, 6 in from each corner */
-.use__tick {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: #ffffff;
-}
-
-.use__tick--tl { top: 6px; left: 6px; }
-.use__tick--bl { bottom: 6px; left: 6px; }
-.use__tick--tr { top: 6px; right: 6px; }
-.use__tick--br { bottom: 6px; right: 6px; }
-
-/* 394:354 — 420 wide on the panel's centre, 24 above the button */
-.use__copy {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  width: 420px;
-  transform: translate(-50%, -50%);
-}
-
-/* 394:405 — 16 between the two */
-.use__text {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  text-align: center;
-}
-
-/* 394:355 — headline/H4: 32/44 */
-.use__cardTitle {
-  margin: 0;
-  font-family: var(--font-headline);
-  font-weight: 400;
-  font-size: 32px;
-  line-height: 44px;
-  color: var(--color-fg);
-}
-
-/* 394:356 — paragraph/M: 16/24 at 60% */
-.use__cardBody {
-  margin: 0;
-  font-family: var(--font-text);
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--color-fg);
-  opacity: 0.6;
-}
-
-/* 396:938 — the tags on the foot, 40 either side of the square */
-.use__tags {
-  position: absolute;
-  top: 610px;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: 40px;
-  transform: translateX(-50%);
-}
-
-.use__tag {
-  font-family: var(--font-label);
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-  white-space: nowrap;
-}
-
-/*
- * 394:370 — the picture half. The card sits on the frame's 56px margins, so
- * its own half-way mark is the frame's centre line; the three that fly in
- * are given the same box and land on it exactly.
- */
-.use__media {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/*
- * The pictures are stacked down the track and pushed up through the frame,
- * one after another — 396:841 draws the state mid-push, the outgoing one
- * still on the frame with the incoming one under it.
- */
-.use__track {
-  position: absolute;
-  inset: 0;
-  will-change: transform;
-}
-
-.use__shot {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.use__shot:nth-child(2) { top: 100%; }
-.use__shot:nth-child(3) { top: 200%; }
-
-/* --- the three that fly in ----------------------------------------------- */
-
-.use__deck {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-/*
- * Each is the card's picture half exactly — same box, scaled down from its
- * own top-left corner — so the main one's landing is congruent with it and
- * the hand-over is not a move but a swap of two identical boxes. Square on:
- * no lean anywhere.
- */
-.use__fly {
-  position: absolute;
-  top: var(--use-top);
-  left: 50%;
-  right: 56px;
-  height: var(--use-card-h);
-  overflow: hidden;
-  transform-origin: 0 0;
-  will-change: transform;
-}
-
-.use__fly img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Reduced motion: the card simply stands, already made. */
+/* Reduced motion: the line simply stands, already whole. */
 @media (prefers-reduced-motion: reduce) {
-  .use__panel {
-    clip-path: none;
-  }
-
-  .use__deck {
-    display: none;
-  }
-
   .use__ch {
     display: inline;
   }
 }
-
 
 
 /* 394:382 — the card's button carries the plate at 16px icons, not 20 */

@@ -138,56 +138,13 @@
    * Use cases
    * ------------------------------------------------------------------ */
   /*
-   * The head is held in the middle of the window and assembles itself over
-   * its own stretch of scroll: its characters arrive in no order at all, and
-   * the ones still to come take up no room, so each line holds the centre and
-   * grows outward. It is all in by USE_TITLE_BY, which leaves the last of the
-   * stretch to stand finished before the cards take over.
+   * The page's last section is one line, held in the middle of the window and
+   * assembling itself over a stretch of its own: its characters arrive in no
+   * order at all, and the ones still to come take up no room, so each line
+   * holds the centre and grows outward. It is all in by USE_TITLE_BY, leaving
+   * the last of the stretch for the finished line to stand on.
    */
   var USE_TITLE_BY = 0.72;
-  /*
-   * The pinned run. The loose cards drift to their marks, the main one then
-   * scales into the card's picture half while the other two take their leave,
-   * the panel unfolds, and the rest is the card changing what it shows.
-   */
-  var USE_SCALE = [0.3, 0.52]; // the main card travels to its place over this
-  /*
-   * The other two are gone over this, BEFORE the main one sets off — a card
-   * growing across the frame must never pass over one still fading.
-   */
-  var USE_FADE = [0.18, 0.29];
-  var USE_OPEN = [0.54, 0.68]; // the panel unfolds out of the picture's edge
-  var USE_SHOW_FROM = 0.72; // from here the card changes what it shows
-  var USE_HOLD = 0.55; // the share of each state's stretch it stands still for
-  var USE_SWAP_AT = 0.85; // how far through a push the copy is changed over
-  /*
-   * Where the loose cards stand, in shares of the frame: x, y, their scale of
-   * the picture half's box, and how far they drift over the pinned run. All
-   * three boxes, drifts included, keep clear of each other and of every edge
-   * — which is what keeps the float free of anything crossing anything.
-   */
-  var USE_FLOATS = [
-    { x: 0.1, y: 0.28, s: 0.57, dx: 0, dy: 0.06 },
-    { x: 0.67, y: 0.14, s: 0.45, dx: 0.02, dy: -0.05 },
-    { x: 0.54, y: 0.62, s: 0.4, dx: -0.03, dy: 0.05 },
-  ];
-  var USE_STATES = [
-    {
-      title: 'Orbital data centers',
-      body: 'Support scalable computing infrastructure beyond the limits of terrestrial data centers.',
-      tags: ['Plasma power', 'Laser links'],
-    },
-    {
-      title: 'Orbital connectivity',
-      body: 'Enable high-capacity data transfer between orbital platforms and infrastructure on Earth.',
-      tags: ['VLEO relay', 'Data transmission'],
-    },
-    {
-      title: 'Crewed operations',
-      body: 'Carry power and a continuous link to missions working far beyond low Earth orbit.',
-      tags: ['Life support', 'Deep space'],
-    },
-  ];
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1352,22 +1309,12 @@
    * ------------------------------------------------------------------ */
 
   /*
-   * The head rides the page: it wipes on the way the hero's copy does as it
-   * scrolls into view — onto its unread grey — then reads itself in as it
-   * travels, and goes on up with everything else. Nothing pins until the
-   * cards' stage takes the window.
-   *
-   * There, three loose cards drift with the scroll — square, whole, and
-   * never crossing. The main one then scales into the card's picture half:
-   * the same box to the pixel, so the hand-over is a swap of two identical
-   * pictures rather than a move. The other two take their leave where they
-   * stand. Only then does the black panel unfold leftward out of that edge,
-   * into space the picture has never occupied.
-   *
-   * From there the scroll changes what the card is showing: the pictures
-   * push each other up through the frame — gathering and braking rather than
-   * gliding at one speed — and the copy is wiped over by the same rectangle
-   * the rest of the site reveals with.
+   * One line, held in the middle of the window, putting itself together out
+   * of scattered characters as its stretch of scroll is spent. Each character
+   * lands whole rather than fading in, and one still to come takes up no room
+   * at all — so every line holds the centre and grows outward out of nothing,
+   * rather than filling in across a gap already the width of the finished
+   * line. That is the whole of the effect.
    */
   function setUpUse() {
     var scene = document.querySelector('[data-scene="use"]');
@@ -1375,35 +1322,18 @@
 
     var intro = scene.querySelector('[data-use-intro]');
     var headline = scene.querySelector('[data-use-headline]');
-    var pin = scene.querySelector('[data-use-pin]');
-    var frame = pin ? pin.querySelector('.frame') : null;
-    var card = scene.querySelector('[data-use-card]');
-    var panel = scene.querySelector('[data-use-panel]');
-    var deck = scene.querySelector('[data-use-deck]');
-    var track = scene.querySelector('[data-use-track]');
-    var title = scene.querySelector('[data-use-title]');
-    var body = scene.querySelector('[data-use-body]');
-    var tags = scene.querySelectorAll('[data-use-tag]');
-    var flies = [].slice.call(scene.querySelectorAll('[data-use-fly]'));
-    if (!intro || !headline || !pin || !frame || !card || !panel || !track || !title) return;
+    if (!intro || !headline || reduced) return;
 
-    if (reduced) {
-      return;
-    }
-
-    /*
-     * The head, split so every character can be taken away on its own. The
-     * lines are left as they are — each centres itself, and each keeps its
-     * row whether or not anything has landed on it — and the spaces are left
-     * as bare text, so a gap between words survives even while the words
-     * either side of it are still arriving.
-     *
-     * Splitting waits on the fonts: measured any sooner, the line the browser
-     * chooses is the fallback's.
-     */
     var chars = [];
     var order = [];
 
+    /*
+     * Split so every character can be taken away on its own. The lines are
+     * left as they are — each centres itself, and each keeps its row whether
+     * or not anything has landed on it — and the spaces stay bare text, so a
+     * gap between words survives while the words either side are still
+     * arriving.
+     */
     function scatter(el) {
       var out = [];
       [].forEach.call(el.querySelectorAll('.use__line'), function (line) {
@@ -1424,14 +1354,16 @@
       return out;
     }
 
+    /* Split once the fonts are in, or the lines land on fallback metrics. */
     var fontsReady =
       document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
     fontsReady.then(function () {
       chars = scatter(headline);
       /*
        * The order is drawn once and kept, so the same scroll position always
-       * shows the same characters — scrolling back up takes them away in the
-       * order they arrived rather than picking a fresh set every frame.
+       * shows the same half-built words — scrolling back up takes the
+       * characters away in the order they arrived rather than picking a fresh
+       * set every frame.
        */
       order = chars.map(function (_, i) {
         return i;
@@ -1445,117 +1377,20 @@
       paint();
     });
 
-    /* The copy the card is showing, and the reveal that changes it over. */
-    var shown = -1;
-
-    function show(i) {
-      if (i === shown) return;
-      shown = i;
-      var state = USE_STATES[i];
-      title.textContent = state.title;
-      if (body) body.textContent = state.body;
-      blockReveal(title);
-      if (body) blockReveal(body);
-      for (var t = 0; t < tags.length; t++) {
-        tags[t].textContent = state.tags[t];
-        blockReveal(tags[t]);
-      }
-    }
-
     register(function () {
+      if (!chars.length) return;
       /*
-       * The head assembles itself over its own held stretch. How many
-       * characters have landed is the scroll's business; which ones is the
-       * shuffled order's, drawn once and kept — so the same position always
-       * shows the same word half-built.
+       * How many have landed is the scroll's business; which ones is the
+       * shuffled order's.
        */
-      if (chars.length) {
-        var landed = Math.round(
-          clamp01(progressOf(intro) / USE_TITLE_BY) * chars.length
-        );
-        for (var i = 0; i < order.length; i++) {
-          var el = chars[order[i]];
-          var away = i >= landed;
-          if (el.classList.contains('is-away') !== away) {
-            el.classList.toggle('is-away', away);
-          }
+      var landed = Math.round(clamp01(progressOf(intro) / USE_TITLE_BY) * chars.length);
+      for (var i = 0; i < order.length; i++) {
+        var el = chars[order[i]];
+        var away = i >= landed;
+        if (el.classList.contains('is-away') !== away) {
+          el.classList.toggle('is-away', away);
         }
       }
-
-      var q = progressOf(pin);
-
-      /*
-       * The loose cards. Positions are computed in the frame's own pixels —
-       * offsetWidth, not a rect, so the min-width scale cannot fold itself in
-       * twice — against the picture half's box, which every floater shares.
-       */
-      var fw = frame.offsetWidth;
-      var fh = frame.offsetHeight;
-      var baseLeft = fw / 2;
-      var baseTop = card.offsetTop;
-      var landK = easeInOut(clamp01((q - USE_SCALE[0]) / (USE_SCALE[1] - USE_SCALE[0])));
-
-      for (var f = 0; f < flies.length; f++) {
-        var spec = USE_FLOATS[f];
-        /* The drift runs the whole pinned way, so nothing ever holds still. */
-        var fx = (spec.x + spec.dx * q) * fw;
-        var fy = (spec.y + spec.dy * q) * fh;
-        var el = flies[f];
-        if (f === 0) {
-          /* The main one: from its drifted spot to the picture half's box. */
-          var x = fx + (baseLeft - fx) * landK;
-          var y = fy + (baseTop - fy) * landK;
-          var sc = spec.s + (1 - spec.s) * landK;
-          el.style.transform =
-            'translate3d(' +
-            (x - baseLeft).toFixed(1) +
-            'px,' +
-            (y - baseTop).toFixed(1) +
-            'px,0) scale(' +
-            sc.toFixed(4) +
-            ')';
-        } else {
-          var fade = 1 - clamp01((q - USE_FADE[0]) / (USE_FADE[1] - USE_FADE[0]));
-          el.style.opacity = String(fade);
-          el.style.visibility = fade === 0 ? 'hidden' : '';
-          el.style.transform =
-            'translate3d(' +
-            (fx - baseLeft).toFixed(1) +
-            'px,' +
-            (fy - baseTop).toFixed(1) +
-            'px,0) scale(' +
-            spec.s.toFixed(4) +
-            ')';
-        }
-      }
-
-      /*
-       * The swap. The main floater and the card's first picture are the same
-       * picture on the same box, so trading one for the other is not seen.
-       */
-      var landed = q >= USE_SCALE[1];
-      deck.style.opacity = landed ? '0' : '1';
-      deck.style.visibility = landed ? 'hidden' : '';
-      card.style.opacity = landed ? '1' : '0';
-      card.style.visibility = landed ? '' : 'hidden';
-
-      /* The panel, unfolded leftward out of the picture's edge. */
-      var open = clamp01((q - USE_OPEN[0]) / (USE_OPEN[1] - USE_OPEN[0]));
-      var eased = 1 - Math.pow(1 - open, 3);
-      panel.style.clipPath = 'inset(0 0 0 ' + ((1 - eased) * 100).toFixed(2) + '%)';
-
-      /*
-       * What the card is showing. Each state stands for most of its stretch;
-       * the push between them gathers and brakes — easeInOut, not a line —
-       * and the copy changes over near the push's end, once the picture
-       * arriving owns most of the frame.
-       */
-      var span = clamp01((q - USE_SHOW_FROM) / (1 - USE_SHOW_FROM)) * (USE_STATES.length - 1);
-      var at = Math.min(USE_STATES.length - 2, Math.floor(span));
-      var into = clamp01((span - at - USE_HOLD) / (1 - USE_HOLD));
-      var slot = at + easeInOut(into);
-      track.style.transform = 'translate3d(0,' + (-slot * 100).toFixed(3) + '%,0)';
-      show(Math.min(USE_STATES.length - 1, Math.floor(slot + (1 - USE_SWAP_AT))));
     });
   }
 
