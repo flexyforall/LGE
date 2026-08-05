@@ -2143,12 +2143,20 @@ html.is-held [data-scene='hero'] button {
   );
 }
 
+/*
+ * A pixel proud of the box on every side. The card's height comes from its
+ * width through a ratio and lands on a fraction — 652 across gives 452.89
+ * down — so the last row of device pixels is only half covered and blends
+ * with the page behind it: a hairline, lighter than the picture, along the
+ * bottom edge. The overhang gives that row picture to be drawn from, and it
+ * costs nothing, being clipped away with the corners.
+ */
 .wire__shot img {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: -1px;
+  left: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
   object-fit: cover;
   will-change: transform;
 }

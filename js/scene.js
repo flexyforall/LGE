@@ -2147,23 +2147,52 @@
         if (on) runReveal(t.lines);
       }
 
+      /*
+       * Read every card first, then write every card. Interleaved, each
+       * write invalidates the layout the next read needs and the browser has
+       * to lay the page out again to answer it — six times a frame, which is
+       * what makes the scrolling here feel heavier than the sections above.
+       */
+      var vh = window.innerHeight;
+      var dpr = window.devicePixelRatio || 1;
+      var read = [];
       for (var i = 0; i < cards.length; i++) {
         var shot = cards[i].querySelector('[data-wire-shot]');
         if (!shot) continue;
-        var open = progressUp(shot, WIRE_CARD_FROM, WIRE_CARD_BY);
-        var eased = 1 - Math.pow(1 - open, 3);
+        var box = shot.getBoundingClientRect();
+        read.push({
+          shot: shot,
+          pic: shot.firstElementChild,
+          top: box.top,
+          width: shot.offsetWidth,
+          open: clamp01(
+            (vh * WIRE_CARD_FROM - box.top) / (vh * WIRE_CARD_FROM - vh * WIRE_CARD_BY)
+          ),
+        });
+      }
+
+      for (var j = 0; j < read.length; j++) {
+        var r = read[j];
+        var eased = 1 - Math.pow(1 - r.open, 3);
         /*
-         * The frame opens; the picture inside is left at its full height and
-         * pushed up by half of what the frame is still short by, so what is
-         * uncovered is the middle of it rather than its top.
+         * The height comes from the width through the frame's ratio, and it
+         * lands on a fraction — 652 across gives 452.89 down. A box whose
+         * bottom edge falls between two device pixels is drawn across both,
+         * and the half-covered row blends with the white page behind it: the
+         * hairline along the bottom of every card. So the height is nudged to
+         * whatever puts that edge on a whole device pixel. Under a tenth of a
+         * pixel of the frame's ratio, and the hairline goes.
          */
-        var full = shot.offsetWidth * (455 / 655);
+        var full = r.width * (455 / 655);
+        full = Math.round((r.top + full) * dpr) / dpr - r.top;
         var h = full * (WIRE_BAND + (1 - WIRE_BAND) * eased);
-        shot.style.height = h.toFixed(1) + 'px';
-        var pic = shot.firstElementChild;
-        if (pic) {
-          pic.style.height = full.toFixed(1) + 'px';
-          pic.style.transform =
+        var height = h.toFixed(3) + 'px';
+        if (r.shot.style.height !== height) r.shot.style.height = height;
+        if (r.pic) {
+          /* +2 for the pixel it stands proud on each side; see the sheet. */
+          var ph = (full + 2).toFixed(1) + 'px';
+          if (r.pic.style.height !== ph) r.pic.style.height = ph;
+          r.pic.style.transform =
             'translateY(' +
             (-(full - h) / 2).toFixed(1) +
             'px) scale(' +
