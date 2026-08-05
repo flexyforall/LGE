@@ -14,7 +14,13 @@
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  var EASE = 0.065; // fraction of the remaining distance covered per frame
+  /*
+   * Fraction of the remaining distance covered per frame. Low enough to take
+   * the step out of a wheel notch, high enough that the page has arrived by
+   * the time the hand has stopped — a longer tail does not read as smoother,
+   * it reads as the page moving on its own after you have let go.
+   */
+  var EASE = 0.12;
   var target = window.scrollY;
   var current = window.scrollY;
   var raf = null;

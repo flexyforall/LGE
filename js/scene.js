@@ -119,7 +119,12 @@
   var FLIGHT_PREROLL = 1.2; // seconds the clip creeps through while the card scales
   var FLIGHT_WIDEN_BY = 0.09; // the card has widened across both by here...
   var FLIGHT_OPEN_BY = 0.24; // ...and has taken the whole window by here
-  var FLIGHT_RUN_BY = 0.86; // ...and the clip has run to its end by here
+  /*
+   * ...and the clip has run to its end by here. It is the whole section now:
+   * the one below is pulled up over this and covers it, and the clip goes on
+   * running the whole time it is being covered rather than stopping first.
+   */
+  var FLIGHT_RUN_BY = 1;
   var TEXT_IN_FROM = 0.26; // the intro copy writes on over the flight...
   var TEXT_IN_BY = 0.6; // ...and has written itself out again by here
   var DEVICE_FROM = 0.68; // the device copy arrives with the satellite
@@ -143,20 +148,24 @@
    * line holds the centre and grows outward out of nothing.
    */
   var USE_TITLE_BY = 0.22;
-  /* Then it dims right back, to the fifth 402:2208 draws it at. */
-  var USE_DIM = [0.24, 0.32];
+  /*
+   * It is dimmed by whatever is standing over it rather than by the scroll:
+   * the further a card is from the centre the more of the line is left, and
+   * only a card actually across it takes it all the way down.
+   */
   var USE_DIM_TO = 0.1; // the frame's own 0.2 over a colour already at 0.5
+  var USE_DIM_OVER = 210; // px of approach the dimming is spread across
   /*
    * And the cards run. Each rises from below the fold, stands a while on its
    * own place across the frame, and carries on up and out as the next comes —
    * so one is always leaving as another arrives, and they are never stacked in
    * a single column.
    */
-  var USE_CARDS_FROM = 0.3;
-  var USE_CARD_HOLD = 0.42; // the share of a card's turn it stands still for
+  var USE_CARDS_FROM = 0.24;
   var USE_CARD_X = [0, -118, 96]; // px across the frame, each its own
   var USE_CARD_W = 550;
   var USE_CARD_H = 354;
+  var USE_TITLE_H = 240; // the line's own two rows, for the overlap above
   var USE_STATES = [
     {
       name: 'Orbital data centers',
@@ -1466,47 +1475,50 @@
         }
       }
 
-      /* Whole, then straight back down to the fifth the frame draws it at. */
-      var dim = clamp01((q - USE_DIM[0]) / (USE_DIM[1] - USE_DIM[0]));
-      headline.style.opacity = String(1 - (1 - USE_DIM_TO) * dim);
-
       /*
-       * The cards. `t` runs 0..N across the run, and card i stands at the
-       * centre while t is within USE_CARD_HOLD of i + 0.5; either side of
-       * that it travels, easing out of the stand and into it so it gathers
-       * and brakes rather than sliding at one speed.
+       * The cards, as one train. Every one of them keeps the same distance
+       * from the next the whole way — the spacing is written into where they
+       * are, not arrived at — so none ever closes on another. The train's
+       * position is the scroll's, straight: no easing of its own, nothing
+       * that carries on once the scrolling has stopped. It takes a window's
+       * worth of travel to bring the next card up.
        */
       var run = clamp01((q - USE_CARDS_FROM) / (1 - USE_CARDS_FROM));
+      var step = window.innerHeight;
       /*
-       * `t` is shifted half a turn back and runs the full count, so the first
-       * card starts wholly below the fold and the last one is still standing
-       * at the centre when the run — and the page — ends, rather than being
-       * halfway out of the frame with nothing following it.
+       * Shifted a whole step back so the first card starts a window below the
+       * fold, and reaching the end leaves the last one standing at the centre
+       * rather than halfway out of the frame.
        */
-      var t = run * cards.length - 0.5;
-      var reach = (window.innerHeight + USE_CARD_H) / 2;
-      var hold = USE_CARD_HOLD / 2;
+      var at = -1 + run * cards.length;
+      var nearest = 0;
 
       for (var c = 0; c < cards.length; c++) {
-        var d = t - (c + 0.5);
-        var travel = 0;
-        if (d < -hold) travel = (d + hold) / (1 - hold);
-        else if (d > hold) travel = (d - hold) / (1 - hold);
-        travel = travel < -1 ? -1 : travel > 1 ? 1 : travel;
-        var eased = easeInOut(Math.abs(travel)) * (travel < 0 ? -1 : 1);
+        var y = (c - at) * step;
         cards[c].style.transform =
           'translate3d(' +
           (USE_CARD_X[c] - USE_CARD_W / 2).toFixed(1) +
           'px,' +
-          (-eased * reach - USE_CARD_H / 2).toFixed(1) +
+          (y - USE_CARD_H / 2).toFixed(1) +
           'px,0)';
+        /*
+         * How much of this one is across the line. They share a centre, so
+         * the gap between the two blocks is all it takes.
+         */
+        var over = clamp01(
+          ((USE_CARD_H + USE_TITLE_H) / 2 - Math.abs(y)) / USE_DIM_OVER
+        );
+        if (over > nearest) nearest = over;
       }
+
+      /* Dimmed by whatever is over it, and no further. */
+      headline.style.opacity = String(1 - (1 - USE_DIM_TO) * nearest);
 
       /* The foot arrives with the cards and changes with whichever stands. */
       var on = clamp01((q - USE_CARDS_FROM) / 0.05);
       name.style.opacity = String(on);
       aside.style.opacity = String(on);
-      show(Math.max(0, Math.min(cards.length - 1, Math.floor(t))));
+      show(Math.max(0, Math.min(cards.length - 1, Math.round(at))));
     });
   }
 

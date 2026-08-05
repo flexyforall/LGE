@@ -1466,6 +1466,23 @@ html.is-held [data-scene='hero'] button {
    the cards run up through the frame over it. See js/scene.js.
    ------------------------------------------------------------------------- */
 
+/*
+ * The section is pulled up over the one above it and rides in on top of it,
+ * the way the cards ride over the tunnel — so the clip below is covered
+ * rather than cut away, and goes on running while it is being covered.
+ *
+ * It has to clear the flight's own two: the clip is fixed to the window at 40
+ * and that section's stage is lifted to 41 to read over it. Anything less and
+ * the edge would sweep across the clip while leaving the copy standing on top
+ * of it.
+ */
+[data-scene='use'] {
+  position: relative;
+  z-index: 42;
+  margin-top: -100vh;
+  margin-top: -100dvh;
+}
+
 .use__pin {
   position: relative;
   height: var(--scene-length-use);
@@ -1563,10 +1580,15 @@ html.is-held [data-scene='hero'] button {
 
 /* --- the foot ------------------------------------------------------------ */
 
-/* 402:2327 — headline/H4 at 32/44, centred on 202.5 */
+/*
+ * 402:2327 — headline/H4 at 32/44, centred on 202.5. Held off the frame's
+ * foot rather than its head: the frame is as tall as the window, so a top
+ * offset would leave this stranded in the middle of a tall one. 810 - 676 -
+ * 44 is the 90 the design leaves under it.
+ */
 .use__name {
   position: absolute;
-  top: 676px;
+  bottom: 90px;
   left: 202.5px;
   margin: 0;
   font-family: var(--font-headline);
@@ -1579,10 +1601,10 @@ html.is-held [data-scene='hero'] button {
   transform: translateX(-50%);
 }
 
-/* 402:2302 — 24 between the paragraph and the button */
+/* 402:2302 — 24 between the paragraph and the button, 56 off the foot */
 .use__aside {
   position: absolute;
-  top: 642px;
+  bottom: 56px;
   left: 1041px;
   display: flex;
   flex-direction: column;
@@ -1608,7 +1630,11 @@ html.is-held [data-scene='hero'] button {
   opacity: 0.6;
 }
 
-/* 402:2304 — the same plate, at the 199 this label asks for */
+/*
+ * 402:2304 — btn.svg is its own plate at 199 x 40, drawn square. The plate
+ * has to be told that width too: .button--light pins its own to the 180 its
+ * plate is, and left at that the right-hand plus stands off the white.
+ */
 .button--wide {
   width: 199px;
 }
