@@ -270,8 +270,6 @@
   var USE_MOVE_FROM = 0.88;
   var USE_MOVE_BY = 1;
   var HEAD_SIZE = 56 / 110; // the head's type against the big line's
-  var HEAD_X = 56; // 423:3168's own place on the frame
-  var HEAD_Y = 116;
   /*
    * It is dimmed by whatever is standing over it rather than by the scroll:
    * the further a card is from the centre the more of the line is left, and
@@ -1605,6 +1603,9 @@
     var footButton = aside ? aside.querySelector('.button') : null;
     var paper = scene.querySelector('[data-use-paper]');
     var menu = document.querySelector('[data-site-menu]');
+    var wireHead = document.querySelector('[data-wire-headline]');
+    /* Looked up when first wanted: the line itself is declared further down. */
+    var lines2 = null;
 
     var chars = [];
     var order = [];
@@ -2009,31 +2010,65 @@
        * very end — by which point the section below has its own head standing
        * in exactly the same place.
        */
-      if (headline2) {
-        var moved = clamp01(
-          (q - USE_MOVE_FROM) / (USE_MOVE_BY - USE_MOVE_FROM)
-        );
+      if (headline2 && wireHead) {
+        var moved = clamp01((q - USE_MOVE_FROM) / (USE_MOVE_BY - USE_MOVE_FROM));
         var ease = moved * moved * (3 - 2 * moved);
+        /*
+         * It is not sent to a place on this frame — it is sent to the head of
+         * the section below, wherever that head happens to be standing. That
+         * section is still under the fold while this one is being scrolled
+         * through, so the line goes *down* the frame and to the left as it
+         * shrinks, and it is only when the section below rises that the line
+         * it has become rises with it. Nothing ever disappears and comes back
+         * somewhere else: the two are the same line in the same place before
+         * the hand-over is made.
+         */
+        var frame = headline2.parentNode.getBoundingClientRect();
+        var head = wireHead.getBoundingClientRect();
         /*
          * Where its own top left stands untransformed. Taken from the layout
          * box and not from the painted one: the painted one already carries
          * the transform this is about to write, and reading it back would
          * feed the move into itself.
          */
-        var frame = headline2.parentNode.getBoundingClientRect();
         var nowX = frame.width / 2 - headline2.offsetWidth / 2;
         var nowY = frame.height / 2 - headline2.offsetHeight / 2;
         var k = 1 + (HEAD_SIZE - 1) * ease;
+        /*
+         * ...but never past the bottom left corner. The head is still well
+         * under the fold while this section is being scrolled through, and
+         * sent all the way to it the line would walk off the bottom and
+         * leave an empty frame behind it. It stops in the corner and waits
+         * there for the head to come up to it.
+         */
+        var floor = frame.height - 80 - headline2.offsetHeight * HEAD_SIZE;
+        var toX = head.left - frame.left;
+        var toY = Math.min(head.top - frame.top, floor);
         headline2.style.transformOrigin = 'left top';
         headline2.style.transform =
           'translate(-50%, -50%) translate(' +
-          ((HEAD_X - nowX) * ease).toFixed(1) +
+          ((toX - nowX) * ease).toFixed(1) +
           'px,' +
-          ((HEAD_Y - nowY) * ease).toFixed(1) +
+          ((toY - nowY) * ease).toFixed(1) +
           'px) scale(' +
           k.toFixed(4) +
           ')';
-        headline2.style.opacity = String(moved >= 1 ? 0 : 1);
+        /*
+         * ...and each line walks off its own centre to the block's left edge
+         * as it goes. The big line is centred and the head is flush left, so
+         * without this the shorter of the two lands short of the other — the
+         * jump that reads as the line being swapped rather than moved.
+         */
+        if (!lines2) lines2 = headline2.querySelectorAll('.use__line');
+        for (var li = 0; li < lines2.length; li++) {
+          lines2[li].style.transform =
+            'translateX(' + (-lines2[li].offsetLeft * ease).toFixed(1) + 'px)';
+        }
+
+        /* The head holds its place all along, and only shows once handed to. */
+        var done = moved >= 1;
+        headline2.style.opacity = done ? '0' : '1';
+        wireHead.style.opacity = done ? '1' : '0';
       }
     });
   }
@@ -2069,14 +2104,44 @@
     var cards = section.querySelectorAll('[data-wire-card]');
     if (reduced) return;
 
+    /*
+     * Every piece of copy here is wiped on by the rectangle the rest of the
+     * page uses rather than faded: the label, the note under it, and each
+     * card's tag and title. The squares and the button have no lines of their
+     * own to take, so those simply arrive with them.
+     */
+    var texts = [];
+    section
+      .querySelectorAll('.wire__labelText, .wire__lead, .wire__tag, .wire__title')
+      .forEach(function (el) {
+        texts.push({ el: el, lines: null, on: false });
+      });
+    var plain = section.querySelectorAll('.wire__square, .wire__aside .button');
+
     register(function () {
       /*
        * The head's own parts follow the line into place: they are keyed off
        * the section's top so they cannot arrive before it has landed.
        */
       var head = progressUp(section, WIRE_HEAD_FROM, 0.16);
-      if (label) label.style.opacity = head.toFixed(3);
-      if (aside) aside.style.opacity = head.toFixed(3);
+      for (var pi = 0; pi < plain.length; pi++) {
+        plain[pi].style.opacity = head.toFixed(3);
+      }
+
+      /*
+       * A line is split on its first crossing rather than up front: they are
+       * measured, and measuring before the fonts have landed splits the copy
+       * where the fallback wrapped it.
+       */
+      for (var ti = 0; ti < texts.length; ti++) {
+        var t = texts[ti];
+        var on = t.el.getBoundingClientRect().top < window.innerHeight * 0.88;
+        if (on === t.on) continue;
+        t.on = on;
+        if (!t.lines) t.lines = splitIntoLines(t.el);
+        hideReveal(t.lines);
+        if (on) runReveal(t.lines);
+      }
 
       for (var i = 0; i < cards.length; i++) {
         var shot = cards[i].querySelector('[data-wire-shot]');
@@ -2088,13 +2153,15 @@
          * pushed up by half of what the frame is still short by, so what is
          * uncovered is the middle of it rather than its top.
          */
-        var h = 455 * (WIRE_BAND + (1 - WIRE_BAND) * eased);
+        var full = shot.offsetWidth * (455 / 655);
+        var h = full * (WIRE_BAND + (1 - WIRE_BAND) * eased);
         shot.style.height = h.toFixed(1) + 'px';
         var pic = shot.firstElementChild;
         if (pic) {
+          pic.style.height = full.toFixed(1) + 'px';
           pic.style.transform =
             'translateY(' +
-            (-(455 - h) / 2).toFixed(1) +
+            (-(full - h) / 2).toFixed(1) +
             'px) scale(' +
             (1 + WIRE_PIC_ZOOM * (1 - eased)).toFixed(4) +
             ')';

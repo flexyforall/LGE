@@ -1677,6 +1677,20 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
+ * Its lines are boxed to their own text and centred by their margins rather
+ * than by `text-align`. Centred text cannot be walked over to flush left —
+ * the two lines are different lengths, so one transform on the block can
+ * only ever land one of them — and this gives each line an edge of its own
+ * for js/scene.js to carry across as the line becomes the newsroom's head.
+ */
+.use__headline--two .use__line {
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  will-change: transform;
+}
+
+/*
  * ...and that line is set in ink rather than in white, because by the time it
  * has arrived the frame under it is paper. The colour has to be put on the
  * characters and not on the line: each of them carries its own — the accent
@@ -1994,6 +2008,11 @@ html.is-held [data-scene='hero'] button {
   align-items: center;
   gap: 40px;
   height: 20px;
+}
+
+/* the squares and the button have no lines to wipe on; they simply arrive */
+.wire__square,
+.wire__aside .button {
   opacity: 0;
 }
 
@@ -2036,7 +2055,6 @@ html.is-held [data-scene='hero'] button {
   align-items: flex-start;
   gap: 24px;
   width: 372px;
-  opacity: 0;
 }
 
 /* 423:3170 — paragraph/L at 65% */
@@ -2051,9 +2069,15 @@ html.is-held [data-scene='hero'] button {
 }
 
 /* 424:3362 — two columns 24 apart, rows 56 apart, 56 under the head */
+/*
+ * 424:3362 — two columns 24 apart, rows 56 apart, 56 under the head. The
+ * columns are shares of the row rather than the frame's own 655, so the grid
+ * holds both margins on any window instead of standing 1328 wide in the
+ * middle of a wider one.
+ */
 .wire__grid {
   display: grid;
-  grid-template-columns: repeat(2, 655px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 24px;
   row-gap: 56px;
   margin-top: 56px;
@@ -2073,7 +2097,14 @@ html.is-held [data-scene='hero'] button {
 .wire__shot {
   position: relative;
   display: block;
-  height: 455px;
+  /*
+   * 655 x 455 on the frame — kept as a ratio so it follows its column. The
+   * width has to be said out loud: js/scene.js writes a height onto this to
+   * open it, and against a ratio alone a given height would set the width
+   * rather than the other way round.
+   */
+  width: 100%;
+  aspect-ratio: 655 / 455;
   overflow: hidden;
   background: #030303;
 }
@@ -2083,14 +2114,14 @@ html.is-held [data-scene='hero'] button {
   top: 0;
   left: 0;
   width: 100%;
-  height: 455px;
+  height: 100%;
   object-fit: cover;
   will-change: transform;
 }
 
-/* 424:3346 — label/M, 24 under the picture */
+/* 424:3346 — label/M. The frame leaves 24 under the picture; 16 on request. */
 .wire__tag {
-  margin: 24px 0 0;
+  margin: 16px 0 0;
   font-family: var(--font-label);
   font-weight: 500;
   font-size: 14px;
@@ -2116,8 +2147,8 @@ html.is-held [data-scene='hero'] button {
 
 /* Reduced motion: everything simply stands where it lands. */
 @media (prefers-reduced-motion: reduce) {
-  .wire__label,
-  .wire__aside {
+  .wire__square,
+  .wire__aside .button {
     opacity: 1;
   }
 }
