@@ -4,13 +4,15 @@
  * Two pinned sections, each taller than the window. The surplus height is the
  * scroll their cameras are mapped onto.
  *
- *   Hero    the one section that is not scrolled through at all: it holds the
- *           window, its clip idling on a loop, until it is clicked. The click
- *           runs the same move the scroll used to — the copy clears, the clip
- *           carries on from whatever frame the loop was on to its last, where
- *           the light has filled the screen — and then hands the page over to
- *           the tunnel below. A cursor of its own says so. The tag line
- *           rotates on its own clock; the partner row runs on its own in CSS.
+ *   Hero    the one section that is not scrolled through: it holds the window,
+ *           its clip idling on a loop, until it is asked to let go — by a
+ *           click, or by a scroll, which opens the same door rather than
+ *           taking the clip over. Either way one move runs on its own clock:
+ *           the copy clears, the clip carries on from whatever frame the loop
+ *           was on to its last, where the light has filled the screen, and the
+ *           page is handed to the tunnel below. A cursor of its own says so.
+ *           The tag line rotates on its own clock; the partner row runs on its
+ *           own in CSS.
  *
  *   Role    video 3 answers to the scroll from its first frame, and so does
  *           the clip in the container that follows it. The same scroll writes
@@ -49,6 +51,14 @@
    */
   var HERO_RUN_MS = 3200;
   var HERO_LAND_MS = 900; // ...and how long the white takes to lift off the tunnel
+  /*
+   * A scroll opens the same door as a click, and runs the same one-shot move —
+   * the clip is never handed to the scroll to drag through frame by frame.
+   * This is how far down the wheel has to ask before the hero lets go, which
+   * is far enough that a stray tick of trackpad noise does not send the page
+   * off on its own.
+   */
+  var HERO_PUSH = 40;
   var CURSOR_EASE = 0.22; // fraction of the distance the cursor closes per frame
   var CURSOR_LEAVE_MS = 520; // ...and how long its line takes to turn itself out
   var CURSOR_TYPE_MS = 34; // ms per character as that line writes itself on
@@ -636,16 +646,65 @@
       });
     }
 
+    function held() {
+      return document.documentElement.classList.contains('is-held');
+    }
+
     scene.addEventListener('click', function (event) {
       /* The button and the menu's tabs are clicks in their own right. */
       if (event.target.closest('a, button')) return;
       explore();
     });
 
-    /* The same door, for anyone not using a pointer. */
+    /*
+     * Asking to scroll down opens the same door, and runs the same move: the
+     * clip plays its transition through on its own clock rather than being
+     * dragged frame by frame under the wheel. Asking to go back up is not an
+     * answer, so the count starts over.
+     */
+    var pushed = 0;
+
+    window.addEventListener(
+      'wheel',
+      function (event) {
+        if (spent || !held()) return;
+        if (event.deltaY <= 0) {
+          pushed = 0;
+          return;
+        }
+        var d = event.deltaY;
+        if (event.deltaMode === 1) d *= 16; // lines -> px
+        else if (event.deltaMode === 2) d *= window.innerHeight;
+        pushed += d;
+        if (pushed >= HERO_PUSH) explore();
+      },
+      { passive: true }
+    );
+
+    /* A swipe up is the same request on a touch screen. */
+    var from = null;
+
+    window.addEventListener(
+      'touchstart',
+      function (event) {
+        from = event.touches[0].clientY;
+      },
+      { passive: true }
+    );
+
+    window.addEventListener(
+      'touchmove',
+      function (event) {
+        if (spent || !held() || from === null) return;
+        if (from - event.touches[0].clientY >= HERO_PUSH) explore();
+      },
+      { passive: true }
+    );
+
+    /* ...and the keys that would have scrolled it, for anyone not pointing. */
     document.addEventListener('keydown', function (event) {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      if (!document.documentElement.classList.contains('is-held')) return;
+      var keys = ['Enter', ' ', 'ArrowDown', 'PageDown', 'End'];
+      if (keys.indexOf(event.key) < 0 || !held()) return;
       var focused = document.activeElement;
       if (focused && focused.closest('a, button')) return;
       event.preventDefault();
