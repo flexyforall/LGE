@@ -360,14 +360,15 @@
     var on = false;
     var leaving = false;
     /*
-     * The push the two squares are under: how hard the pointer was last moved,
-     * and which way. `want` is topped up by each move and bleeds away every
-     * frame, so it stands for how the pointer is moving rather than where it
-     * is — which is what brings the squares back together the moment it stops.
+     * The push the two squares are under: how hard the pointer was last moved
+     * across, and which way. It is topped up by each move and bleeds away
+     * every frame, so it stands for how the pointer is moving rather than
+     * where it is — which is what brings the squares back level the moment it
+     * stops. Only sideways: they never travel up or down.
      */
-    var want = { x: 0, y: 0 };
-    var push = { x: 0, y: 0 };
-    var lastX = null, lastY = null;
+    var want = 0;
+    var push = 0;
+    var lastX = null;
 
     /* Its line writes itself on afresh every time the cursor arrives. */
     var retype = typeOn(el.querySelector('.cursor__label'), 'cursor__caret', CURSOR_TYPE_MS);
@@ -393,12 +394,8 @@
         x = tx;
         y = ty;
       }
-      if (lastX !== null) {
-        want.x = nudge(want.x, tx - lastX);
-        want.y = nudge(want.y, ty - lastY);
-      }
+      if (lastX !== null) want = nudge(want, tx - lastX);
       lastX = tx;
-      lastY = ty;
       /* Over a link or a button the pointer means what it usually means. */
       show(live() && !event.target.closest('a, button'));
     });
@@ -412,9 +409,7 @@
     (function follow() {
       requestAnimationFrame(follow);
       /* Nothing on screen and nothing left to settle — no work to do. */
-      if (!on && Math.abs(push.x) < 0.05 && Math.abs(push.y) < 0.05 && Math.abs(tx - x) < 0.5) {
-        return;
-      }
+      if (!on && Math.abs(push) < 0.05 && Math.abs(tx - x) < 0.5) return;
 
       x += (tx - x) * CURSOR_EASE;
       y += (ty - y) * CURSOR_EASE;
@@ -422,20 +417,15 @@
         'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) translate(-50%,-50%)';
 
       /*
-       * The squares are carried apart along whichever way the pointer is
-       * going — up, down, across or any diagonal — the top one with it and
-       * the bottom one against, so they always separate rather than shift
-       * together. The want bleeds off each frame, so they draw back level as
-       * soon as the pointer settles.
+       * The squares are carried apart across the frame as the pointer moves —
+       * the top one with it and the bottom one against, so they separate
+       * rather than shift together. The want bleeds off each frame, so they
+       * draw back level as soon as the pointer settles.
        */
-      want.x *= SQUARE_BLEED;
-      want.y *= SQUARE_BLEED;
-      push.x += (want.x - push.x) * SQUARE_EASE;
-      push.y += (want.y - push.y) * SQUARE_EASE;
+      want *= SQUARE_BLEED;
+      push += (want - push) * SQUARE_EASE;
       for (var i = 0; i < squares.length; i++) {
-        var way = i % 2 ? -1 : 1;
-        squares[i].style.setProperty('--px', (way * push.x).toFixed(2) + 'px');
-        squares[i].style.setProperty('--py', (way * push.y).toFixed(2) + 'px');
+        squares[i].style.setProperty('--px', ((i % 2 ? -1 : 1) * push).toFixed(2) + 'px');
       }
     })();
 
@@ -445,8 +435,7 @@
      * never over the hero there is nothing standing there to take its leave.
      */
     return function () {
-      want.x = 0;
-      want.y = 0;
+      want = 0;
       if (!on || leaving) return;
       leaving = true;
       el.classList.add('is-leaving');

@@ -232,16 +232,17 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
- * 378:2087 / 378:2084 — 7 x 7. The pair are carried apart along whichever way
- * the pointer is moving, the top one with it and the bottom one against, and
- * draw back level once it settles. js/scene.js writes the offsets.
+ * 378:2087 / 378:2084 — 7 x 7. The pair are carried apart across the frame as
+ * the pointer moves, the top one with it and the bottom one against, and draw
+ * back level once it settles. Sideways only — they never travel up or down.
+ * js/scene.js writes the offset.
  */
 .cursor__square {
   flex: none;
   width: 7px;
   height: 7px;
   background: #ffffff;
-  transform: translate(var(--px, 0px), var(--py, 0px));
+  transform: translateX(var(--px, 0px));
 }
 
 /* 378:2085 — label/S in caps, centred over the pointer */
