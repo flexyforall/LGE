@@ -1553,6 +1553,8 @@ html.is-held [data-scene='hero'] button {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* the depth the pointer's lean is read in */
+  perspective: 1400px;
 }
 
 /*
@@ -1589,23 +1591,28 @@ html.is-held [data-scene='hero'] button {
 .use__name {
   position: absolute;
   bottom: 90px;
-  left: 202.5px;
+  left: 56px;
   margin: 0;
   font-family: var(--font-headline);
   font-weight: 400;
   font-size: 32px;
   line-height: 44px;
-  text-align: center;
+  text-align: left;
   color: var(--color-fg);
   white-space: nowrap;
-  transform: translateX(-50%);
 }
 
-/* 402:2302 — 24 between the paragraph and the button, 56 off the foot */
+/*
+ * 402:2302 — 24 between the paragraph and the button, 56 off the foot. Hung
+ * off the frame's right margin rather than a fixed offset from its left: the
+ * frame is as wide as the window, so a left offset held its distance from the
+ * left and let the gap on the right grow with every pixel of extra width.
+ * 1440 - 56 - 343 is the design's own 1041.
+ */
 .use__aside {
   position: absolute;
   bottom: 56px;
-  left: 1041px;
+  right: 56px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1613,15 +1620,14 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
- * 402:2303 — paragraph/M at 60%. The frame's box is 343, which is exactly
- * what this copy's longest line measures here — no room at all. The other two
- * states' lines are a shade longer, and at 343 they take a third line and
- * shove the button down 24 as the card changes. Nine more pixels holds all
- * three to two lines without moving a single break of the frame's own.
+ * 402:2303 — paragraph/M at 60%, on the frame's own 343. That is exactly what
+ * this copy's longest line measures here, with no room at all, so the other
+ * two states' lines are written to the same measure — a longer one takes a
+ * third line and lifts its own top as the card changes.
  */
 .use__body {
   margin: 0;
-  width: 352px;
+  width: 343px;
   font-family: var(--font-text);
   font-weight: 400;
   font-size: 16px;
@@ -1631,9 +1637,10 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
- * 402:2304 — btn.svg is its own plate at 199 x 40, drawn square. The plate
- * has to be told that width too: .button--light pins its own to the 180 its
- * plate is, and left at that the right-hand plus stands off the white.
+ * 402:2304 — newbtn.svg is this label's own plate: the same notched shape as
+ * the rest, drawn at 199 x 40 rather than stretched from the 180 one. The
+ * plate has to be told that width too — .button--light pins its own to 180,
+ * and left at that the right-hand plus stands off the white.
  */
 .button--wide {
   width: 199px;

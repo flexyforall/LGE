@@ -63,8 +63,8 @@ const BOXES = [
   ['402:2215', null, null, null, 240, 'use: headline (landed)'],
   ['402:2333', 445, 228, 550, 354, 'use: card'],
   ['402:2327', null, 676, null, 44, 'use: name'],
-  ['402:2302', 1041, 642, 352, 112, 'use: aside'],
-  ['402:2303', 1041, 642, 352, 48, 'use: paragraph'],
+  ['402:2302', 1041, 642, 343, 112, 'use: aside'],
+  ['402:2303', 1041, 642, 343, 48, 'use: paragraph'],
   ['402:2304', 1041, 714, 199, 40, 'use: button'],
 ];
 
@@ -127,6 +127,10 @@ await page.evaluate(() => {
   /* ...and the first card stood on its mark, where the frame draws it. */
   const first = document.querySelector('[data-use-card]');
   if (first) first.style.transform = 'translate3d(-275px, -177px, 0)';
+  /* ...and the foot shown, which only arrives once the cards are running */
+  document.querySelectorAll('[data-use-name], [data-use-aside]').forEach((e) => {
+    e.style.opacity = '1';
+  });
 });
 await page.waitForTimeout(300);
 

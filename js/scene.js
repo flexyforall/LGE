@@ -165,6 +165,14 @@
   var USE_CARD_X = [0, -118, 96]; // px across the frame, each its own
   var USE_CARD_W = 550;
   var USE_CARD_H = 354;
+  /*
+   * A card comes up a shade small and reaches its full size as it arrives, so
+   * it reads as coming forward rather than sliding across; and it leans a
+   * little under the pointer, eased so it settles rather than tracks.
+   */
+  var USE_CARD_SCALE = 0.92;
+  var USE_CARD_LEAN = 5; // degrees at the far corners of the window
+  var USE_LEAN_EASE = 0.09;
   var USE_TITLE_H = 240; // the line's own two rows, for the overlap above
   var USE_STATES = [
     {
@@ -173,11 +181,11 @@
     },
     {
       name: 'Orbital connectivity',
-      body: 'Enable high-capacity data transfer between orbital platforms and infrastructure on Earth.',
+      body: 'Enable high-capacity data transfer between platforms in orbit and the ground.',
     },
     {
       name: 'Crewed operations',
-      body: 'Carry power and a continuous link to missions working far beyond low Earth orbit.',
+      body: 'Carry power and a continuous link to missions far beyond low Earth orbit.',
     },
   ];
 
@@ -1437,6 +1445,31 @@
       });
     }
 
+    /*
+     * The pointer's lean, eased toward where it is asked rather than set to
+     * it, so the cards settle after the pointer stops instead of tracking it.
+     */
+    var leanTo = { x: 0, y: 0 };
+    var lean = { x: 0, y: 0 };
+
+    scene.addEventListener('mousemove', function (event) {
+      leanTo.x = (event.clientX / window.innerWidth) * 2 - 1;
+      leanTo.y = (event.clientY / window.innerHeight) * 2 - 1;
+    });
+
+    scene.addEventListener('mouseleave', function () {
+      leanTo.x = 0;
+      leanTo.y = 0;
+    });
+
+    (function follow() {
+      requestAnimationFrame(follow);
+      if (Math.abs(leanTo.x - lean.x) < 0.001 && Math.abs(leanTo.y - lean.y) < 0.001) return;
+      lean.x += (leanTo.x - lean.x) * USE_LEAN_EASE;
+      lean.y += (leanTo.y - lean.y) * USE_LEAN_EASE;
+      paint();
+    })();
+
     var shown = -1;
 
     function show(i) {
@@ -1495,12 +1528,25 @@
 
       for (var c = 0; c < cards.length; c++) {
         var y = (c - at) * step;
+        /*
+         * Full size at the centre, a shade under it a window away — so a card
+         * grows into its place as it arrives rather than simply sliding to it.
+         */
+        var near = clamp01(1 - Math.abs(y) / step);
+        var scale = USE_CARD_SCALE + (1 - USE_CARD_SCALE) * near;
         cards[c].style.transform =
           'translate3d(' +
           (USE_CARD_X[c] - USE_CARD_W / 2).toFixed(1) +
           'px,' +
           (y - USE_CARD_H / 2).toFixed(1) +
-          'px,0)';
+          'px,0)' +
+          ' rotateX(' +
+          (-lean.y * USE_CARD_LEAN).toFixed(2) +
+          'deg) rotateY(' +
+          (lean.x * USE_CARD_LEAN).toFixed(2) +
+          'deg) scale(' +
+          scale.toFixed(4) +
+          ')';
         /*
          * How much of this one is across the line. They share a centre, so
          * the gap between the two blocks is all it takes.
