@@ -1611,7 +1611,8 @@
     var order = [];
     var chars2 = [];
     var order2 = [];
-    var headline2 = scene.querySelector('[data-use-headline2]');
+    /* Out of the scene now — it lives in the overlay over the whole page. */
+    var headline2 = document.querySelector('[data-use-headline2]');
 
     /*
      * The mark a card leaves is drawn on a copy of the line rather than on the
@@ -2034,16 +2035,8 @@
         var nowX = frame.width / 2 - headline2.offsetWidth / 2;
         var nowY = frame.height / 2 - headline2.offsetHeight / 2;
         var k = 1 + (HEAD_SIZE - 1) * ease;
-        /*
-         * ...but never past the bottom left corner. The head is still well
-         * under the fold while this section is being scrolled through, and
-         * sent all the way to it the line would walk off the bottom and
-         * leave an empty frame behind it. It stops in the corner and waits
-         * there for the head to come up to it.
-         */
-        var floor = frame.height - 80 - headline2.offsetHeight * HEAD_SIZE;
         var toX = head.left - frame.left;
-        var toY = Math.min(head.top - frame.top, floor);
+        var toY = head.top - frame.top;
         headline2.style.transformOrigin = 'left top';
         headline2.style.transform =
           'translate(-50%, -50%) translate(' +
@@ -2065,7 +2058,12 @@
             'translateX(' + (-lines2[li].offsetLeft * ease).toFixed(1) + 'px)';
         }
 
-        /* The head holds its place all along, and only shows once handed to. */
+        /*
+         * The hand-over waits for the two to be in the same place rather than
+         * for the scroll to reach a mark. That is what stops the head reading
+         * as a second line coming back: it is only ever shown once it is
+         * standing exactly where the line already is.
+         */
         var done = moved >= 1;
         headline2.style.opacity = done ? '0' : '1';
         wireHead.style.opacity = done ? '1' : '0';
@@ -2123,7 +2121,13 @@
        * The head's own parts follow the line into place: they are keyed off
        * the section's top so they cannot arrive before it has landed.
        */
-      var head = progressUp(section, WIRE_HEAD_FROM, 0.16);
+      /*
+       * The squares and the button have no lines to wipe on, so they are
+       * faded — but over the same short band the copy beside them is wiped
+       * on, and not on a clock of their own. Held apart they read as a
+       * second thing arriving after the head rather than as part of it.
+       */
+      var head = progressUp(section, 0.9, 0.78);
       for (var pi = 0; pi < plain.length; pi++) {
         plain[pi].style.opacity = head.toFixed(3);
       }

@@ -155,7 +155,7 @@
    * itself and then the strip being browsed. js/scene.js marks out where each
    * of those falls as a fraction of this.
    */
-  --scene-length-use: 830vh;
+  --scene-length-use: 870vh;
 }
 
 
@@ -1677,6 +1677,19 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
+ * The line that becomes the newsroom's head is kept out of the frame and over
+ * everything else: the newsroom rises over that frame while the line is still
+ * travelling, and inside it the line would go behind it. Fixed, so its own
+ * coordinates are the window's — which is what the head's are measured in too.
+ */
+.use__over {
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+  pointer-events: none;
+}
+
+/*
  * Its lines are boxed to their own text and centred by their margins rather
  * than by `text-align`. Centred text cannot be walked over to flush left —
  * the two lines are different lengths, so one transform on the block can
@@ -1981,6 +1994,13 @@ html.is-held [data-scene='hero'] button {
 .wire {
   position: relative;
   z-index: 43; /* clear of the opening card and the flight stage below it */
+  /*
+   * Pulled up into the last of the section above, so its first row of cards
+   * is already rising into the window while the line up there is still on
+   * its way down — the line comes to rest above them rather than at the
+   * bottom of an empty frame, and its head is on screen to be handed to.
+   */
+  margin-top: -40vh;
   padding: 80px 56px 120px;
   background: #ffffff;
   color: #030303;
@@ -2107,6 +2127,20 @@ html.is-held [data-scene='hero'] button {
   aspect-ratio: 655 / 455;
   overflow: hidden;
   background: #030303;
+  /*
+   * assets/images/base shape.png — a rectangle with the top left and bottom
+   * right corners taken off. Its own cut is 88 of 1965 across by 112 of 1365
+   * down; as shares of the box the same cut holds at any card size, and cut
+   * rather than masked it needs no fetch to draw.
+   */
+  clip-path: polygon(
+    4.48% 0,
+    100% 0,
+    100% 91.8%,
+    95.52% 100%,
+    0 100%,
+    0 8.2%
+  );
 }
 
 .wire__shot img {
@@ -2131,9 +2165,11 @@ html.is-held [data-scene='hero'] button {
   color: rgba(3, 3, 3, 0.65);
 }
 
-/* 423:3337 — headline/H5 at 24/32, 8 under the tag */
+/* 423:3337 — headline/H5 at 24/32, 8 under the tag, over its own hairline */
 .wire__title {
   margin: 8px 0 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(3, 3, 3, 0.12);
   font-family: var(--font-headline);
   font-weight: 400;
   font-size: 24px;
