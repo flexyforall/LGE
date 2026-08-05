@@ -155,7 +155,7 @@
    * itself and then the strip being browsed. js/scene.js marks out where each
    * of those falls as a fraction of this.
    */
-  --scene-length-use: 1560vh;
+  --scene-length-use: 930vh;
 }
 
 
@@ -2204,6 +2204,18 @@ html.is-held [data-scene='hero'] button {
   pointer-events: none;
 }
 
+/*
+ * While the section is holding the window the row is pulled through by hand,
+ * so the whole frame is the handle.
+ */
+.strip.is-on {
+  cursor: grab;
+}
+
+.strip.is-on:active {
+  cursor: grabbing;
+}
+
 /* 421:2919 — centred on the frame, and free to overflow it either side */
 .strip__row {
   position: absolute;
@@ -2287,15 +2299,19 @@ html.is-held [data-scene='hero'] button {
   opacity: 0;
 }
 
-/* 421:3089 — headline/H6 */
+/*
+ * 421:3089 — headline/H6 on the frame's own 244. It is allowed to wrap rather
+ * than run on: the frame's title fits that width on one line, and a longer
+ * one would otherwise walk straight into the paragraph beside it.
+ */
 .strip__title {
   margin: 0;
   flex: none;
+  width: 244px;
   font-family: var(--font-headline);
   font-weight: 500;
   font-size: 18px;
   line-height: 24px;
-  white-space: nowrap;
   color: var(--color-fg);
 }
 

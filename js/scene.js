@@ -239,7 +239,7 @@
    * each landing whole and each taking up no room until it does — so every
    * line holds the centre and grows outward out of nothing.
    */
-  var USE_TITLE_BY = 0.08;
+  var USE_TITLE_BY = 0.14;
   /*
    * The section runs a whole sequence, and these are its marks. The line
    * assembles; the three cards run through and the last one leaves with the
@@ -247,14 +247,17 @@
    * strip's cards fly in and stack into their row, taking that line with them
    * as they land; and from there the strip is browsed to the end.
    */
-  var USE_CARDS_BY = 0.44; // the last card has left by here
-  var USE_FOOT_OUT_FROM = 0.43; // the foot is wiped out...
-  var USE_FOOT_OUT_BY = 0.48;
-  var USE_TITLE2_FROM = 0.48; // ...and the second line takes the frame
-  var USE_TITLE2_BY = 0.56;
-  var STRIP_IN_FROM = 0.56; // the strip's cards come in and stack...
-  var STRIP_IN_BY = 0.65;
-  var STRIP_RUN_FROM = 0.65; // ...and from here it is browsed
+  var USE_CARDS_BY = 0.78; // the last card has left by here
+  var USE_FOOT_OUT_FROM = 0.77; // the foot is wiped out, and the line with it
+  var USE_FOOT_OUT_BY = 0.84;
+  /*
+   * ...and here the scroll stops being what drives anything. The section
+   * takes the window the way the hero does and the strip is dragged through
+   * by hand: the second line writes itself on as it is pulled, the cards only
+   * begin to arrive once that line is whole, and the row is browsed from
+   * there. The page is given back the moment the last card has been reached.
+   */
+  var STRIP_FROM = 0.86;
   /*
    * It is dimmed by whatever is standing over it rather than by the scroll:
    * the further a card is from the centre the more of the line is left, and
@@ -272,8 +275,8 @@
    * rise into the frame. The section opens on black — the line assembles
    * against nothing — and this is in by the time the card shows.
    */
-  var USE_GLOW_FROM = 0.07;
-  var USE_GLOW_BY = 0.13;
+  var USE_GLOW_FROM = 0.12;
+  var USE_GLOW_BY = 0.22;
   /* ------------------------------------------------------------------ *
    * The strip — Figma "Section 2" (421:3137)
    * ------------------------------------------------------------------ */
@@ -303,12 +306,28 @@
   var STRIP_BLOOM = 0.5; // ...then it opens from here...
   var STRIP_OPEN = 0.7; // ...is fully out by here, holds...
   var STRIP_CLOSE = 0.9; // ...and is back to its own size by the turn's end
+
+  /*
+   * The drag. One axis, in pixels of pull, and the whole of the stage is read
+   * off it: the line writes itself on first, and only once it is whole do the
+   * cards begin to arrive, so nothing is ever half-built over half a line.
+   */
+  var DRAG_SPAN = 2600; // px of pull from nothing to a whole pass of the row
+  var DRAG_TITLE_BY = 0.26; // the line is whole by here...
+  var DRAG_STACK_BY = 0.42; // ...and the row has stacked itself by here
+  /*
+   * The row has no end: it is the same five cards over and over, so however
+   * far it is pulled there is always another one coming. Only a window of it
+   * either side of the middle is ever drawn — this many slots each way, which
+   * is enough to reach both margins even with the gaps at their widest.
+   */
+  var STRIP_HALF = 5;
   /*
    * Where each card comes in from as the row stacks itself — off every side
    * of the frame, and turned, so they arrive from different places rather
    * than sliding in as a set.
    */
-  var STRIP_FROM = [
+  var STRIP_FROM_AT = [
     { x: -940, y: -520, r: -13 },
     { x: 780, y: -700, r: 10 },
     { x: -60, y: 760, r: 7 },
@@ -319,11 +338,11 @@
 
   var STRIP_STATES = [
     {
-      title: 'Harvesting Power Where the Sun Never Sets',
+      title: 'Power Where the Sun Never Sets',
       note: 'Why a platform above the terminator can collect without a night side to plan around.',
     },
     {
-      title: 'Building for Launch Cadence, Not Launch Windows',
+      title: 'Building for Launch Cadence',
       note: 'What a weekly ride to orbit changes about the way power and propulsion are designed.',
     },
     {
@@ -331,11 +350,11 @@
       note: 'Inside Core Space’s plasma-based approach to receiving and converting laser-transmitted energy.',
     },
     {
-      title: 'Rethinking Cooling for Space-Based Compute',
+      title: 'Rethinking Cooling for Orbit',
       note: 'Exploring electron-emission cooling as a compact alternative to conventional radiative panels.',
     },
     {
-      title: 'Why VLEO Could Become the Missing Data Layer',
+      title: 'VLEO, the Missing Data Layer',
       note: 'How edge processing and high-bandwidth relay connect orbital platforms with infrastructure on Earth.',
     },
   ];
@@ -350,7 +369,7 @@
    * so one is always leaving as another arrives, and they are never stacked in
    * a single column.
    */
-  var USE_CARDS_FROM = 0.09;
+  var USE_CARDS_FROM = 0.16;
   var USE_CARD_X = [0, -118, 96]; // px across the frame, each its own
   var USE_CARD_W = 550;
   var USE_CARD_H = 354;
@@ -1662,7 +1681,84 @@
     var stripButton = strip ? strip.querySelector('[data-strip-button]') : null;
     var stripButtonLabel = strip ? strip.querySelector('[data-strip-buttonLabel]') : null;
     var stripShown = -1;
-    var stripFocused = -1;
+
+    /*
+     * The row is drawn as a window of slots either side of the middle rather
+     * than as a fixed set of cards: a slot always holds whichever of the five
+     * belongs at its offset, so pulling past the last one simply brings the
+     * first back round. The five in the markup are the first five slots; the
+     * rest are copies of them, and a copy carries no node id of its own.
+     */
+    var slots = [];
+    if (strip && stripCards.length) {
+      var row = strip.querySelector('[data-strip-row]');
+      for (var d0 = -STRIP_HALF; d0 <= STRIP_HALF; d0++) {
+        var el = stripCards[slots.length];
+        if (!el) {
+          el = stripCards[0].cloneNode(true);
+          el.removeAttribute('data-node-id');
+          row.appendChild(el);
+        }
+        slots.push({ d: d0, el: el, img: el.querySelector('img'), idx: -1 });
+      }
+    }
+
+    /*
+     * The pull. One axis, in pixels, and it only ever goes forward from
+     * nothing — dragging back walks the row back the way it came, but never
+     * past the start of it.
+     */
+    var stripDrag = 0;
+    var stripHolding = false;
+    var stripReleased = false;
+    var dragging = false;
+    var dragFrom = 0;
+
+    function pointerX(event) {
+      return event.touches && event.touches.length
+        ? event.touches[0].clientX
+        : event.clientX;
+    }
+
+    function dragStart(event) {
+      if (!stripHolding) return;
+      dragging = true;
+      dragFrom = pointerX(event);
+      if (event.cancelable) event.preventDefault();
+    }
+
+    function dragMove(event) {
+      if (!dragging) return;
+      var x = pointerX(event);
+      /* Pulled to the left is forward, the way a strip is dragged. */
+      stripDrag = Math.max(0, stripDrag - (x - dragFrom));
+      dragFrom = x;
+      if (event.cancelable) event.preventDefault();
+      /*
+       * The page is given back the moment a whole pass of the row has been
+       * pulled through. It is never taken again — being held with no way on
+       * is worse than letting someone past a set piece twice.
+       */
+      if (stripDrag >= DRAG_SPAN && !stripReleased) {
+        stripReleased = true;
+        stripHolding = false;
+        document.documentElement.classList.remove('is-held');
+      }
+      paint();
+    }
+
+    function dragEnd() {
+      dragging = false;
+    }
+
+    if (strip) {
+      scene.addEventListener('mousedown', dragStart);
+      window.addEventListener('mousemove', dragMove);
+      window.addEventListener('mouseup', dragEnd);
+      scene.addEventListener('touchstart', dragStart, { passive: false });
+      window.addEventListener('touchmove', dragMove, { passive: false });
+      window.addEventListener('touchend', dragEnd);
+    }
     if (!pin || !headline || !cards.length || !name || !body || !aside) return;
     if (reduced) return;
 
@@ -1894,15 +1990,9 @@
         order,
         clamp01(q / USE_TITLE_BY) *
           (1 -
-            clamp01(
-              (q - USE_FOOT_OUT_FROM) / (USE_TITLE2_FROM - USE_FOOT_OUT_FROM)
-            ))
+            clamp01((q - USE_FOOT_OUT_FROM) / (STRIP_FROM - USE_FOOT_OUT_FROM)))
       );
-      assemble(
-        chars2,
-        order2,
-        (q - USE_TITLE2_FROM) / (USE_TITLE2_BY - USE_TITLE2_FROM)
-      );
+      /* The second is not the scroll's — it is written on by the pull. */
 
       /*
        * The cards, as one train. Every one of them keeps the same distance
@@ -1990,10 +2080,17 @@
         }
       }
 
-      /* The ground, in just before the first card is up. */
+      /*
+       * The ground, in just before the first card is up — and out again with
+       * the foot, so the strip is pulled through over plain black.
+       */
       if (glow) {
         glow.style.opacity = String(
-          clamp01((q - USE_GLOW_FROM) / (USE_GLOW_BY - USE_GLOW_FROM))
+          clamp01((q - USE_GLOW_FROM) / (USE_GLOW_BY - USE_GLOW_FROM)) *
+            (1 -
+              clamp01(
+                (q - USE_FOOT_OUT_FROM) / (STRIP_FROM - USE_FOOT_OUT_FROM)
+              ))
         );
       }
 
@@ -2040,78 +2137,111 @@
       if (footButton) footButton.style.opacity = String(1 - footOut);
 
       /*
-       * The strip. Its cards come in from off every side of the frame and
-       * stack into the row, taking the second line with them as they land,
-       * and from there the scroll browses the row to its end.
+       * The strip. From here the scroll is no longer what drives it: the
+       * section takes the window the way the hero does and the row is pulled
+       * through by hand. The line writes itself on as it is dragged, the
+       * cards only begin to arrive once it is whole, and the row — the same
+       * five over and over, so it never runs out — is browsed from there.
        */
-      if (strip && stripCards.length) {
-        var n = stripCards.length;
+      var stripOn = q >= STRIP_FROM;
+      if (stripOn && !stripReleased) {
+        if (!stripHolding) {
+          stripHolding = true;
+          document.documentElement.classList.add('is-held');
+        }
+      } else if (stripHolding) {
+        stripHolding = false;
+        document.documentElement.classList.remove('is-held');
+      }
+      if (strip) strip.classList.toggle('is-on', stripOn);
+
+      if (strip && slots.length) {
+        var stage = clamp01(stripDrag / DRAG_SPAN);
+        var told = clamp01(stage / DRAG_TITLE_BY);
         var stack = clamp01(
-          (q - STRIP_IN_FROM) / (STRIP_IN_BY - STRIP_IN_FROM)
+          (stage - DRAG_TITLE_BY) / (DRAG_STACK_BY - DRAG_TITLE_BY)
         );
-        var browse = clamp01((q - STRIP_RUN_FROM) / (1 - STRIP_RUN_FROM));
+
+        /* The line is pulled on, and goes again as the row lands over it. */
+        assemble(chars2, order2, stripOn ? told : 0);
+        if (headline2) headline2.style.opacity = String(1 - stack);
+        strip.style.opacity = String(stack > 0 ? 1 : 0);
+
         /*
-         * One turn per card. Inside a turn the row first travels until that
-         * card is in the middle, and then that card alone blooms.
+         * Turns, counted from the pull rather than the scroll and never
+         * stopping — past the last of the five the sixth is the first again.
          */
-        var turn = Math.min(n - 1, Math.floor(browse * n));
-        var u = clamp01(browse * n - turn);
+        var perTurn = (DRAG_SPAN * (1 - DRAG_STACK_BY)) / STRIP_STATES.length;
+        var past = Math.max(0, stripDrag - DRAG_SPAN * DRAG_STACK_BY);
+        var t2 = past / perTurn;
+        var turn = Math.floor(t2);
+        var u = t2 - turn;
         var travel = clamp01(u / STRIP_MOVE);
-        var at2 = turn === 0 ? 0 : turn - 1 + travel * travel * (3 - 2 * travel);
+        var eased = travel * travel * (3 - 2 * travel);
         var bloom =
           clamp01((u - STRIP_BLOOM) / (STRIP_OPEN - STRIP_BLOOM)) *
           (1 - clamp01((u - STRIP_CLOSE) / (1 - STRIP_CLOSE)));
 
-        strip.style.opacity = String(clamp01(stack / 0.25));
-        if (headline2) headline2.style.opacity = String(1 - stack);
-
         /*
-         * Every card's own size first, then the gaps between them, then one
-         * running total across the row — the focused card's own middle is
-         * what the row is then hung from, so it lands dead centre whatever
-         * the cards either side of it are doing.
+         * Only the card in the middle is ever open, so the sizes are one
+         * number each; the gaps either side of it carry it out to its 316,
+         * which is what pushes its neighbours off to the margins.
          */
-        var f = [];
-        var w = [];
-        var h = [];
-        var focus = bloom;
-        stripFocused = turn;
-        for (var i = 0; i < n; i++) {
-          f[i] = i === turn ? bloom : 0;
-          w[i] = STRIP_W + (STRIP_W_ON - STRIP_W) * f[i];
-          h[i] = STRIP_H + (STRIP_H_ON - STRIP_H) * f[i];
-        }
-        var x = [];
-        var run2 = 0;
-        for (var j = 0; j < n; j++) {
-          x[j] = run2;
-          var next = j + 1 < n ? f[j + 1] : 0;
-          run2 += w[j] + STRIP_GAP + (STRIP_GAP_ON - STRIP_GAP) * Math.max(f[j], next);
-        }
-        /* The middle of wherever the scroll is standing, between cards too. */
-        var lo = Math.max(0, Math.min(n - 1, Math.floor(at2)));
-        var hi = Math.max(0, Math.min(n - 1, lo + 1));
-        var frac = at2 - lo;
-        var hang =
-          (x[lo] + w[lo] / 2) * (1 - frac) + (x[hi] + w[hi] / 2) * frac;
+        var wOf = function (d) {
+          return d === 0 ? STRIP_W + (STRIP_W_ON - STRIP_W) * bloom : STRIP_W;
+        };
+        var hOf = function (d) {
+          return d === 0 ? STRIP_H + (STRIP_H_ON - STRIP_H) * bloom : STRIP_H;
+        };
+        var gapOf = function (a, b) {
+          var f = a === 0 || b === 0 ? bloom : 0;
+          return STRIP_GAP + (STRIP_GAP_ON - STRIP_GAP) * f;
+        };
 
-        for (var k = 0; k < n; k++) {
-          var card = stripCards[k];
-          var from = STRIP_FROM[k % STRIP_FROM.length];
-          /* Each card stacks a little after the one before it. */
-          var span = 1 - (n - 1) * STRIP_STAGGER;
-          var e = clamp01((stack - k * STRIP_STAGGER) / span);
-          var eased = 1 - Math.pow(1 - e, 3);
-          var away = 1 - eased;
+        /* Centres, built outward from the open card at nought. */
+        var cx = {};
+        cx[0] = 0;
+        for (var d = 1; d <= STRIP_HALF; d++) {
+          cx[d] = cx[d - 1] + wOf(d - 1) / 2 + gapOf(d - 1, d) + wOf(d) / 2;
+        }
+        for (var e2 = -1; e2 >= -STRIP_HALF; e2--) {
+          cx[e2] = cx[e2 + 1] - wOf(e2 + 1) / 2 - gapOf(e2, e2 + 1) - wOf(e2) / 2;
+        }
+        /*
+         * While the row is still travelling the frame's middle sits back
+         * between the card being left and the one being come to, so the row
+         * slides rather than the open card appearing where it lands.
+         */
+        var hang = (1 - eased) * cx[-1];
 
-          card.style.width = w[k].toFixed(1) + 'px';
-          card.style.height = h[k].toFixed(1) + 'px';
-          card.style.opacity = eased.toFixed(3);
+        var n = STRIP_STATES.length;
+        for (var j = 0; j < slots.length; j++) {
+          var slot = slots[j];
+          var dd = slot.d;
+          var card = slot.el;
+          var idx = (((turn + dd) % n) + n) % n;
+          if (slot.idx !== idx) {
+            slot.idx = idx;
+            slot.img.src = 'assets/images/strip-' + (idx + 1) + '.jpg';
+          }
+
+          /* Each card is thrown in from its own corner, the middle first. */
+          var from = STRIP_FROM_AT[((dd % STRIP_FROM_AT.length) + STRIP_FROM_AT.length) % STRIP_FROM_AT.length];
+          var span2 = 1 - STRIP_HALF * STRIP_STAGGER;
+          var arr = clamp01((stack - Math.abs(dd) * STRIP_STAGGER) / span2);
+          var landed = 1 - Math.pow(1 - arr, 3);
+          var away = 1 - landed;
+
+          var w2 = wOf(dd);
+          var h2 = hOf(dd);
+          card.style.width = w2.toFixed(1) + 'px';
+          card.style.height = h2.toFixed(1) + 'px';
+          card.style.opacity = landed.toFixed(3);
           card.style.transform =
             'translate3d(' +
-            (x[k] - hang + from.x * away).toFixed(1) +
+            (cx[dd] - hang - w2 / 2 + from.x * away).toFixed(1) +
             'px,' +
-            (-h[k] / 2 + from.y * away).toFixed(1) +
+            (-h2 / 2 + from.y * away).toFixed(1) +
             'px,0) rotate(' +
             (from.r * away).toFixed(2) +
             'deg)';
@@ -2119,29 +2249,21 @@
 
         /*
          * The foot follows the row: the rule and its label while it is being
-         * browsed, the standing card's own title and paragraph once one of
-         * them is focused, and the button says which of the two it is.
+         * browsed, and the open card's own title and paragraph once it is
+         * out. It names whichever card is standing in the middle, which is
+         * the one being come to only once the row has more than half arrived.
          */
-        /*
-         * ...and it names whichever card the row is actually standing on,
-         * not the one it is on its way to: the label changes as the new card
-         * takes the middle, halfway through the travel, rather than the
-         * moment the turn does.
-         */
-        var near = Math.max(0, Math.min(n - 1, Math.round(at2)));
+        var near = (((turn + (eased > 0.5 ? 0 : -1)) % n) + n) % n;
         if (near !== stripShown) {
           stripShown = near;
           if (stripLabel) stripLabel.textContent = STRIP_STATES[near].title;
           if (stripTitle) stripTitle.textContent = STRIP_STATES[near].title;
           if (stripNote) stripNote.textContent = STRIP_STATES[near].note;
-          if (stripButtonLabel) {
-            stripButtonLabel.textContent = 'Read this article';
-          }
         }
-        if (stripCaption) stripCaption.style.opacity = (1 - focus).toFixed(3);
-        if (stripContent) stripContent.style.opacity = focus.toFixed(3);
+        if (stripCaption) stripCaption.style.opacity = (1 - bloom).toFixed(3);
+        if (stripContent) stripContent.style.opacity = bloom.toFixed(3);
         if (stripButtonLabel) {
-          var wants = focus > 0.5 ? 'Read this article' : 'Read all articles';
+          var wants = bloom > 0.5 ? 'Read this article' : 'Read all articles';
           if (stripButtonLabel.textContent !== wants) {
             stripButtonLabel.textContent = wants;
           }
