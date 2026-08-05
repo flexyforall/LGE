@@ -1173,6 +1173,12 @@ html.is-held [data-scene='hero'] button {
  */
 .card__media--orbit {
   background: #000;
+  /*
+   * js/scene.js scales this to take the clip's own pull-back back out of it,
+   * and scales it about where the satellite sits rather than about the middle
+   * of the window, so the satellite holds its place while it does.
+   */
+  transform-origin: 62% 53%;
 }
 
 /* 339:372 — 380 square, on the middle line, 139.5 in */

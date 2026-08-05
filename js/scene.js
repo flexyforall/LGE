@@ -136,9 +136,49 @@
    * never show as a flash of black.
    */
   var FLIGHT_SEAM = 0.006;
-  /* Fractions of the orbit leg: where the second and third points arrive. */
-  var POINT_2_FROM = 0.16;
-  var POINT_3_FROM = 0.5;
+  /*
+   * The orbit clip opens by backing away. The cupola leg ends closing on the
+   * satellite hard — its last frames gain on it faster and faster — and the
+   * clip that takes over eases out of that move by pulling back about a fifth
+   * over its first thirty-five frames, not returning to the size it opened on
+   * until frame seventy. Cut together, that reads as the camera stopping and
+   * rolling back just after the hand-over.
+   *
+   * Starting the clip later does not answer it: the frame it opens on is the
+   * one the cupola closes on almost exactly, and every later frame has the
+   * satellite turned some way round, so any other cut is a visible jump — and
+   * one still a fifth smaller, which is the same rollback in a single step.
+   *
+   * So the pull-back is cancelled optically instead: the picture is scaled by
+   * the inverse of what the render gives away, read off the clip frame by
+   * frame, and let back down only as the clip's own approach takes over.
+   * Times are seconds into the clip; at the join it is exactly 1, so the
+   * hand-over itself is untouched.
+   */
+  var ORBIT_HOLD = [
+    [0.0, 1.0], // the join, left exactly as it is
+    [0.2, 1.09], // most of the ground is given away in the first half second
+    [0.4, 1.17],
+    [0.7, 1.23],
+    [1.3, 1.25], // the pull-back is at its worst about here...
+    [1.8, 1.24], // ...and holds there
+    [2.1, 1.18],
+    [2.35, 1.09],
+    [2.55, 1.0], // by here the clip is closing again under its own power
+  ];
+  /*
+   * The point it is scaled about is where the satellite sits across that
+   * stretch rather than the middle of the window — scaling about the middle
+   * would swing it outwards as it grows. That is `transform-origin` on
+   * .card__media--orbit in the stylesheet.
+   */
+  /*
+   * Fractions of the orbit leg: where the second and third points arrive.
+   * Both wait out the stretch above — the copy should change on a camera
+   * that is moving, not on one being held still.
+   */
+  var POINT_2_FROM = 0.42;
+  var POINT_3_FROM = 0.6;
   /*
    * The three points read off the orbit, in the order it brings them round.
    * The first is the one the frame draws, and stands from DEVICE_FROM on the
@@ -1224,6 +1264,25 @@
     narrow.style.height = frozen.h.toFixed(1) + 'px';
   }
 
+  /*
+   * The compensating scale for a given second of the orbit clip, read off
+   * ORBIT_HOLD and eased between its samples so the correction itself never
+   * has a corner in it. Past the last sample there is nothing to correct.
+   */
+  function orbitHold(t) {
+    var last = ORBIT_HOLD.length - 1;
+    if (t <= ORBIT_HOLD[0][0]) return ORBIT_HOLD[0][1];
+    if (t >= ORBIT_HOLD[last][0]) return ORBIT_HOLD[last][1];
+    for (var i = 1; i <= last; i++) {
+      if (t > ORBIT_HOLD[i][0]) continue;
+      var a = ORBIT_HOLD[i - 1];
+      var b = ORBIT_HOLD[i];
+      var k = (t - a[0]) / (b[0] - a[0]);
+      return a[1] + (b[1] - a[1]) * (k * k * (3 - 2 * k));
+    }
+    return 1;
+  }
+
   function setUpFlight() {
     var scene = document.querySelector('[data-scene="flight"]');
     if (!scene) return;
@@ -1407,7 +1466,12 @@
        * the same as the cupola's used to — the move never stops, it is only
        * covered over.
        */
-      if (orbit && orbit.duration) seekOrbit(po * orbit.duration);
+      if (orbit && orbit.duration) {
+        var ot = po * orbit.duration;
+        seekOrbit(ot);
+        /* ...and the clip's own pull-back taken back out of it. */
+        orbit.style.transform = 'scale(' + orbitHold(ot).toFixed(4) + ')';
+      }
       video.style.opacity = String(1 - clamp01((p - FLIGHT_SPLIT) / FLIGHT_SEAM));
 
       /* The intro copy writes itself on over the flight out through the glass. */
