@@ -61,7 +61,6 @@
   var HERO_PUSH = 40;
   var CURSOR_EASE = 0.22; // fraction of the distance the cursor closes per frame
   var CURSOR_LEAVE_MS = 520; // ...and how long its line takes to turn itself out
-  var LOADER_TYPE_MS = 52; // ms per character as the loader's line writes on
   var CURSOR_TYPE_MS = 34; // ms per character as that line writes itself on
   var CURSOR_HOLD_MS = 1700; // ...and how long it stands before it is written again
   /*
@@ -259,78 +258,6 @@
       if (go === false) return void at(text.length);
       write(0);
     };
-  }
-
-  /* ------------------------------------------------------------------ *
-   * The loader
-   * ------------------------------------------------------------------ */
-
-  /*
-   * The burst plays once over a black sheet, the counter riding its playhead
-   * so 100% lands exactly as it whites out — and then the sheet lifts. The
-   * promise is the page's starting gun: the hero's reveal waits on it, so the
-   * copy wipes on just as the white clears, and the hero only takes hold of
-   * the window once the sheet is out of the way.
-   *
-   * If the clip cannot play — autoplay refused, file missing — the loader
-   * gets out of the way instead of standing over the page, and a hard
-   * deadline catches a stalled clip the same way.
-   */
-  function setUpLoader() {
-    var sheet = document.querySelector('[data-loader]');
-    var video = document.querySelector('[data-loader-video]');
-    var count = document.querySelector('[data-loader-count]');
-    if (!sheet || !video || reduced) {
-      if (sheet) sheet.classList.add('is-done');
-      return Promise.resolve();
-    }
-
-    document.documentElement.classList.add('is-loading');
-
-    return new Promise(function (resolve) {
-      var lifted = false;
-
-      function lift() {
-        if (lifted) return;
-        lifted = true;
-        if (count) count.textContent = '100%';
-        sheet.classList.add('is-done');
-        document.documentElement.classList.remove('is-loading');
-        resolve();
-      }
-
-      /*
-       * The copy leaves before the burst whites the frame out — because
-       * against white, exclusion turns the text black, and nothing should be
-       * standing there when the flash lands. It is held as a share of the clip
-       * rather than a number of seconds, so re-timing the clip re-times this
-       * with it: measured on the footage, the fill is total by the last sixth.
-       */
-      var copy = sheet.querySelector('.loader__copy');
-      var COPY_GONE_BY = 0.17; // share of the clip still to run when it has gone
-      var COPY_OVER = 0.06; // ...and the share it fades over
-
-      typeOn(sheet.querySelector('[data-loader-type]'), LOADER_TYPE_MS)();
-
-      (function tick() {
-        if (lifted) return;
-        if (video.duration) {
-          if (count) {
-            var pct = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
-            count.textContent = pct + '%';
-          }
-          if (copy) {
-            var left = (video.duration - video.currentTime) / video.duration;
-            copy.style.opacity = String(clamp01((left - COPY_GONE_BY) / COPY_OVER));
-          }
-        }
-        requestAnimationFrame(tick);
-      })();
-
-      video.addEventListener('ended', lift);
-      video.play().catch(lift);
-      setTimeout(lift, 12000);
-    });
   }
 
   /* ------------------------------------------------------------------ *
@@ -597,7 +524,7 @@
       wipeLines = wipeLines.concat(lines);
     }
 
-    Promise.all([fontsReady, loaderLifted]).then(function () {
+    fontsReady.then(function () {
       if (headline) {
         headline.style.opacity = '';
         keep(blockReveal(headline));
@@ -637,15 +564,13 @@
     })();
 
     /*
-     * The hero takes hold of the window as the loader lifts. Restoration is
-     * switched off so a reload cannot drop the page somewhere below the held
-     * section, where nothing would scroll.
+     * The hero holds the window from the off. Restoration is switched off so a
+     * reload cannot drop the page somewhere below the held section, where
+     * nothing would scroll.
      */
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     window.scrollTo(0, 0);
-    loaderLifted.then(function () {
-      document.documentElement.classList.add('is-held');
-    });
+    document.documentElement.classList.add('is-held');
 
     /*
      * The click. It runs the hero's progress from 0 to 1 on a clock, and every
@@ -656,7 +581,7 @@
      * last beat lifts that white to leave the tunnel running.
      */
     function explore() {
-      if (spent || document.documentElement.classList.contains('is-loading')) return;
+      if (spent) return;
       spent = true;
       dropCursor();
       /* The reveal lets go of the lines so the exit can take them over. */
@@ -955,11 +880,15 @@
   }
 
   /*
-   * The way out, and the mirror of the way in: the same white rectangle that
-   * uncovered a line sweeps across it again, and everything it has passed is
-   * gone behind it. The lines set off one after another the way they arrived,
-   * and `p` is a position rather than a clock — so the run can be scrubbed and
-   * put back exactly.
+   * The way out is the way in, run backwards: the rectangle starts at the end
+   * of the line and travels back to where it set off from, taking the line
+   * with it — so the exit rewinds the reveal rather than sweeping on past it.
+   * The clip and the rectangle's travel are runReveal's own, with the fraction
+   * turned around, which is what makes them land on exactly the state the
+   * reveal began in.
+   *
+   * `p` is a position rather than a clock, so the run can be scrubbed and put
+   * back exactly.
    */
   function wipeOut(lines, p) {
     var span = 1 - (lines.length - 1) * EXIT_STAGGER;
@@ -972,10 +901,11 @@
         l.block.style.display = 'none';
         continue;
       }
-      l.text.style.clipPath = 'inset(-0.25em 0 -0.25em ' + (k * 101).toFixed(2) + '%)';
+      l.text.style.clipPath = 'inset(-0.25em ' + (k * 101).toFixed(2) + '% -0.25em 0)';
       l.block.style.display = k < 1 ? '' : 'none';
       l.block.style.opacity = k < 1 ? '1' : '0';
-      l.block.style.transform = 'translateX(' + (k * l.text.offsetWidth).toFixed(1) + 'px)';
+      l.block.style.transform =
+        'translateX(' + ((1 - k) * l.text.offsetWidth).toFixed(1) + 'px)';
     }
   }
 
@@ -1394,7 +1324,6 @@
 
   /* ------------------------------------------------------------------ */
 
-  var loaderLifted = setUpLoader();
   setUpHero();
   setUpRole();
   setUpCards();
