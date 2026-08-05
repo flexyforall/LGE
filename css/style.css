@@ -602,7 +602,10 @@ html.is-held [data-scene='hero'] button {
 
 /*
  * 356:1254 — label/S on #030303, at the plate's own 180 x 40. The padding
- * follows from that: 12 above and below leaves exactly the label's 16px line.
+ * follows from that: 12 above and below leaves exactly the label's 16px line,
+ * and 8 either side is what the pluses stand on. Those are 16, not 20 — at 20
+ * the row wants 188 of the plate's 180 and the pluses are pushed out to 4 of
+ * the edge, which is what makes the button look pinched.
  */
 .button--light {
   width: 180px;
