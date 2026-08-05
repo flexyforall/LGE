@@ -245,12 +245,18 @@ html.is-held [data-scene='hero'] button {
   transform: translateX(var(--px, 0px));
 }
 
-/* 378:2085 — label/S in caps, centred over the pointer */
+/*
+ * 378:2085 — label/S in caps, centred over the pointer. The height is held at
+ * the line's own rather than left to follow the text: the line empties itself
+ * between passes, and an empty box would collapse and let the two squares
+ * jump together.
+ */
 .cursor__label {
   font-family: var(--font-label);
   font-weight: 500;
   font-size: 12px;
   line-height: 16px;
+  height: 16px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: #ffffff;
@@ -288,28 +294,6 @@ html.is-held [data-scene='hero'] button {
   100% {
     opacity: 0;
   }
-}
-
-/*
- * The line writes itself on each time the cursor arrives. The caret collapses
- * once the line is written, so it leaves no gap standing after the last
- * letter.
- */
-.cursor__caret {
-  display: inline-block;
-  width: 0.45em;
-  height: 0.72em;
-  margin-left: 0.08em;
-  background: #ffffff;
-  vertical-align: -0.04em;
-  animation: caret-blink 900ms steps(1, end) infinite;
-}
-
-.cursor__caret.is-done {
-  width: 0;
-  margin-left: 0;
-  animation: none;
-  opacity: 0;
 }
 
 /* No pointer to follow, and nothing to click through. */

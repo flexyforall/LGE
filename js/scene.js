@@ -200,29 +200,22 @@
   }
 
   /*
-   * Writes a line on one character at a time, a caret standing at its head.
+   * Writes a line on one character at a time.
    *
    * With `hold` it never finishes: the line stands for that long, is rubbed
    * out the way it was written, and writes itself again — so the cursor's
-   * invitation is always being typed rather than typed once and left. The
-   * caret holds solid while the line is moving, because putting it back after
-   * each character restarts its blink, and blinks only through the hold, when
-   * nothing is putting it back.
+   * invitation is always being typed rather than typed once and left.
    *
    * Returns the switch: called with nothing it starts afresh from empty,
-   * called with false it stops where it is.
+   * called with false it stops on the whole line.
    */
-  function typeOn(el, caretClass, ms, hold) {
+  function typeOn(el, ms, hold) {
     if (!el) return function () {};
     var text = el.textContent;
-    var caret = document.createElement('span');
-    caret.className = caretClass;
     var timer = null;
 
-    /* The line as far as `n`, with the caret standing after it. */
     function at(n) {
       el.textContent = text.slice(0, n);
-      el.appendChild(caret);
     }
 
     function write(n) {
@@ -235,8 +228,6 @@
         timer = setTimeout(function () {
           rub(text.length);
         }, hold);
-      } else {
-        caret.classList.add('is-done');
       }
     }
 
@@ -258,13 +249,8 @@
     return function (go) {
       if (timer) clearTimeout(timer);
       timer = null;
-      if (go === false) {
-        /* A stopped line stands whole — never caught halfway through itself. */
-        at(text.length);
-        caret.classList.add('is-done');
-        return;
-      }
-      caret.classList.remove('is-done');
+      /* A stopped line stands whole — never caught halfway through itself. */
+      if (go === false) return void at(text.length);
       write(0);
     };
   }
@@ -406,12 +392,7 @@
     var lastX = null;
 
     /* Its line writes itself on, over and over, the whole time it is up. */
-    var retype = typeOn(
-      el.querySelector('.cursor__label'),
-      'cursor__caret',
-      CURSOR_TYPE_MS,
-      CURSOR_HOLD_MS
-    );
+    var retype = typeOn(el.querySelector('.cursor__label'), CURSOR_TYPE_MS, CURSOR_HOLD_MS);
 
     function show(next) {
       /* Mid-exit the cursor answers to nothing — its turn plays out. */
