@@ -2183,9 +2183,23 @@
          * whatever puts that edge on a whole device pixel. Under a tenth of a
          * pixel of the frame's ratio, and the hairline goes.
          */
-        var full = r.width * (455 / 655);
-        full = Math.round((r.top + full) * dpr) / dpr - r.top;
-        var h = full * (WIRE_BAND + (1 - WIRE_BAND) * eased);
+        var full = Math.round(r.width * (455 / 655) * dpr) / dpr;
+        var h = Math.round(full * (WIRE_BAND + (1 - WIRE_BAND) * eased) * dpr) / dpr;
+        /*
+         * ...and the box itself is nudged onto the device grid. Its top is
+         * wherever the layout puts it, which is a fraction as often as not,
+         * and an edge that falls between two device pixels is drawn across
+         * both — the half-covered row blending with the white page behind it
+         * is the hairline. Snapping the top and giving the box a whole number
+         * of device pixels to be tall puts both edges on the grid. It moves
+         * the card by less than a pixel.
+         */
+        var was = +r.shot.dataset.nudge || 0;
+        var raw = r.top - was;
+        var nudge = Math.round(raw * dpr) / dpr - raw;
+        r.shot.dataset.nudge = nudge;
+        var shift = 'translateY(' + nudge.toFixed(3) + 'px)';
+        if (r.shot.style.transform !== shift) r.shot.style.transform = shift;
         var height = h.toFixed(3) + 'px';
         if (r.shot.style.height !== height) r.shot.style.height = height;
         if (r.pic) {
