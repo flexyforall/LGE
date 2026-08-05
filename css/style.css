@@ -1899,3 +1899,225 @@ html.is-held [data-scene='hero'] button {
 .menu.is-inverted .button--light .button__icon {
   filter: none;
 }
+
+
+/*
+ * The plate, drawn rather than fetched. Every button on the page is the same
+ * notched shape — 8 off each end, 7 off each corner — and the exported plates
+ * are one file per width. This section asks for two more widths, so the shape
+ * is cut out of a solid instead: a clip-path is geometry, not a fetch, so it
+ * still works from a file:// page, and it takes any width and any colour.
+ */
+.button--plate {
+  height: 40px;
+  padding: 12px 8px;
+}
+
+.button__face {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(
+    8px 0,
+    calc(100% - 8px) 0,
+    100% 7px,
+    100% calc(100% - 7px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 7px),
+    0 7px
+  );
+}
+
+.button--plate .button__label {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* 396:1187 — 130 x 40, the dark one */
+.button--plate-dark {
+  width: 130px;
+  color: var(--color-fg);
+}
+
+.button--plate-dark .button__face {
+  background: #030303;
+}
+
+/* 396:1046 etc — 145 x 40 on the picture, the light one */
+.button--plate-light {
+  width: 145px;
+  color: #030303;
+}
+
+.button--plate-light .button__face {
+  background: #ffffff;
+}
+
+/* the plus is exported white; the light plate wants it black */
+.button--plate-light .button__icon {
+  filter: brightness(0);
+}
+
+/* --- Newsroom ------------------------------------------------------------
+   Figma "Use Cases" (423:3160) — the page's one light section, and the only
+   one not pinned. The head is the same 1328 the rest of the page uses; the
+   cards are a two-column grid under it. See js/scene.js for the reveals.
+   ------------------------------------------------------------------------- */
+
+.wire {
+  position: relative;
+  z-index: 43; /* clear of the opening card and the flight stage below it */
+  padding: 80px 56px 120px;
+  background: #ffffff;
+  color: #030303;
+}
+
+/* 423:3161 — the two blocks sit on the same baseline, not the same top */
+.wire__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+/* 423:3162 — 707 wide, its label 16 above the line */
+.wire__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 707px;
+}
+
+/* 423:3163 — a square, 40 of air, the word, 40, a square */
+.wire__label {
+  display: flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 40px;
+  height: 20px;
+  opacity: 0;
+}
+
+.wire__square {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: #030303;
+}
+
+/* 423:3166 — label/M */
+.wire__labelText {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/*
+ * 423:3168 — headline/H2, two lines on its 707. It is the line the section
+ * above shrinks down and carries here, so the two have to be set identically
+ * — same family, size, leading, tracking and break — or the hand-over shows.
+ */
+.wire__headline {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 56px;
+  line-height: 64px;
+  letter-spacing: -0.5px;
+}
+
+/* 423:3169 — the note over its button, 24 apart, 372 wide */
+.wire__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  width: 372px;
+  opacity: 0;
+}
+
+/* 423:3170 — paragraph/L at 65% */
+.wire__lead {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 28px;
+  color: rgba(3, 3, 3, 0.65);
+}
+
+/* 424:3362 — two columns 24 apart, rows 56 apart, 56 under the head */
+.wire__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 655px);
+  column-gap: 24px;
+  row-gap: 56px;
+  margin-top: 56px;
+}
+
+.wire__card {
+  margin: 0;
+}
+
+/*
+ * 423:3299 — the picture's own frame. It is what opens: js/scene.js grows it
+ * from a band across the middle out to the full 455 as the card comes up,
+ * with the picture inside held at that full height throughout, so the frame
+ * reads as a shutter drawing back off a still picture rather than as the
+ * picture itself being stretched into place.
+ */
+.wire__shot {
+  position: relative;
+  display: block;
+  height: 455px;
+  overflow: hidden;
+  background: #030303;
+}
+
+.wire__shot img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 455px;
+  object-fit: cover;
+  will-change: transform;
+}
+
+/* 424:3346 — label/M, 24 under the picture */
+.wire__tag {
+  margin: 24px 0 0;
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: rgba(3, 3, 3, 0.65);
+}
+
+/* 423:3337 — headline/H5 at 24/32, 8 under the tag */
+.wire__title {
+  margin: 8px 0 0;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 32px;
+}
+
+/* the wipe's rectangle is white; on this ground it takes the ink */
+.wire .rv-block {
+  background: #030303;
+}
+
+/* Reduced motion: everything simply stands where it lands. */
+@media (prefers-reduced-motion: reduce) {
+  .wire__label,
+  .wire__aside {
+    opacity: 1;
+  }
+}

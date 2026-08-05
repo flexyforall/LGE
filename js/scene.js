@@ -258,8 +258,20 @@
    */
   var USE_WHITE_FROM = 0.78;
   var USE_WHITE_BY = 0.92;
-  var USE_TITLE2_FROM = 0.8;
-  var USE_TITLE2_BY = 0.94;
+  var USE_TITLE2_FROM = 0.72;
+  var USE_TITLE2_BY = 0.86;
+  /*
+   * ...and then it stops being a headline in the middle of a frame and
+   * becomes the newsroom's own head: it shrinks from its 110 to that head's
+   * 56 and travels to its place at the top left. The section below stands on
+   * the same white and sets its head identically, so when this lands the two
+   * are the same line in the same place and the hand-over cannot be seen.
+   */
+  var USE_MOVE_FROM = 0.88;
+  var USE_MOVE_BY = 1;
+  var HEAD_SIZE = 56 / 110; // the head's type against the big line's
+  var HEAD_X = 56; // 423:3168's own place on the frame
+  var HEAD_Y = 116;
   /*
    * It is dimmed by whatever is standing over it rather than by the scroll:
    * the further a card is from the centre the more of the line is left, and
@@ -1990,6 +2002,104 @@
          */
         if (menu) menu.classList.toggle('is-inverted', white > 0.5);
       }
+
+      /*
+       * The line's journey into the head. It is scaled about its own top left
+       * so the shrink and the travel are one move, and it is taken off at the
+       * very end — by which point the section below has its own head standing
+       * in exactly the same place.
+       */
+      if (headline2) {
+        var moved = clamp01(
+          (q - USE_MOVE_FROM) / (USE_MOVE_BY - USE_MOVE_FROM)
+        );
+        var ease = moved * moved * (3 - 2 * moved);
+        /*
+         * Where its own top left stands untransformed. Taken from the layout
+         * box and not from the painted one: the painted one already carries
+         * the transform this is about to write, and reading it back would
+         * feed the move into itself.
+         */
+        var frame = headline2.parentNode.getBoundingClientRect();
+        var nowX = frame.width / 2 - headline2.offsetWidth / 2;
+        var nowY = frame.height / 2 - headline2.offsetHeight / 2;
+        var k = 1 + (HEAD_SIZE - 1) * ease;
+        headline2.style.transformOrigin = 'left top';
+        headline2.style.transform =
+          'translate(-50%, -50%) translate(' +
+          ((HEAD_X - nowX) * ease).toFixed(1) +
+          'px,' +
+          ((HEAD_Y - nowY) * ease).toFixed(1) +
+          'px) scale(' +
+          k.toFixed(4) +
+          ')';
+        headline2.style.opacity = String(moved >= 1 ? 0 : 1);
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Newsroom
+   * ------------------------------------------------------------------ */
+
+  /*
+   * 423:3160. Not pinned — it stands in the page and is read by scrolling
+   * past it, so everything here is measured off how far a block has got up
+   * the window rather than off a section's own progress.
+   *
+   * The head's label, note and button are not there when the section arrives:
+   * the line above has to land in the head first, and only then do they come
+   * in under it. Each card opens rather than fades — its frame grows from a
+   * band across the middle out to the full 455 while the picture inside holds
+   * still and settles back from a little over size, so it reads as a shutter
+   * drawing back off a picture that was always there.
+   */
+  var WIRE_HEAD_FROM = 0.5; // the head's parts arrive once it is this far up
+  var WIRE_CARD_FROM = 0.95; // a card starts opening as its top passes here...
+  var WIRE_CARD_BY = 0.45; // ...and is fully open by here
+  var WIRE_BAND = 0.34; // the share of its height it opens from
+  var WIRE_PIC_ZOOM = 0.12; // and how far over size the picture settles from
+
+  function setUpWire() {
+    var section = document.querySelector('[data-scene-wire]');
+    if (!section) return;
+
+    var label = section.querySelector('[data-wire-label]');
+    var aside = section.querySelector('[data-wire-aside]');
+    var cards = section.querySelectorAll('[data-wire-card]');
+    if (reduced) return;
+
+    register(function () {
+      /*
+       * The head's own parts follow the line into place: they are keyed off
+       * the section's top so they cannot arrive before it has landed.
+       */
+      var head = progressUp(section, WIRE_HEAD_FROM, 0.16);
+      if (label) label.style.opacity = head.toFixed(3);
+      if (aside) aside.style.opacity = head.toFixed(3);
+
+      for (var i = 0; i < cards.length; i++) {
+        var shot = cards[i].querySelector('[data-wire-shot]');
+        if (!shot) continue;
+        var open = progressUp(shot, WIRE_CARD_FROM, WIRE_CARD_BY);
+        var eased = 1 - Math.pow(1 - open, 3);
+        /*
+         * The frame opens; the picture inside is left at its full height and
+         * pushed up by half of what the frame is still short by, so what is
+         * uncovered is the middle of it rather than its top.
+         */
+        var h = 455 * (WIRE_BAND + (1 - WIRE_BAND) * eased);
+        shot.style.height = h.toFixed(1) + 'px';
+        var pic = shot.firstElementChild;
+        if (pic) {
+          pic.style.transform =
+            'translateY(' +
+            (-(455 - h) / 2).toFixed(1) +
+            'px) scale(' +
+            (1 + WIRE_PIC_ZOOM * (1 - eased)).toFixed(4) +
+            ')';
+        }
+      }
     });
   }
 
@@ -2045,6 +2155,7 @@
   setUpCards();
   setUpFlight();
   setUpUse();
+  setUpWire();
   setUpMenu();
 
   if (!reduced) {
