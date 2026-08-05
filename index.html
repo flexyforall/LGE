@@ -434,6 +434,65 @@
           </a>
         </div>
 
+        <!-- The second line, which takes the frame once the foot has been
+             rubbed out. It assembles out of scattered characters exactly as
+             the first one did, and goes out again as the strip lands over it. -->
+        <h2 class="use__headline use__headline--two" data-use-headline2 aria-hidden="true"><span class="use__line">Progress, partnerships</span><span class="use__line">and perspective.</span></h2>
+
+        <!-- =============================================================
+             Figma: "Section 2" (421:3137) — the strip, in its two states.
+
+             421:2919 is the browse state: five 400 x 218 cards, 8 apart, a
+             2032-wide row centred on the frame and overflowing both margins,
+             with a rule either side of a label naming whichever card is in
+             the middle. 421:3008 is the focused state: the middle card at
+             600 x 327 and its neighbours pushed out to the row's ends, with
+             that card's title and paragraph under it.
+
+             The cards fly in from off the frame and stack into the row, and
+             from there the scroll browses it. See js/scene.js.
+             ============================================================= -->
+        <div class="strip" data-use-strip aria-hidden="true">
+          <div class="strip__row" data-strip-row data-node-id="421:2919">
+            <figure class="strip__card" data-strip-card data-node-id="421:2916">
+              <span class="strip__shot"><img src="assets/images/strip-1.jpg" alt="" width="1200" height="654"></span>
+            </figure>
+            <figure class="strip__card" data-strip-card data-node-id="421:2912">
+              <span class="strip__shot"><img src="assets/images/strip-2.jpg" alt="" width="1200" height="654"></span>
+            </figure>
+            <figure class="strip__card" data-strip-card data-node-id="421:2920">
+              <span class="strip__shot"><img src="assets/images/strip-3.jpg" alt="" width="1200" height="654"></span>
+            </figure>
+            <figure class="strip__card" data-strip-card data-node-id="421:2923">
+              <span class="strip__shot"><img src="assets/images/strip-4.jpg" alt="" width="1200" height="654"></span>
+            </figure>
+            <figure class="strip__card" data-strip-card data-node-id="421:2926">
+              <span class="strip__shot"><img src="assets/images/strip-5.jpg" alt="" width="1200" height="654"></span>
+            </figure>
+          </div>
+
+          <!-- 421:3004 / 421:2977 / 421:3006 — a rule either side of the
+               label, which names whichever card the strip is standing on -->
+          <div class="strip__caption" data-strip-caption>
+            <span class="strip__rule" data-node-id="421:3004"></span>
+            <span class="strip__label" data-strip-label data-node-id="421:2977">A New Path for Power in Orbit</span>
+            <span class="strip__rule" data-node-id="421:3006"></span>
+          </div>
+
+          <!-- 421:3085 — the focused card's title and paragraph, on its width -->
+          <div class="strip__content" data-strip-content data-node-id="421:3085">
+            <p class="strip__title" data-strip-title data-node-id="421:3089">A New Path for Power in Orbit</p>
+            <p class="strip__note" data-strip-note data-node-id="421:3091">Inside Core Space’s plasma-based approach to receiving and converting laser-transmitted energy.</p>
+          </div>
+
+          <a class="button button--plate button--plate-light strip__button" data-strip-button href="#newsroom" data-node-id="421:2980">
+            <span class="button__face" aria-hidden="true"></span>
+            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+            <span class="button__label" data-strip-buttonLabel>Read all articles</span>
+            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+          </a>
+        </div>
+
       </div>
     </div>
   </div>

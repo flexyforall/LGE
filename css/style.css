@@ -149,7 +149,13 @@
    */
   --scene-length-flight: 1080vh;
   --scene-length-role: 560vh;
-  --scene-length-use: 640vh;
+  /*
+   * The use section runs a whole sequence rather than one move: the line, the
+   * three cards, the foot being rubbed out, a second line, the strip stacking
+   * itself and then the strip being browsed. js/scene.js marks out where each
+   * of those falls as a fraction of this.
+   */
+  --scene-length-use: 1560vh;
 }
 
 
@@ -855,7 +861,8 @@ html.is-held [data-scene='hero'] button {
   height: 132px;
   padding: 40px 0 56px;
   overflow: hidden;
-  opacity: 0.5;
+  /* the row sits behind the hero's copy, not beside it — kept well back */
+  opacity: 0.3;
 }
 
 .logos__track {
@@ -1701,10 +1708,16 @@ html.is-held [data-scene='hero'] button {
   will-change: transform;
 }
 
+/*
+ * The picture inside the card carries a scale of its own, on top of the
+ * card's: js/scene.js pushes into it a little across the whole of the card's
+ * pass, so the shot is still moving even while the card is standing still.
+ */
 .use__shot img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  will-change: transform;
 }
 
 /*
@@ -2166,4 +2179,145 @@ html.is-held [data-scene='hero'] button {
 
 .menu.is-inverted .button--light .button__icon {
   filter: none;
+}
+
+
+/* --- The strip -----------------------------------------------------------
+   Figma "Section 2" (421:3137) — the two states of the same row, at the end
+   of the use section.
+
+   421:2919 is the browse state: five 400 x 218 cards, 8 apart, a 2032-wide
+   row centred on the frame and overflowing both margins, with a rule either
+   side of a label naming the card in the middle. 421:3008 is the focused
+   state: that card at 600 x 327 and its neighbours pushed out to the row's
+   ends, its title and paragraph under it.
+
+   Every box here is written by js/scene.js — the row is laid out card by
+   card from whatever the scroll has focused, so neither state exists as a
+   rule of its own; these are only the parts they share.
+   ------------------------------------------------------------------------- */
+
+.strip {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 421:2919 — centred on the frame, and free to overflow it either side */
+.strip__row {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+/*
+ * A card's box is written by js/scene.js — 400 x 218 in the browse state and
+ * 600 x 327.27 focused — and its own left edge is where the row's running
+ * total puts it, so the two states are one layout with different numbers.
+ */
+.strip__card {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  margin: 0;
+  overflow: hidden;
+  background: #030303;
+  will-change: transform, width, height;
+}
+
+.strip__shot {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.strip__shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 421:3004 / 421:2977 / 421:3006 — the rules run to both margins, the label
+   sits in the gap between them, centred on the frame */
+.strip__caption {
+  position: absolute;
+  top: 530px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 23.5px;
+  height: 16px;
+}
+
+.strip__rule {
+  flex: 1 1 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.strip__label {
+  flex: none;
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-fg);
+}
+
+/*
+ * 421:3085 — the focused card's title and its paragraph, laid out on that
+ * card's own 600 and pushed to its two ends.
+ */
+.strip__content {
+  position: absolute;
+  top: 589px;
+  left: 50%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 600px;
+  margin-left: -300px;
+  opacity: 0;
+}
+
+/* 421:3089 — headline/H6 */
+.strip__title {
+  margin: 0;
+  flex: none;
+  font-family: var(--font-headline);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24px;
+  white-space: nowrap;
+  color: var(--color-fg);
+}
+
+/* 421:3091 — paragraph/S at 70% */
+.strip__note {
+  margin: 0;
+  flex: none;
+  width: 312px;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 421:2980 / 421:3040 — centred on the frame, 738 down */
+.strip__button {
+  position: absolute;
+  top: 738px;
+  left: 50%;
+  width: 177px;
+  transform: translateX(-50%);
+  /* the strip itself takes no pointer; its one link still has to */
+  pointer-events: auto;
 }
