@@ -171,7 +171,16 @@
    * little under the pointer, eased so it settles rather than tracks.
    */
   var USE_CARD_SCALE = 0.92;
+  /*
+   * 407:2627 against 407:2635 — the same picture at 1.089 of its box once it
+   * is across the line, against 0.98 on the way there. The marks come with
+   * that growth and go with it: 8px, their outer corners the design's 20 off
+   * the picture, and held out of what is scaled so they keep their own size.
+   */
+  var USE_CARD_OVER = 1.089;
+  var USE_MARK_OUT = 20;
   var USE_CARD_LEAN = 5; // degrees at the far corners of the window
+  var USE_CARD_DRIFT = 26; // px it follows the pointer across
   var USE_LEAN_EASE = 0.09;
   var USE_TITLE_H = 240; // the line's own two rows, for the overlap above
   var USE_STATES = [
@@ -1372,6 +1381,8 @@
     var pin = scene.querySelector('[data-use-pin]');
     var headline = scene.querySelector('[data-use-headline]');
     var cards = [].slice.call(scene.querySelectorAll('[data-use-card]'));
+    var shots = [].slice.call(scene.querySelectorAll('[data-use-shot]'));
+    var marks = [].slice.call(scene.querySelectorAll('[data-use-marks]'));
     var name = scene.querySelector('[data-use-name]');
     var body = scene.querySelector('[data-use-body]');
     var aside = scene.querySelector('[data-use-aside]');
@@ -1529,25 +1540,6 @@
       for (var c = 0; c < cards.length; c++) {
         var y = (c - at) * step;
         /*
-         * Full size at the centre, a shade under it a window away — so a card
-         * grows into its place as it arrives rather than simply sliding to it.
-         */
-        var near = clamp01(1 - Math.abs(y) / step);
-        var scale = USE_CARD_SCALE + (1 - USE_CARD_SCALE) * near;
-        cards[c].style.transform =
-          'translate3d(' +
-          (USE_CARD_X[c] - USE_CARD_W / 2).toFixed(1) +
-          'px,' +
-          (y - USE_CARD_H / 2).toFixed(1) +
-          'px,0)' +
-          ' rotateX(' +
-          (-lean.y * USE_CARD_LEAN).toFixed(2) +
-          'deg) rotateY(' +
-          (lean.x * USE_CARD_LEAN).toFixed(2) +
-          'deg) scale(' +
-          scale.toFixed(4) +
-          ')';
-        /*
          * How much of this one is across the line. They share a centre, so
          * the gap between the two blocks is all it takes.
          */
@@ -1555,6 +1547,44 @@
           ((USE_CARD_H + USE_TITLE_H) / 2 - Math.abs(y)) / USE_DIM_OVER
         );
         if (over > nearest) nearest = over;
+
+        /*
+         * Full size at the centre, a shade under it a window away — so a card
+         * grows into its place as it arrives rather than simply sliding to it
+         * — and then further again for as long as it is across the line.
+         */
+        var near = clamp01(1 - Math.abs(y) / step);
+        var scale =
+          (USE_CARD_SCALE + (1 - USE_CARD_SCALE) * near) *
+          (1 + (USE_CARD_OVER - 1) * over);
+
+        /* Carried, and leant and drawn a little after the pointer. */
+        cards[c].style.transform =
+          'translate3d(' +
+          (USE_CARD_X[c] - USE_CARD_W / 2 + lean.x * USE_CARD_DRIFT).toFixed(1) +
+          'px,' +
+          (y - USE_CARD_H / 2).toFixed(1) +
+          'px,0)' +
+          ' rotateX(' +
+          (-lean.y * USE_CARD_LEAN).toFixed(2) +
+          'deg) rotateY(' +
+          (lean.x * USE_CARD_LEAN).toFixed(2) +
+          'deg)';
+
+        /* The growing is the picture's alone; the marks are not in that layer. */
+        if (shots[c]) shots[c].style.transform = 'scale(' + scale.toFixed(4) + ')';
+
+        /*
+         * The marks' box is held out past wherever the picture's edges have
+         * grown to, so their outer corners stay the design's 20 off it — and
+         * they hold their own 8, having no scale of their own to carry.
+         */
+        if (marks[c]) {
+          var outX = (USE_CARD_W * (1 - scale)) / 2 - USE_MARK_OUT;
+          var outY = (USE_CARD_H * (1 - scale)) / 2 - USE_MARK_OUT;
+          marks[c].style.inset = outY.toFixed(1) + 'px ' + outX.toFixed(1) + 'px';
+          marks[c].style.opacity = over.toFixed(3);
+        }
       }
 
       /* Dimmed by whatever is over it, and no further. */

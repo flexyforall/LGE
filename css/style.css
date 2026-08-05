@@ -1564,6 +1564,10 @@ html.is-held [data-scene='hero'] button {
  * 402:2333 — 550 x 354, its own centre on the frame's. Each card is given its
  * own place across the frame by js/scene.js, so they rise on their own lines
  * rather than stacked in one column.
+ *
+ * The card itself is only carried and leant; the growing is done by the
+ * picture inside it, so the marks — which are not in that layer — keep their
+ * own size whatever the picture is at.
  */
 .use__card {
   position: absolute;
@@ -1572,16 +1576,46 @@ html.is-held [data-scene='hero'] button {
   width: 550px;
   height: 354px;
   margin: 0;
+  will-change: transform;
+}
+
+.use__shot {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   background: #030303;
   will-change: transform;
 }
 
-.use__card img {
+.use__shot img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
+/*
+ * 407:2639..2642 — the four 8px marks. Their box is held out past the
+ * picture's edges by js/scene.js, which is what keeps their outer corners the
+ * design's 20 off it as it grows; they only show while the picture is
+ * actually over the line.
+ */
+.use__marks {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.use__marks i {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--color-fg);
+}
+
+.use__marks i:nth-child(1) { top: 0; left: 0; }
+.use__marks i:nth-child(2) { top: 0; right: 0; }
+.use__marks i:nth-child(3) { bottom: 0; left: 0; }
+.use__marks i:nth-child(4) { bottom: 0; right: 0; }
 
 /* --- the foot ------------------------------------------------------------ */
 
