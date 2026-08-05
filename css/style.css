@@ -141,7 +141,13 @@
    * exactly one window tall and has no surplus to map anything onto.
    */
   --scene-length-hero: 100vh;
-  --scene-length-flight: 520vh;
+  /*
+   * The flight is two clips end to end: one window of pin, then 420 of
+   * scroll for the cupola leg — what it has always had — and 440 more for
+   * the orbit that carries on from it. js/scene.js splits its progress on
+   * exactly those two lengths, so they have to be changed together.
+   */
+  --scene-length-flight: 960vh;
   --scene-length-role: 560vh;
   --scene-length-use: 640vh;
 }
@@ -1158,6 +1164,15 @@ html.is-held [data-scene='hero'] button {
   height: 100%;
   object-fit: cover;
   background: url('../assets/images/card-partner.png') center / cover no-repeat;
+}
+
+/*
+ * The second clip, held under the first. It carries no poster fill of its
+ * own — the frame it opens on is the frame the one above closes on, and
+ * black is what shows through anywhere the two do not quite meet.
+ */
+.card__media--orbit {
+  background: #000;
 }
 
 /* 339:372 — 380 square, on the middle line, 139.5 in */

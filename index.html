@@ -266,6 +266,18 @@
     <!-- 339:354 — the wide one: a media band across the top, the copy read
          out of a gradient at the foot -->
     <article class="card card--wide" data-card data-node-id="339:354">
+      <!-- The same move, carried on. The cupola clip runs out partway through
+           the section below and this one picks it up on the very next frame of
+           the same orbit around the satellite. It sits *under* the first,
+           already decoded and holding its opening frame, so the hand-over is a
+           cut between two frames of one continuous shot rather than a change
+           of picture — see js/scene.js. -->
+      <video class="card__media card__media--orbit" data-flight-orbit muted playsinline preload="auto"
+             poster="assets/videos/video-orbit-poster.jpg">
+        <source src="assets/videos/video-orbit.mp4" type="video/mp4">
+        <source src="assets/videos/video-orbit.webm" type="video/webm">
+      </video>
+
       <!-- 339:355 — the media band. It is the cupola clip's first frame, held
            still: the card opens out into it and only then does it play. -->
       <video class="card__media" data-flight-video muted playsinline preload="auto"
@@ -307,6 +319,12 @@
      to run, flying out through the illuminator to the satellite. The intro
      copy writes itself on the way the tunnel's does; the device copy arrives
      in the bottom-left once the satellite is all that is left.
+
+     That clip runs out partway through the section and a second one carries
+     the same orbit on from its very next frame, scrubbed by the same scroll.
+     Three points are read off it as it turns — Power, Connect, Sustain — so
+     the whole section is one move around one satellite rather than two shots
+     with a join in the middle.
      ===================================================================== -->
 <div class="scene" data-scene="flight">
   <div class="scene__stage">
@@ -322,9 +340,12 @@
         <p class="flight__headline" data-flight-text data-node-id="342:1565">One connected system, from orbit to ground.</p>
       </div>
 
+      <!-- Three points, one after another in the same corner. The copy is
+           rewritten and wiped on again as the orbit brings each one round;
+           the first is the one the frame draws. -->
       <div class="flight__device" data-flight-device data-node-id="342:1600">
-        <p class="flight__deviceTitle" data-node-id="342:1601">Power.</p>
-        <p class="flight__deviceBody" data-node-id="342:1602">Generate and transfer power through plasma-based systems.</p>
+        <p class="flight__deviceTitle" data-flight-point-title data-node-id="342:1601">Power.</p>
+        <p class="flight__deviceBody" data-flight-point-body data-node-id="342:1602">Generate and transfer power through plasma-based systems.</p>
       </div>
 
     </div>

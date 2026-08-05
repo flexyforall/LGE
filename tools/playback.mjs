@@ -27,7 +27,27 @@ const ALLOWED_OFF_TARGET = FRAME * 1.5;
  * Every camera here must come to rest exactly where the scroll asks: the
  * hero's transition and the tunnel are both scrubbed from first frame to last.
  */
-const SCENES = [{ name: 'role', video: '[data-role-video]', restsOnTarget: true }];
+const SCENES = [
+  { name: 'role', video: '[data-role-video]', restsOnTarget: true },
+  /*
+   * The flight runs two clips end to end over one section. Ramping the whole
+   * section takes each of them across its own leg and then holds it — so both
+   * must run clean to their last frame and stay there, which is what makes the
+   * hand-over between them a cut and not a jump.
+   */
+  {
+    name: 'flight',
+    label: 'cupola',
+    video: '[data-flight-video]',
+    restsOnTarget: true,
+  },
+  {
+    name: 'flight',
+    label: 'orbit',
+    video: '[data-flight-orbit]',
+    restsOnTarget: true,
+  },
+];
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -190,20 +210,21 @@ for (const scene of SCENES) {
     scene
   );
 
+  const label = scene.label || scene.name;
   const drop = worstDrop(run.samples, !scene.restsOnTarget);
   const atScrollEnd = run.samples.find((s) => s[0] >= 2000)[1];
   const settled = run.samples[run.samples.length - 1][1];
   const offTarget = Math.abs(settled - run.end);
 
   console.log(`
-${scene.name.padEnd(7)} ${atScrollEnd.toFixed(3)}s when the scroll stopped, settled at ${settled.toFixed(3)}s
+${label.padEnd(7)} ${atScrollEnd.toFixed(3)}s when the scroll stopped, settled at ${settled.toFixed(3)}s
         largest backward step ${drop.worst.toFixed(4)}s${drop.at !== null ? ` at ${drop.at}ms` : ''}`);
 
-  if (drop.worst > TOLERANCE) failures.push(`the ${scene.name} scrub steps backwards`);
+  if (drop.worst > TOLERANCE) failures.push(`the ${label} scrub steps backwards`);
   if (scene.restsOnTarget) {
     console.log(`        asked for ${run.end.toFixed(3)}s — off by ${offTarget.toFixed(3)}s (${(offTarget / FRAME).toFixed(1)} frames)`);
     if (offTarget > ALLOWED_OFF_TARGET) {
-      failures.push(`the ${scene.name} camera rests off the frame the scroll asked for`);
+      failures.push(`the ${label} camera rests off the frame the scroll asked for`);
     }
   }
 }

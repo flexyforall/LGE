@@ -115,19 +115,62 @@
    */
   var EXIT_STAGGER = 0.12;
 
-  /* Outside the spacecraft — fractions of that section's own scroll. */
+  /*
+   * Outside the spacecraft. The section runs two clips end to end, so its
+   * scroll is read as two legs and every fraction below is a fraction of
+   * whichever leg it belongs to rather than of the section.
+   *
+   * The lengths are the ones --scene-length-flight is built out of: the
+   * cupola leg keeps the 420 of scroll it has always had, and the orbit that
+   * carries on from it is given 440 more. Changing either means changing that
+   * custom property to match.
+   */
+  var FLIGHT_CUPOLA_VH = 420;
+  var FLIGHT_ORBIT_VH = 440;
+  var FLIGHT_SPLIT = FLIGHT_CUPOLA_VH / (FLIGHT_CUPOLA_VH + FLIGHT_ORBIT_VH);
+  /*
+   * The scroll the hand-over is dissolved across. The cupola clip's last
+   * frame and the orbit clip's first are the same moment of the same move,
+   * one twenty-fourth of a second apart, so this is not there to hide a cut
+   * — it is there so that a frame the second clip has not painted yet can
+   * never show as a flash of black.
+   */
+  var FLIGHT_SEAM = 0.006;
+  /* Fractions of the orbit leg: where the second and third points arrive. */
+  var POINT_2_FROM = 0.16;
+  var POINT_3_FROM = 0.5;
+  /*
+   * The three points read off the orbit, in the order it brings them round.
+   * The first is the one the frame draws, and stands from DEVICE_FROM on the
+   * cupola leg through the hand-over until the second comes up.
+   */
+  var FLIGHT_POINTS = [
+    {
+      title: 'Power.',
+      body: 'Generate and transfer power through plasma-based systems.',
+    },
+    {
+      title: 'Connect.',
+      body: 'Relay data between orbital platforms through high-bandwidth laser links.',
+    },
+    {
+      title: 'Sustain.',
+      body: 'Support persistent operations in VLEO with plasma propulsion.',
+    },
+  ];
+
+  /* Fractions of the cupola leg's own scroll. */
   var FLIGHT_PREROLL = 1.2; // seconds the clip creeps through while the card scales
   var FLIGHT_WIDEN_BY = 0.09; // the card has widened across both by here...
   var FLIGHT_OPEN_BY = 0.24; // ...and has taken the whole window by here
   /*
-   * ...and the clip has run to its end by here. It is the whole section now:
-   * the one below is pulled up over this and covers it, and the clip goes on
-   * running the whole time it is being covered rather than stopping first.
+   * ...and the cupola clip has run to its end by here — the end of its own
+   * leg, where the orbit picks the move up on the next frame.
    */
   var FLIGHT_RUN_BY = 1;
   var TEXT_IN_FROM = 0.26; // the intro copy writes on over the flight...
   var TEXT_IN_BY = 0.6; // ...and has written itself out again by here
-  var DEVICE_FROM = 0.68; // the device copy arrives with the satellite
+  var DEVICE_FROM = 0.68; // the first point arrives with the satellite
   var LABEL_OUT_FROM = 0.46; // HOW IT WORKS leaves as its sentence starts to go
   /*
    * Leaving Our role: the tunnel stays full-bleed to the last and simply goes
@@ -1187,18 +1230,22 @@
 
     var video = document.querySelector('[data-flight-video]');
     var card = video ? video.closest('[data-card]') : null;
+    var orbit = card ? card.querySelector('[data-flight-orbit]') : null;
     var row = card ? card.closest('[data-card-row]') : null;
     var intro = scene.querySelector('[data-flight-intro]');
     var introLabel = scene.querySelector('.flight__label');
     var heading = scene.querySelector('[data-flight-text]');
     var device = scene.querySelector('[data-flight-device]');
-    var deviceOn = false;
-    var deviceLines = null;
+    var pointTitle = scene.querySelector('[data-flight-point-title]');
+    var pointBody = scene.querySelector('[data-flight-point-body]');
+    var point = -1;
     if (!video || !card || !heading) return;
 
     var letters = splitCharacters(heading);
     var seek = seeker(video);
+    var seekOrbit = orbit ? seeker(orbit) : null;
     video.pause();
+    if (orbit) orbit.pause();
 
     if (reduced) {
       scene.style.height = 'auto';
@@ -1207,8 +1254,35 @@
       return;
     }
 
+    /*
+     * A point arriving is the block reveal, the same as the one the use
+     * cases' foot runs: the copy is written fresh from the table above — a
+     * line that has been split no longer has the spaces that were between
+     * the lines in its own textContent — and wiped on again from nothing.
+     */
+    function showPoint(i) {
+      if (i === point) return;
+      point = i;
+      if (!device) return;
+      device.classList.toggle('is-in', i >= 0);
+      if (i < 0) return;
+      pointTitle.textContent = FLIGHT_POINTS[i].title;
+      pointBody.textContent = FLIGHT_POINTS[i].body;
+      blockReveal(pointTitle);
+      blockReveal(pointBody);
+    }
+
     register(function () {
       var p = progressOf(scene);
+      /*
+       * Two clips, one move. The section's scroll is split at the frame the
+       * cupola clip runs out on: everything the first leg does is read off
+       * `p` rescaled to its own length, and the orbit that carries the shot
+       * on is read off what is left. Both are clamped, so the first leg
+       * simply holds at its end while the second runs.
+       */
+      var pc = clamp01(p / FLIGHT_SPLIT);
+      var po = clamp01((p - FLIGHT_SPLIT) / (1 - FLIGHT_SPLIT));
 
       /*
        * The card opens out in two moves, and it is the whole card that moves —
@@ -1227,8 +1301,8 @@
        * top is how far the scroll has come into it, so adding it back to the
        * card's current top gives where it stood at zero.
        */
-      var widen = clamp01(p / FLIGHT_WIDEN_BY);
-      var zoom = clamp01((p - FLIGHT_WIDEN_BY) / (FLIGHT_OPEN_BY - FLIGHT_WIDEN_BY));
+      var widen = clamp01(pc / FLIGHT_WIDEN_BY);
+      var zoom = clamp01((pc - FLIGHT_WIDEN_BY) / (FLIGHT_OPEN_BY - FLIGHT_WIDEN_BY));
       /*
        * Where the pinned stage's own top is. It holds at 0 for as long as the
        * section owns the window, and once the section starts leaving it rides
@@ -1239,9 +1313,9 @@
        */
       var away = Math.min(0, scene.getBoundingClientRect().bottom - window.innerHeight);
 
-      var open = p >= FLIGHT_OPEN_BY ? 1 : 0;
+      var open = pc >= FLIGHT_OPEN_BY ? 1 : 0;
 
-      if (p > 0 && p < FLIGHT_OPEN_BY && row) {
+      if (pc > 0 && pc < FLIGHT_OPEN_BY && row) {
         var into = scene.getBoundingClientRect().top;
         /*
          * Measured off the row, never off the card: the card is fixed by the
@@ -1302,23 +1376,48 @@
        * playhead never jumps.
        */
       if (video.duration) {
-        var creep = clamp01(p / FLIGHT_OPEN_BY);
-        var run = clamp01((p - FLIGHT_OPEN_BY) / (FLIGHT_RUN_BY - FLIGHT_OPEN_BY));
-        seek(
-          run > 0
-            ? FLIGHT_PREROLL + run * (video.duration - FLIGHT_PREROLL)
-            : creep * FLIGHT_PREROLL
-        );
+        if (p > FLIGHT_SPLIT + FLIGHT_SEAM) {
+          /*
+           * Past the hand-over the cupola clip is hidden, so it is parked on
+           * the frame it handed over on rather than gone on being scrubbed.
+           * Parked, not merely left: a page opened at a scroll position past
+           * the seam has never run this clip at all, and scrolling back up
+           * would otherwise fade in whatever frame it happened to be on.
+           */
+          seek(video.duration);
+        } else {
+          var creep = clamp01(pc / FLIGHT_OPEN_BY);
+          var run = clamp01((pc - FLIGHT_OPEN_BY) / (FLIGHT_RUN_BY - FLIGHT_OPEN_BY));
+          seek(
+            run > 0
+              ? FLIGHT_PREROLL + run * (video.duration - FLIGHT_PREROLL)
+              : creep * FLIGHT_PREROLL
+          );
+        }
       }
 
+      /*
+       * The hand-over. The orbit clip is scrubbed the whole way through the
+       * section, not only after the seam: while the cupola still has the
+       * screen it is being held on its opening frame, which is the frame the
+       * cupola is running toward, so by the time the one above is taken off
+       * the picture underneath is already painted and already right.
+       *
+       * The clip runs on to its end under the section that covers this one,
+       * the same as the cupola's used to — the move never stops, it is only
+       * covered over.
+       */
+      if (orbit && orbit.duration) seekOrbit(po * orbit.duration);
+      video.style.opacity = String(1 - clamp01((p - FLIGHT_SPLIT) / FLIGHT_SEAM));
+
       /* The intro copy writes itself on over the flight out through the glass. */
-      var fill = clamp01((p - TEXT_IN_FROM) / (TEXT_IN_BY - TEXT_IN_FROM));
+      var fill = clamp01((pc - TEXT_IN_FROM) / (TEXT_IN_BY - TEXT_IN_FROM));
       var head = Math.round(fill * (letters.length + TEXT_TRAIL));
       write(letters, head, Math.max(0, head - TEXT_TRAIL));
       if (intro) {
         /* In as the window fills, out once the sentence has written itself off. */
         var shown =
-          clamp01((p - FLIGHT_OPEN_BY) / 0.04) * (1 - clamp01((p - TEXT_IN_BY) / 0.05));
+          clamp01((pc - FLIGHT_OPEN_BY) / 0.04) * (1 - clamp01((pc - TEXT_IN_BY) / 0.05));
         intro.style.opacity = String(shown);
         intro.style.visibility = shown === 0 ? 'hidden' : '';
       }
@@ -1328,33 +1427,22 @@
        * HOW IT WORKS lingering over copy that had already written itself off.
        */
       if (introLabel) {
-        introLabel.style.opacity = String(1 - clamp01((p - LABEL_OUT_FROM) / 0.06));
+        introLabel.style.opacity = String(1 - clamp01((pc - LABEL_OUT_FROM) / 0.06));
       }
 
       /*
-       * ...and the device copy arrives once the satellite is all that is
-       * left, each line wiped on by the block reveal — and reset on the way
-       * back up, so scrolling through again replays it.
+       * The points. The first arrives once the satellite is all that is left
+       * of the cupola leg and stands through the hand-over; the orbit brings
+       * the other two round after it. Each is written and wiped on where the
+       * one before stood, so the corner reads as one place being updated
+       * rather than three blocks taking turns — and scrolling back up walks
+       * the same list backwards, off the end of it to nothing at all.
        */
-      if (device) {
-        var on = p >= DEVICE_FROM;
-        if (on !== deviceOn) {
-          deviceOn = on;
-          device.classList.toggle('is-in', on);
-          if (on) {
-            if (!deviceLines) {
-              deviceLines = [];
-              device.querySelectorAll('p').forEach(function (el) {
-                deviceLines = deviceLines.concat(splitIntoLines(el));
-              });
-            }
-            hideReveal(deviceLines);
-            runReveal(deviceLines);
-          } else {
-            hideReveal(deviceLines);
-          }
-        }
-      }
+      var next = -1;
+      if (pc >= DEVICE_FROM) next = 0;
+      if (po >= POINT_2_FROM) next = 1;
+      if (po >= POINT_3_FROM) next = 2;
+      showPoint(next);
     });
   }
 
