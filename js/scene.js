@@ -62,10 +62,11 @@
   var CURSOR_EASE = 0.22; // fraction of the distance the cursor closes per frame
   var CURSOR_LEAVE_MS = 520; // ...and how long its line takes to turn itself out
   var CURSOR_TYPE_MS = 34; // ms per character as that line writes itself on
+  var CURSOR_HOLD_MS = 1700; // ...and how long it stands before it is written again
   /*
    * The cursor's own two squares answer the pointer's movement rather than its
-   * position: they are carried apart along whichever way it is going and draw
-   * back level as soon as it stops.
+   * position: they are carried apart across the frame — sideways only, never
+   * up or down — and draw back level as soon as it stops.
    */
   var SQUARE_THROW = 16; // px the furthest either one is carried
   var SQUARE_GAIN = 0.4; // how much of a move's distance it is pushed by
@@ -199,39 +200,73 @@
   }
 
   /*
-   * Writes a line on one character at a time, a caret standing at its head
-   * until the line is finished. The text is read off the element and put back
-   * character by character, so the markup stays the whole line and the page
-   * still reads properly with no script.
+   * Writes a line on one character at a time, a caret standing at its head.
    *
-   * Returns the run, so a line that comes and goes — the cursor's — can write
-   * itself again each time it arrives.
+   * With `hold` it never finishes: the line stands for that long, is rubbed
+   * out the way it was written, and writes itself again — so the cursor's
+   * invitation is always being typed rather than typed once and left. The
+   * caret holds solid while the line is moving, because putting it back after
+   * each character restarts its blink, and blinks only through the hold, when
+   * nothing is putting it back.
+   *
+   * Returns the switch: called with nothing it starts afresh from empty,
+   * called with false it stops where it is.
    */
-  function typeOn(el, caretClass, ms) {
+  function typeOn(el, caretClass, ms, hold) {
     if (!el) return function () {};
     var text = el.textContent;
     var caret = document.createElement('span');
     caret.className = caretClass;
     var timer = null;
 
-    return (function run() {
-      if (timer) clearTimeout(timer);
-      caret.classList.remove('is-done');
-      el.textContent = '';
+    /* The line as far as `n`, with the caret standing after it. */
+    function at(n) {
+      el.textContent = text.slice(0, n);
       el.appendChild(caret);
+    }
 
-      var i = 0;
-      (function put() {
-        if (i >= text.length) {
-          caret.classList.add('is-done');
-          timer = null;
-          return;
-        }
-        caret.before(document.createTextNode(text.charAt(i++)));
-        timer = setTimeout(put, ms);
-      })();
-      return run;
-    })();
+    function write(n) {
+      at(n);
+      if (n < text.length) {
+        timer = setTimeout(function () {
+          write(n + 1);
+        }, ms);
+      } else if (hold) {
+        timer = setTimeout(function () {
+          rub(text.length);
+        }, hold);
+      } else {
+        caret.classList.add('is-done');
+      }
+    }
+
+    /* Out faster than in — a line is rubbed out more quickly than written. */
+    function rub(n) {
+      at(n);
+      timer = setTimeout(
+        n > 0
+          ? function () {
+              rub(n - 1);
+            }
+          : function () {
+              write(0);
+            },
+        n > 0 ? ms / 2 : ms * 4
+      );
+    }
+
+    return function (go) {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (go === false) {
+        /* A stopped line stands whole — never caught halfway through itself. */
+        at(text.length);
+        caret.classList.add('is-done');
+        return;
+      }
+      caret.classList.remove('is-done');
+      write(0);
+    };
   }
 
   /* ------------------------------------------------------------------ *
@@ -370,15 +405,20 @@
     var push = 0;
     var lastX = null;
 
-    /* Its line writes itself on afresh every time the cursor arrives. */
-    var retype = typeOn(el.querySelector('.cursor__label'), 'cursor__caret', CURSOR_TYPE_MS);
+    /* Its line writes itself on, over and over, the whole time it is up. */
+    var retype = typeOn(
+      el.querySelector('.cursor__label'),
+      'cursor__caret',
+      CURSOR_TYPE_MS,
+      CURSOR_HOLD_MS
+    );
 
     function show(next) {
       /* Mid-exit the cursor answers to nothing — its turn plays out. */
       if (leaving || next === on) return;
       on = next;
       el.classList.toggle('is-on', on);
-      if (on) retype();
+      retype(on);
     }
 
     function nudge(v, by) {
@@ -436,6 +476,8 @@
      */
     return function () {
       want = 0;
+      /* The line stops where it is and stands whole as it tips away. */
+      retype(false);
       if (!on || leaving) return;
       leaving = true;
       el.classList.add('is-leaving');

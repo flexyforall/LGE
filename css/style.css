@@ -190,9 +190,9 @@ html.is-held {
 
 
 /* --- The hero's cursor ---------------------------------------------------
-   Figma: 378:2086 — a 7px square, CLICK TO EXPLORE, a second square, 20
-   apart. It replaces the pointer over the hero, which is why the pointer is
-   hidden there; it is centred on the pointer and trails it slightly.
+   Figma: 378:2086 — a 7px square, the invitation, a second square, 20 apart.
+   It replaces the pointer over the hero, which is why the pointer is hidden
+   there; it is centred on the pointer and trails it slightly.
    ------------------------------------------------------------------------- */
 
 /*
