@@ -134,6 +134,39 @@
   var DIM_BY = 1;
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
 
+  /* ------------------------------------------------------------------ *
+   * Use cases — fractions of that section's own scroll
+   * ------------------------------------------------------------------ */
+  var USE_READ = [0.03, 0.2]; // the head writes itself on over this...
+  var USE_LEAD = 0.05; // ...with the lead trailing the headline by this much
+  var USE_HEAD_OUT = [0.22, 0.34]; // and is gone before the card's box is reached
+  var USE_FLY = [0.16, 0.46]; // the three travel in over this
+  var USE_FLY_STEP = 0.06; // ...one behind the next
+  var USE_FLY_SCALE = 0.42; // how small they start
+  var USE_OPEN = [0.47, 0.58]; // the panel unfolds out of the picture's edge
+  var USE_SHOW_FROM = 0.6; // and from here the card changes what it shows
+  var USE_HOLD = 0.55; // the share of each state's stretch it simply stands for
+  var USE_SWAP_AT = 0.85; // how far through a push the copy is changed over
+  var USE_TILT = 7; // degrees the loose cards lean under the pointer
+  var USE_TILT_EASE = 0.08;
+  var USE_STATES = [
+    {
+      title: 'Orbital data centers',
+      body: 'Support scalable computing infrastructure beyond the limits of terrestrial data centers.',
+      tags: ['Plasma power', 'Laser links'],
+    },
+    {
+      title: 'Orbital connectivity',
+      body: 'Enable high-capacity data transfer between orbital platforms and infrastructure on Earth.',
+      tags: ['VLEO relay', 'Data transmission'],
+    },
+    {
+      title: 'Crewed operations',
+      body: 'Carry power and a continuous link to missions working far beyond low Earth orbit.',
+      tags: ['Life support', 'Deep space'],
+    },
+  ];
+
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ------------------------------------------------------------------ *
@@ -1165,6 +1198,20 @@
        */
       var widen = clamp01(p / FLIGHT_WIDEN_BY);
       var zoom = clamp01((p - FLIGHT_WIDEN_BY) / (FLIGHT_OPEN_BY - FLIGHT_WIDEN_BY));
+      /*
+       * Once the section has been scrolled clear of, the card is let go
+       * entirely. Its opened state is `position: fixed` over the whole
+       * window, and progressOf clamps at 1 — so left alone it would go on
+       * covering the window for the rest of the page. Nothing followed this
+       * section when it was written; something does now.
+       */
+      if (scene.getBoundingClientRect().bottom < window.innerHeight) {
+        card.classList.remove('is-opening');
+        card.style.cssText = '';
+        if (row) foldNarrow(row, null);
+        return;
+      }
+
       var open = p >= FLIGHT_OPEN_BY ? 1 : 0;
 
       if (p > 0 && p < FLIGHT_OPEN_BY && row) {
@@ -1279,6 +1326,203 @@
   }
 
   /* ------------------------------------------------------------------ *
+   * Use cases
+   * ------------------------------------------------------------------ */
+
+  /*
+   * The head writes itself on and off the way the tunnel's statement does.
+   * Three cards then fly in from three edges and land on the card's picture
+   * half — all three on exactly that box, so the stack closes with no seam
+   * and the hand-over to the card underneath is a swap of identical pictures
+   * rather than a move. Only then does the black panel unfold leftward out of
+   * that edge, into space the picture has never occupied.
+   *
+   * From there the scroll changes what the card is showing: the pictures push
+   * each other up through the frame, and the copy is wiped over by the same
+   * rectangle the rest of the site reveals with.
+   */
+  function setUpUse() {
+    var scene = document.querySelector('[data-scene="use"]');
+    if (!scene) return;
+
+    var head = scene.querySelector('[data-use-head]');
+    var card = scene.querySelector('[data-use-card]');
+    var panel = scene.querySelector('[data-use-panel]');
+    var deck = scene.querySelector('[data-use-deck]');
+    var track = scene.querySelector('[data-use-track]');
+    var title = scene.querySelector('[data-use-title]');
+    var body = scene.querySelector('[data-use-body]');
+    var tags = scene.querySelectorAll('[data-use-tag]');
+    var flies = [].slice.call(scene.querySelectorAll('[data-use-fly]'));
+    if (!card || !panel || !track || !title) return;
+
+    var passages = [].map.call(scene.querySelectorAll('[data-use-text]'), splitCharacters);
+
+    if (reduced) {
+      scene.style.height = 'auto';
+      return;
+    }
+
+    /*
+     * The one that arrives last is the one left on top, and it has to be the
+     * picture the card itself opens on — otherwise the swap underneath would
+     * be a cut. So the order is turned around: the last card sets off first,
+     * and the first card is given the highest place in the stack.
+     */
+    flies.forEach(function (el, i) {
+      el.style.zIndex = String(flies.length - i);
+    });
+
+    /* The pointer's lean, eased rather than tracked so it settles. */
+    var leanTo = { x: 0, y: 0 };
+    var lean = { x: 0, y: 0 };
+    var loose = 0;
+
+    scene.addEventListener('mousemove', function (event) {
+      var box = scene.getBoundingClientRect();
+      leanTo.x = ((event.clientX - box.left) / box.width) * 2 - 1;
+      leanTo.y = ((event.clientY - box.top) / Math.max(1, window.innerHeight)) * 2 - 1;
+    });
+
+    scene.addEventListener('mouseleave', function () {
+      leanTo.x = 0;
+      leanTo.y = 0;
+    });
+
+    /* The copy the card is showing, and the reveal that changes it over. */
+    var shown = -1;
+
+    function show(i) {
+      if (i === shown) return;
+      shown = i;
+      var state = USE_STATES[i];
+      /*
+       * Written fresh from the state rather than read back off the element:
+       * once a line has been split, its own textContent has lost the spaces
+       * that were between the lines.
+       */
+      title.textContent = state.title;
+      if (body) body.textContent = state.body;
+      blockReveal(title);
+      if (body) blockReveal(body);
+      for (var t = 0; t < tags.length; t++) {
+        tags[t].textContent = state.tags[t];
+        blockReveal(tags[t]);
+      }
+    }
+
+    (function follow() {
+      requestAnimationFrame(follow);
+      if (
+        Math.abs(leanTo.x - lean.x) < 0.001 &&
+        Math.abs(leanTo.y - lean.y) < 0.001
+      ) {
+        return;
+      }
+      lean.x += (leanTo.x - lean.x) * USE_TILT_EASE;
+      lean.y += (leanTo.y - lean.y) * USE_TILT_EASE;
+      place();
+    })();
+
+    /*
+     * Where the three cards are. Split out because both the scroll and the
+     * pointer ask for it, and they arrive on different clocks.
+     */
+    var p = 0;
+
+    function place() {
+      var w = window.innerWidth;
+      var h = window.innerHeight;
+      for (var i = 0; i < flies.length; i++) {
+        var el = flies[i];
+        var from = (el.dataset.from || '0,0,0').split(',').map(Number);
+        /* Last card first, so the first one lands on top of the pile. */
+        var begin = USE_FLY[0] + (flies.length - 1 - i) * USE_FLY_STEP;
+        var k = clamp01((p - begin) / (USE_FLY[1] - begin));
+        var e = 1 - Math.pow(1 - k, 3);
+        var away = 1 - e;
+        var sc = USE_FLY_SCALE + (1 - USE_FLY_SCALE) * e;
+        /* The lean belongs to a card still loose; a landed one is square. */
+        var by = loose * away;
+        el.style.transform =
+          'translate3d(' +
+          (away * from[0] * w).toFixed(1) +
+          'px,' +
+          (away * from[1] * h).toFixed(1) +
+          'px,0)' +
+          ' rotateX(' +
+          (-lean.y * USE_TILT * by).toFixed(2) +
+          'deg) rotateY(' +
+          (lean.x * USE_TILT * by).toFixed(2) +
+          'deg)' +
+          ' rotate(' +
+          (away * from[2]).toFixed(2) +
+          'deg) scale(' +
+          sc.toFixed(3) +
+          ')';
+      }
+    }
+
+    register(function () {
+      p = progressOf(scene);
+
+      /*
+       * The head, on the tunnel's own terms: a window of characters slides
+       * through each line, writing it on and rubbing it out behind. It is
+       * faded out on top of that, because the label beside it has no
+       * characters to carry it away and the card's box arrives where the head
+       * is standing.
+       */
+      for (var s = 0; s < passages.length; s++) {
+        var letters = passages[s];
+        var from = USE_READ[0] + s * USE_LEAD;
+        var fill = clamp01((p - from) / (USE_READ[1] + s * USE_LEAD - from));
+        var at = Math.round(fill * (letters.length + TEXT_TRAIL));
+        write(letters, at, Math.max(0, at - TEXT_TRAIL));
+      }
+      if (head) {
+        var gone = clamp01((p - USE_HEAD_OUT[0]) / (USE_HEAD_OUT[1] - USE_HEAD_OUT[0]));
+        head.style.opacity = String(1 - gone);
+        head.style.transform = 'translateX(-50%) translateY(' + (-gone * 90).toFixed(1) + 'px)';
+        head.style.visibility = gone === 1 ? 'hidden' : '';
+      }
+
+      /* The lean is only worth anything while there is something loose. */
+      loose = 1 - clamp01((p - USE_FLY[0]) / (USE_FLY[1] - USE_FLY[0]));
+      place();
+
+      /*
+       * The swap. The deck's top card and the card's own first picture are
+       * the same picture on the same box, so trading one for the other is not
+       * seen — which is what keeps the landing free of a cut.
+       */
+      var landed = p >= USE_FLY[1];
+      deck.style.opacity = landed ? '0' : '1';
+      deck.style.visibility = landed ? 'hidden' : '';
+      card.style.opacity = landed ? '1' : '0';
+      card.style.visibility = landed ? '' : 'hidden';
+
+      /* The panel, unfolded leftward out of the picture's edge. */
+      var open = clamp01((p - USE_OPEN[0]) / (USE_OPEN[1] - USE_OPEN[0]));
+      var eased = 1 - Math.pow(1 - open, 3);
+      panel.style.clipPath = 'inset(0 0 0 ' + ((1 - eased) * 100).toFixed(2) + '%)';
+
+      /*
+       * What the card is showing. The run through the states is held still
+       * for most of each one's stretch and pushed over for the rest, so the
+       * pictures rest rather than creep; the copy is changed over near the
+       * end of a push, once the picture arriving is most of the frame.
+       */
+      var span = clamp01((p - USE_SHOW_FROM) / (1 - USE_SHOW_FROM)) * (USE_STATES.length - 1);
+      var at = Math.min(USE_STATES.length - 2, Math.floor(span));
+      var into = clamp01((span - at - USE_HOLD) / (1 - USE_HOLD));
+      var slot = at + (1 - Math.pow(1 - into, 3));
+      track.style.transform = 'translate3d(0,' + (-slot * 100).toFixed(3) + '%,0)';
+      show(Math.min(USE_STATES.length - 1, Math.floor(slot + (1 - USE_SWAP_AT))));
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
    * The menu
    * ------------------------------------------------------------------ */
 
@@ -1291,6 +1535,7 @@
     var menu = document.querySelector('[data-site-menu]');
     var hero = document.querySelector('[data-scene="hero"]');
     var role = document.querySelector('[data-scene="role"]');
+    var use = document.querySelector('[data-scene="use"]');
     if (!menu || !hero || !role) return;
 
     /*
@@ -1319,6 +1564,25 @@
       }
       menu.style.opacity = String(o);
       menu.style.visibility = o === 0 ? 'hidden' : '';
+
+      /*
+       * Use Cases is drawn on white, and a white bar on white is no bar at
+       * all — so over that section it is inverted. The turn is made once the
+       * section actually holds the window rather than as it arrives, so the
+       * bar does not change colour over the section still leaving.
+       */
+      if (use) {
+        var box = use.getBoundingClientRect();
+        /*
+         * The last frame of the section rests with its foot exactly on the
+         * window's, so the test has to let that count — otherwise the bar
+         * turns white again while it is still standing on white.
+         */
+        menu.classList.toggle(
+          'is-inverse',
+          box.top <= 0 && box.bottom >= window.innerHeight - 1
+        );
+      }
     });
   }
 
@@ -1328,6 +1592,7 @@
   setUpRole();
   setUpCards();
   setUpFlight();
+  setUpUse();
   setUpMenu();
 
   if (!reduced) {

@@ -56,6 +56,22 @@ const BOXES = [
   ['339:365', 979, 492, 405, 600, 'narrow card'],
   ['339:360', 79.5, 515.5, 360, null, 'wide card overline'],
   ['339:372', 1118.5, 602, 380, 380, 'narrow card figure'],
+
+  // --- use cases, 394:309. The head and the card are measured where the
+  // sequence (396:931) puts them once the section holds the window, which is
+  // the only place they are ever both seen: the head on 120, and the card on
+  // 147 — the row that leaves equal air above it and below it.
+  ['394:324', 338, 120, 764, 232, 'use: head'],
+  ['394:312', null, 120, 173, 20, 'use: label row'],
+  ['394:317', 338, 156, 764, 144, 'use: headline'],
+  ['394:322', 338, 324, 764, 28, 'use: lead'],
+  ['394:381', 56, 147, 1328, 600, 'use: card'],
+  ['394:352', 56, 147, 664, 600, 'use: panel'],
+  ['394:370', 720, 147, 664, 600, 'use: picture half'],
+  ['394:354', 178, 361, 420, 172, 'use: copy block'],
+  ['394:405', 178, 361, 420, 108, 'use: title + body'],
+  ['394:382', 298, 493, 180, 40, 'use: button'],
+  ['396:938', null, 707, null, 16, 'use: tag row'],
 ];
 
 /**
@@ -82,6 +98,10 @@ const GAPS = [
   ['356:1235', '356:1236', 9, 'verify: text -> rule'],
   ['339:481', '339:374', 24, 'cards: label -> heading'],
   ['339:354', '339:365', 8, 'cards: wide -> narrow'],
+  ['394:312', '394:317', 16, 'use: label -> headline'],
+  ['394:317', '394:322', 24, 'use: headline -> lead'],
+  ['394:405', '394:382', 24, 'use: text -> button'],
+  ['394:352', '394:370', 0, 'use: panel meets the picture'],
 ];
 
 const TOL = 0.5;
