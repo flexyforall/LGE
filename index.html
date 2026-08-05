@@ -334,102 +334,106 @@
 
 <!-- =====================================================================
      Figma: "Use Cases" (394:309), choreographed by "Use Cases Sequence"
-     (396:931) — the only section drawn on white.
+     (396:931) — on the same #030303 the cards section sits on.
 
-     The head writes itself on the way the tunnel's statement does, then
-     writes itself off as three cards fly in from three edges. They converge
-     on the card's right half and land exactly congruent, so the stack has no
-     seams in it; the black panel then unfolds leftward out of that edge and
-     the card is whole.
+     The head lives in the page's flow: it wipes on the way the hero's copy
+     does as it scrolls into view, reads itself in as it travels, and simply
+     rides on up — nothing pins until the cards' stage takes the window.
 
-     From there the scroll changes what the card is showing: the copy is
-     wiped over by the reveal's rectangle, and the pictures push each other
-     up through the frame. See js/scene.js.
+     There, three loose cards drift with the scroll, never crossing; one of
+     them then scales into the card's picture half — the same box, to the
+     pixel — while the other two take their leave, and the black panel
+     unfolds leftward out of that edge. From there the scroll changes what
+     the card is showing. See js/scene.js.
      ===================================================================== -->
 <div class="scene" data-scene="use">
-  <div class="scene__stage">
-    <div class="frame frame--light" data-node-id="394:309">
 
-      <!-- 394:324 — 764 wide on the centre line, 24 under the title block -->
-      <div class="use__head" data-use-head data-node-id="394:324">
-        <div class="use__title" data-node-id="394:311">
-          <div class="use__label" data-node-id="394:312">
-            <span class="use__square" data-node-id="394:313"></span>
-            <span class="use__labelText" data-node-id="394:315">Use cases</span>
-            <span class="use__square" data-node-id="394:316"></span>
-          </div>
-          <h2 class="use__headline" data-use-text data-node-id="394:317">Built for missions that demand more from orbit.</h2>
+  <!-- 394:324 — in flow, the section's 160 above it, riding with the page -->
+  <div class="use__intro" data-use-intro>
+    <div class="use__head" data-use-head data-node-id="394:324">
+      <div class="use__title" data-node-id="394:311">
+        <div class="use__label" data-node-id="394:312">
+          <span class="use__square" data-node-id="394:313"></span>
+          <span class="use__labelText" data-node-id="394:315">Use cases</span>
+          <span class="use__square" data-node-id="394:316"></span>
         </div>
-        <p class="use__lead" data-use-text data-node-id="394:322">Plasma power and propulsion, connected by high-bandwidth laser links</p>
+        <h2 class="use__headline" data-use-text data-node-id="394:317">Built for missions that demand more from orbit.</h2>
       </div>
+      <p class="use__lead" data-use-text data-node-id="394:322">Plasma power and propulsion, connected by high-bandwidth laser links</p>
+    </div>
+  </div>
 
-      <!--
-        394:381 — 1328 x 600, held so the air above it (to the menu) and
-        below it (to the window's edge) are equal. The three fly-in cards are
-        the same box as the card's right half, so where they come to rest is
-        exactly where the picture belongs.
-      -->
-      <div class="use__card" data-use-card data-node-id="394:381">
+  <div class="use__pin" data-use-pin>
+    <div class="scene__stage">
+      <div class="frame frame--use" data-node-id="394:309">
 
-        <!-- 394:352 — the black panel, unfolded leftward out of the picture -->
-        <div class="use__panel" data-use-panel data-node-id="394:352">
-          <div class="use__panelInner">
-            <span class="use__tick use__tick--tl" data-node-id="394:359"></span>
-            <span class="use__tick use__tick--bl" data-node-id="394:360"></span>
-            <span class="use__tick use__tick--tr" data-node-id="394:363"></span>
-            <span class="use__tick use__tick--br" data-node-id="394:364"></span>
+        <!--
+          394:381 — 1328 x 650, held so the air above it (to the menu) and
+          below it (to the window's edge) are equal. The main floater lands
+          exactly on the picture half, so the hand-over is a swap of two
+          identical boxes.
+        -->
+        <div class="use__card" data-use-card data-node-id="394:381">
 
-            <div class="use__copy" data-node-id="394:354">
-              <div class="use__text" data-node-id="394:405">
-                <p class="use__cardTitle" data-use-title data-node-id="394:355">Orbital data centers</p>
-                <p class="use__cardBody" data-use-body data-node-id="394:356">Support scalable computing infrastructure beyond the limits of terrestrial data centers.</p>
+          <!-- 394:352 — the black panel, unfolded leftward out of the picture -->
+          <div class="use__panel" data-use-panel data-node-id="394:352">
+            <div class="use__panelInner">
+              <span class="use__tick use__tick--tl" data-node-id="394:359"></span>
+              <span class="use__tick use__tick--bl" data-node-id="394:360"></span>
+              <span class="use__tick use__tick--tr" data-node-id="394:363"></span>
+              <span class="use__tick use__tick--br" data-node-id="394:364"></span>
+
+              <div class="use__copy" data-node-id="394:354">
+                <div class="use__text" data-node-id="394:405">
+                  <p class="use__cardTitle" data-use-title data-node-id="394:355">Orbital data centers</p>
+                  <p class="use__cardBody" data-use-body data-node-id="394:356">Support scalable computing infrastructure beyond the limits of terrestrial data centers.</p>
+                </div>
+                <a class="button button--light" href="#partner" data-node-id="394:382">
+                  <img class="button__plate" src="assets/images/buttonBody.svg"
+                       alt="" width="180" height="40" aria-hidden="true">
+                  <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+                  <span class="button__label">Become a partner</span>
+                  <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+                </a>
               </div>
-              <a class="button button--light" href="#partner" data-node-id="394:382">
-                <img class="button__plate" src="assets/images/buttonBody.svg"
-                     alt="" width="180" height="40" aria-hidden="true">
-                <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-                <span class="button__label">Become a partner</span>
-                <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-              </a>
-            </div>
 
-            <!-- 396:938 — the pair of tags on the foot, 40 either side -->
-            <div class="use__tags" data-node-id="396:938">
-              <span class="use__tag" data-use-tag data-node-id="396:941">Plasma power</span>
-              <span class="use__square use__square--dim" data-node-id="396:942"></span>
-              <span class="use__tag" data-use-tag data-node-id="396:946">Laser links</span>
+              <!-- 396:938 — the pair of tags on the foot, 40 either side -->
+              <div class="use__tags" data-node-id="396:938">
+                <span class="use__tag" data-use-tag data-node-id="396:941">Plasma power</span>
+                <span class="use__square use__square--dim" data-node-id="396:942"></span>
+                <span class="use__tag" data-use-tag data-node-id="396:946">Laser links</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 394:370 — the picture half. The pushing track lives inside it. -->
+          <div class="use__media" data-use-media data-node-id="394:370">
+            <div class="use__track" data-use-track>
+              <img class="use__shot" src="assets/images/use-1.jpg" alt="" width="1328" height="1200">
+              <img class="use__shot" src="assets/images/use-2.jpg" alt="" width="1328" height="1200">
+              <img class="use__shot" src="assets/images/use-3.jpg" alt="" width="1328" height="1200">
             </div>
           </div>
         </div>
 
-        <!-- 394:370 — the picture half. The pushing track lives inside it. -->
-        <div class="use__media" data-use-media data-node-id="394:370">
-          <div class="use__track" data-use-track>
-            <img class="use__shot" src="assets/images/use-1.jpg" alt="" width="1328" height="1200">
-            <img class="use__shot" src="assets/images/use-2.jpg" alt="" width="1328" height="1200">
-            <img class="use__shot" src="assets/images/use-3.jpg" alt="" width="1328" height="1200">
+        <!--
+          The three loose cards. Each is the picture half's own box, scaled
+          down and placed square — no lean, nothing clipped by an edge, and
+          their drifts never cross. js/scene.js places them.
+        -->
+        <div class="use__deck" data-use-deck aria-hidden="true">
+          <div class="use__fly" data-use-fly>
+            <img src="assets/images/use-1.jpg" alt="" width="1328" height="1200">
+          </div>
+          <div class="use__fly" data-use-fly>
+            <img src="assets/images/use-2.jpg" alt="" width="1328" height="1200">
+          </div>
+          <div class="use__fly" data-use-fly>
+            <img src="assets/images/use-3.jpg" alt="" width="1328" height="1200">
           </div>
         </div>
-      </div>
 
-      <!--
-        The three that fly in. Each is the card's right half, started small
-        and off a different edge; js/scene.js carries them to it and tilts
-        them a little under the pointer on the way.
-      -->
-      <div class="use__deck" data-use-deck aria-hidden="true">
-        <!-- from: x and y as shares of the window, the turn in degrees -->
-        <div class="use__fly" data-use-fly data-from="-0.72,0.30,-13">
-          <img src="assets/images/use-1.jpg" alt="" width="1328" height="1200">
-        </div>
-        <div class="use__fly" data-use-fly data-from="0.14,0.86,9">
-          <img src="assets/images/use-2.jpg" alt="" width="1328" height="1200">
-        </div>
-        <div class="use__fly" data-use-fly data-from="0.66,-0.44,15">
-          <img src="assets/images/use-3.jpg" alt="" width="1328" height="1200">
-        </div>
       </div>
-
     </div>
   </div>
 </div>

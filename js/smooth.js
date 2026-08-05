@@ -14,7 +14,7 @@
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  var EASE = 0.09; // fraction of the remaining distance covered per frame
+  var EASE = 0.065; // fraction of the remaining distance covered per frame
   var target = window.scrollY;
   var current = window.scrollY;
   var raf = null;

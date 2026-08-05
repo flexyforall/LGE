@@ -1470,16 +1470,28 @@ html.is-held [data-scene='hero'] button {
    are equal. At the design's 810 that resolves to the sequence's own y 147.
    ------------------------------------------------------------------------- */
 
-.frame--light {
-  background: #ffffff;
+.frame--use {
+  background: #030303;
 }
 
-[data-scene='use'] {
+/*
+ * The head lives in the page's flow, so the section is only as tall as its
+ * pieces: the intro, then the pinned run the cards play out over.
+ */
+.use__pin {
+  position: relative;
   height: var(--scene-length-use);
 }
 
-[data-scene='use'] .frame {
-  --use-card-h: 600px;
+/* 394:324 — the section's 160 above the head, per section-margins/vertical */
+.use__intro {
+  position: relative;
+  padding: 160px 0 120px;
+  background: #030303;
+}
+
+.frame--use {
+  --use-card-h: 650px;
   /* the menu's own 20 inset plus its 64 */
   --use-menu-b: 84px;
   --use-top: calc(
@@ -1489,15 +1501,12 @@ html.is-held [data-scene='hero'] button {
 
 /* 394:324 — 764 on the centre line, 24 under the title block, 16 inside it */
 .use__head {
-  position: absolute;
-  top: 120px;
-  left: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
   width: 764px;
-  transform: translateX(-50%);
+  margin: 0 auto;
 }
 
 .use__title {
@@ -1520,7 +1529,7 @@ html.is-held [data-scene='hero'] button {
   flex: none;
   width: 8px;
   height: 8px;
-  background: #030303;
+  background: var(--color-fg);
 }
 
 .use__square--dim {
@@ -1535,7 +1544,7 @@ html.is-held [data-scene='hero'] button {
   line-height: 20px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: #030303;
+  color: var(--color-fg);
   white-space: nowrap;
 }
 
@@ -1549,7 +1558,7 @@ html.is-held [data-scene='hero'] button {
   line-height: 72px;
   letter-spacing: -0.8px;
   text-align: center;
-  color: #030303;
+  color: var(--color-fg);
 }
 
 /* 394:322 — paragraph/L: 18/28 at 65% */
@@ -1561,29 +1570,27 @@ html.is-held [data-scene='hero'] button {
   font-size: 18px;
   line-height: 28px;
   text-align: center;
-  color: rgba(3, 3, 3, 0.65);
+  color: #ffffffb2;
 }
 
 /*
- * The head writes itself on and off the way the tunnel's statement does, so
- * its characters carry the same two states. On white they invert: unread is
- * the page, read is the ink.
+ * The head wipes on the way the hero's copy does, then reads itself in as it
+ * travels up. Unread characters hold an opaque grey — a translucent one
+ * would read as nearly-white on this ground and the fill would never be
+ * seen.
  */
 .use__headline span,
 .use__lead span {
-  color: transparent;
-  transition: color 300ms ease, opacity 300ms ease;
+  color: rgb(53, 53, 53);
+  transition: color 300ms ease;
 }
 
-.use__headline span.is-in,
-.use__lead span.is-in {
-  color: #030303;
+.use__headline span.is-read {
+  color: var(--color-fg);
 }
 
-.use__headline span.is-out,
-.use__lead span.is-out {
-  color: transparent;
-  opacity: 0;
+.use__lead span.is-read {
+  color: #ffffffb2;
 }
 
 /* --- the card ------------------------------------------------------------ */
@@ -1678,7 +1685,7 @@ html.is-held [data-scene='hero'] button {
 /* 396:938 — the tags on the foot, 40 either side of the square */
 .use__tags {
   position: absolute;
-  top: 560px;
+  top: 610px;
   left: 50%;
   display: flex;
   align-items: center;
@@ -1740,13 +1747,13 @@ html.is-held [data-scene='hero'] button {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  perspective: 1200px;
 }
 
 /*
- * Each is the card's picture half exactly — same left edge, same right, same
- * height — so the flight ends congruent with it and the hand-over is not a
- * move but a swap of two identical boxes.
+ * Each is the card's picture half exactly — same box, scaled down from its
+ * own top-left corner — so the main one's landing is congruent with it and
+ * the hand-over is not a move but a swap of two identical boxes. Square on:
+ * no lean anywhere.
  */
 .use__fly {
   position: absolute;
@@ -1755,7 +1762,7 @@ html.is-held [data-scene='hero'] button {
   right: 56px;
   height: var(--use-card-h);
   overflow: hidden;
-  background: #030303;
+  transform-origin: 0 0;
   will-change: transform;
 }
 
@@ -1777,10 +1784,11 @@ html.is-held [data-scene='hero'] button {
 
   .use__headline span,
   .use__lead span {
-    color: #030303;
-    opacity: 1;
+    color: var(--color-fg);
   }
 }
+
+
 
 /* 394:382 — the card's button carries the plate at 16px icons, not 20 */
 .button__icon--sm {
@@ -1788,45 +1796,4 @@ html.is-held [data-scene='hero'] button {
   height: 16px;
   -webkit-mask-size: 16px 16px;
   mask-size: 16px 16px;
-}
-
-
-/* --- The menu over white -------------------------------------------------
-   Use Cases is the only section drawn on white, and the bar is white on
-   white there. Nothing in the design says what it should become, so it is
-   simply inverted: the same bar in ink rather than paper. js/scene.js turns
-   this on while that section holds the window.
-   ------------------------------------------------------------------------- */
-
-.menu.is-inverse .tab {
-  color: rgba(3, 3, 3, 0.6);
-}
-
-.menu.is-inverse .tab:hover {
-  color: #030303;
-}
-
-.menu.is-inverse .menu__logo img {
-  filter: brightness(0);
-}
-
-/* the plate goes to ink, and its label and pluses to paper */
-.menu.is-inverse .button--light {
-  color: #ffffff;
-}
-
-.menu.is-inverse .button--light .button__plate {
-  filter: invert(1);
-}
-
-.menu.is-inverse .button--light .button__icon {
-  filter: none;
-}
-
-.menu,
-.menu .tab,
-.menu .button__plate,
-.menu .button__icon,
-.menu .menu__logo img {
-  transition: color 0.3s ease, filter 0.3s ease;
 }
