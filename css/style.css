@@ -179,126 +179,10 @@ img {
 }
 
 
-/* --- The loader ----------------------------------------------------------
-   Figma 372:1852. A black sheet over the whole page while its clip plays; the
-   copy sits on exclusion so the burst's rays print through it. js/scene.js
-   drives the counter off the clip's playhead and lifts the sheet when the
-   burst has whited out.
-   ------------------------------------------------------------------------- */
-
-.loader {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  background: #000000;
-  transition: opacity 900ms ease;
-}
-
-.loader.is-done {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.loader__video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 /*
- * 372:1863 — 282 wide on the frame's centre, its bottom 56 off the frame's
- * (the design's y 690 on 810). Exclusion is the point: where a ray crosses
- * the text or the squares, they invert against it instead of sitting on top.
- */
-.loader__copy {
-  position: absolute;
-  bottom: 56px;
-  left: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  width: 282px;
-  transform: translateX(-50%);
-  mix-blend-mode: exclusion;
-}
-
-/* 372:1857 — the same 8px squares and 40px air as the hero's tag */
-.loader__label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 40px;
-  width: 100%;
-}
-
-.loader__square {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  background: var(--color-fg);
-}
-
-/* 372:1860 / 372:1856 — label/M in caps */
-.loader__labelText,
-.loader__count {
-  margin: 0;
-  font-family: var(--font-label);
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  text-align: center;
-  color: var(--color-fg);
-  white-space: nowrap;
-}
-
-/*
- * The line writes itself on as the clip runs, a solid caret standing at its
- * head — the same rectangle the block reveal rides, at text scale. The caret
- * takes no width once the line is written, or it would leave a phantom gap
- * between the text and the square beside it.
- */
-.loader__caret {
-  display: inline-block;
-  width: 0.45em;
-  height: 0.72em;
-  margin-left: 0.08em;
-  background: var(--color-fg);
-  vertical-align: -0.04em;
-  animation: loader-caret 900ms steps(1, end) infinite;
-}
-
-.loader__caret.is-done {
-  width: 0;
-  margin-left: 0;
-  animation: none;
-  opacity: 0;
-}
-
-@keyframes loader-caret {
-  0%,
-  55% {
-    opacity: 1;
-  }
-  56%,
-  100% {
-    opacity: 0;
-  }
-}
-
-/* Scroll holds still while the loader owns the screen. */
-html.is-loading {
-  overflow: hidden;
-}
-
-/*
- * ...and again while the hero does. The hero is not scrolled through: it
- * holds the window until it is clicked, and only then does the page below it
- * become reachable. js/scene.js takes this off as the transition lands.
+ * The hero is not scrolled through: it holds the window until it is let go,
+ * and only then does the page below it become reachable. js/scene.js takes
+ * this off as the transition lands.
  */
 html.is-held {
   overflow: hidden;
@@ -406,9 +290,9 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
- * The line writes itself on each time the cursor arrives, the same caret the
- * loader's line uses at this smaller size. It collapses once the line is
- * written so it leaves no gap standing after the last letter.
+ * The line writes itself on each time the cursor arrives. The caret collapses
+ * once the line is written, so it leaves no gap standing after the last
+ * letter.
  */
 .cursor__caret {
   display: inline-block;
@@ -417,7 +301,7 @@ html.is-held [data-scene='hero'] button {
   margin-left: 0.08em;
   background: #ffffff;
   vertical-align: -0.04em;
-  animation: loader-caret 900ms steps(1, end) infinite;
+  animation: caret-blink 900ms steps(1, end) infinite;
 }
 
 .cursor__caret.is-done {
@@ -430,12 +314,6 @@ html.is-held [data-scene='hero'] button {
 /* No pointer to follow, and nothing to click through. */
 @media (prefers-reduced-motion: reduce) {
   .cursor {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loader {
     display: none;
   }
 }

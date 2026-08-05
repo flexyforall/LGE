@@ -44,37 +44,11 @@
      of partner logos runs along the bottom edge — the design has it static
      and overflowing, so here it is a marquee, looping.
 
-     The scroll fades the copy, then whites the frame out — the hand-off into
-     the section below. The tag line rotates through the five points on its
-     own clock. See js/scene.js.
-     ===================================================================== -->
-<!-- =====================================================================
-     Figma: "Loader" (372:1852). Sits over everything while its clip plays —
-     the burst that ends on white — then lifts smoothly into the hero. The
-     copy block runs on exclusion, so the light rays print through the text
-     and squares where they cross. The counter is driven by the clip's own
-     playhead, so it lands on 100% exactly as the burst whites out.
+     The section holds the window until it is clicked or scrolled: that fades
+     the copy and whites the frame out — the hand-off into the section below.
+     The tag line rotates through the five points on its own clock.
      See js/scene.js.
      ===================================================================== -->
-<div class="loader" data-loader data-node-id="372:1852">
-  <video class="loader__video" data-loader-video muted playsinline autoplay
-         preload="auto" poster="assets/videos/video-loader-poster.jpg">
-    <source src="assets/videos/video-loader.mp4" type="video/mp4">
-    <source src="assets/videos/video-loader.webm" type="video/webm">
-  </video>
-
-  <!-- 372:1863 — 282 wide, centred, on exclusion -->
-  <div class="loader__copy" data-node-id="372:1863">
-    <div class="loader__label" data-node-id="372:1857">
-      <span class="loader__square" data-node-id="372:1858"></span>
-      <!-- Types itself on as the clip runs — js/scene.js. -->
-      <span class="loader__labelText" data-loader-type data-node-id="372:1860">Welcome to Core Space</span>
-      <span class="loader__square" data-node-id="372:1861"></span>
-    </div>
-    <p class="loader__count" data-loader-count data-node-id="372:1856">0%</p>
-  </div>
-</div>
-<noscript><style>.loader { display: none; }</style></noscript>
 
 <!-- =====================================================================
      Figma: 356:1237 — 1400 x 64, inset 20/20, padding 20/13. One bar for the
