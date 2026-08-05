@@ -333,23 +333,56 @@
 
 
 <!-- =====================================================================
-     Figma: "Use Cases" (402:2207) — the page's last section, and all of it
-     is the one line: headline/H1 at 110/120 on pitch black, held in the
-     middle of the window.
+     Figma: "Use Cases" (402:2207) — the page's last section.
 
-     Over its own stretch of scroll it assembles itself out of scattered
-     characters — each landing whole, and the ones still to come taking up no
-     room, so every line stays centred and grows outward from nothing.
-     See js/scene.js.
+     The line assembles itself out of scattered characters, each arriving in
+     the accent and settling to white the way the tunnel's copy does. Once it
+     is whole it dims right back, and the cards run: each rises from below the
+     fold, stands a while on its own place across the frame — they are not
+     stacked in one column — and carries on up and out as the next comes. The
+     name, the paragraph and the button at the foot change with whichever card
+     is standing. See js/scene.js.
      ===================================================================== -->
 <div class="scene" data-scene="use">
+  <div class="use__pin" data-use-pin>
+    <div class="scene__stage">
+      <div class="frame frame--use" data-node-id="402:2207">
 
-  <div class="use__intro" data-use-intro>
-    <div class="use__introStage">
-      <h2 class="use__headline" data-use-headline data-node-id="394:317"><span class="use__line">Built for missions that</span><span class="use__line">demand more from orbit.</span></h2>
+        <!-- 402:2215 — headline/H1 at 110/120, dead centre; 402:2208 takes it
+             to a fifth once the cards have the frame -->
+        <h2 class="use__headline" data-use-headline data-node-id="402:2215"><span class="use__line">Built for missions that</span><span class="use__line">demand more from orbit.</span></h2>
+
+        <!-- 402:2333 — 550 x 354, its own centre on the frame's -->
+        <div class="use__deck" data-use-deck aria-hidden="true">
+          <figure class="use__card" data-use-card data-node-id="402:2333">
+            <img src="assets/images/use-1.jpg" alt="" width="1100" height="708">
+          </figure>
+          <figure class="use__card" data-use-card>
+            <img src="assets/images/use-2.jpg" alt="" width="1100" height="708">
+          </figure>
+          <figure class="use__card" data-use-card>
+            <img src="assets/images/use-3.jpg" alt="" width="1100" height="708">
+          </figure>
+        </div>
+
+        <!-- 402:2327 — headline/H4, centred on 202.5 -->
+        <p class="use__name" data-use-name data-node-id="402:2327">Orbital data centers</p>
+
+        <!-- 402:2302 — paragraph/M at 60% over the button, 24 apart -->
+        <div class="use__aside" data-use-aside data-node-id="402:2302">
+          <p class="use__body" data-use-body data-node-id="402:2303">Support scalable computing infrastructure beyond the limits of terrestrial data centers.</p>
+          <a class="button button--light button--wide" href="#technology" data-node-id="402:2304">
+            <img class="button__plate" src="assets/images/buttonBody.svg"
+                 alt="" width="199" height="40" aria-hidden="true">
+            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+            <span class="button__label">Explore technology</span>
+            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+          </a>
+        </div>
+
+      </div>
     </div>
   </div>
-
 </div>
 
 

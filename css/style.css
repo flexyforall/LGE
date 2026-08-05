@@ -143,7 +143,7 @@
   --scene-length-hero: 100vh;
   --scene-length-flight: 520vh;
   --scene-length-role: 560vh;
-  --scene-length-use-intro: 240vh;
+  --scene-length-use: 640vh;
 }
 
 
@@ -1461,34 +1461,25 @@ html.is-held [data-scene='hero'] button {
 
 
 /* --- Use cases -----------------------------------------------------------
-   Figma "Use Cases" (402:2207) — the page's last section, and all of it is
-   the one line. It is held in the middle of the window over a stretch of
-   scroll, and across that stretch it assembles itself out of characters
-   arriving in no order at all. See js/scene.js.
+   Figma "Use Cases" (402:2207) — the page's last section, pinned. The line
+   assembles itself out of scattered characters and then dims right back, and
+   the cards run up through the frame over it. See js/scene.js.
    ------------------------------------------------------------------------- */
 
-.use__intro {
+.use__pin {
   position: relative;
-  height: var(--scene-length-use-intro);
-  background: var(--color-bg);
-}
-
-.use__introStage {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  height: 100dvh;
+  height: var(--scene-length-use);
 }
 
 /*
- * 402:2215 — headline/H1 at 110/120, tracking -0.8, centred. The size is
+ * 402:2215 — headline/H1 at 110/120, tracking -0.8, dead centre. The size is
  * held against the frame's own 1440 rather than set flat, so the two lines
  * stay two lines at any width: at 1440 this is exactly the design's 110.
  */
 .use__headline {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   margin: 0;
   font-family: var(--font-headline);
   font-weight: 400;
@@ -1496,7 +1487,7 @@ html.is-held [data-scene='hero'] button {
   line-height: 1.0909;
   letter-spacing: -0.8px;
   text-align: center;
-  color: var(--color-fg);
+  transform: translate(-50%, -50%);
 }
 
 /*
@@ -1521,19 +1512,116 @@ html.is-held [data-scene='hero'] button {
  * opacity. That is the whole effect: every line holds the centre and grows
  * outward out of nothing as the characters arrive, rather than filling in
  * across a gap that was already the width of the finished line.
+ *
+ * One that has landed arrives in the accent and settles to white a beat
+ * later, the way the tunnel's copy does.
  */
 .use__ch {
   display: inline;
+  color: var(--color-accent);
+  transition: color 320ms ease 120ms;
+}
+
+.use__ch.is-set {
+  color: var(--color-fg);
 }
 
 .use__ch.is-away {
   display: none;
 }
 
+/* --- the cards ----------------------------------------------------------- */
+
+.use__deck {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/*
+ * 402:2333 — 550 x 354, its own centre on the frame's. Each card is given its
+ * own place across the frame by js/scene.js, so they rise on their own lines
+ * rather than stacked in one column.
+ */
+.use__card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 550px;
+  height: 354px;
+  margin: 0;
+  overflow: hidden;
+  background: #030303;
+  will-change: transform;
+}
+
+.use__card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- the foot ------------------------------------------------------------ */
+
+/* 402:2327 — headline/H4 at 32/44, centred on 202.5 */
+.use__name {
+  position: absolute;
+  top: 676px;
+  left: 202.5px;
+  margin: 0;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 44px;
+  text-align: center;
+  color: var(--color-fg);
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* 402:2302 — 24 between the paragraph and the button */
+.use__aside {
+  position: absolute;
+  top: 642px;
+  left: 1041px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+/*
+ * 402:2303 — paragraph/M at 60%. The frame's box is 343, which is exactly
+ * what this copy's longest line measures here — no room at all. The other two
+ * states' lines are a shade longer, and at 343 they take a third line and
+ * shove the button down 24 as the card changes. Nine more pixels holds all
+ * three to two lines without moving a single break of the frame's own.
+ */
+.use__body {
+  margin: 0;
+  width: 352px;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-fg);
+  opacity: 0.6;
+}
+
+/* 402:2304 — the same plate, at the 199 this label asks for */
+.button--wide {
+  width: 199px;
+}
+
+.button--wide .button__plate {
+  width: 199px;
+}
+
 /* Reduced motion: the line simply stands, already whole. */
 @media (prefers-reduced-motion: reduce) {
   .use__ch {
     display: inline;
+    color: var(--color-fg);
   }
 }
 

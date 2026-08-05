@@ -57,10 +57,15 @@ const BOXES = [
   ['339:360', 79.5, 515.5, 360, null, 'wide card overline'],
   ['339:372', 1118.5, 602, 380, 380, 'narrow card figure'],
 
-  // --- use cases, 402:2207. The last section is the one line, held in the
-  // middle of the window: headline/H1 at 110/120, two lines of it, centred.
-  // Measured landed — its characters take up no room until they arrive.
-  ['394:317', null, null, null, 240, 'use: headline (landed)'],
+  // --- use cases, 402:2207. Measured with the line landed and the cards on
+  // their marks — its characters take up no room until they arrive, and the
+  // first card stands dead centre on the frame.
+  ['402:2215', null, null, null, 240, 'use: headline (landed)'],
+  ['402:2333', 445, 228, 550, 354, 'use: card'],
+  ['402:2327', null, 676, null, 44, 'use: name'],
+  ['402:2302', 1041, 642, 352, 112, 'use: aside'],
+  ['402:2303', 1041, 642, 352, 48, 'use: paragraph'],
+  ['402:2304', 1041, 714, 199, 40, 'use: button'],
 ];
 
 /**
@@ -87,6 +92,7 @@ const GAPS = [
   ['356:1235', '356:1236', 9, 'verify: text -> rule'],
   ['339:481', '339:374', 24, 'cards: label -> heading'],
   ['339:354', '339:365', 8, 'cards: wide -> narrow'],
+  ['402:2303', '402:2304', 24, 'use: paragraph -> button'],
 ];
 
 const TOL = 0.5;
@@ -118,6 +124,9 @@ await page.evaluate(() => {
    * Parity is about the line it finishes on — land them all.
    */
   document.querySelectorAll('.use__ch').forEach((c) => c.classList.remove('is-away'));
+  /* ...and the first card stood on its mark, where the frame draws it. */
+  const first = document.querySelector('[data-use-card]');
+  if (first) first.style.transform = 'translate3d(-275px, -177px, 0)';
 });
 await page.waitForTimeout(300);
 

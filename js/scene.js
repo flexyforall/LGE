@@ -135,16 +135,42 @@
   var SEEK_EPSILON = 0.008; // ignore seeks smaller than a third of a frame
 
   /* ------------------------------------------------------------------ *
-   * Use cases
+   * Use cases — fractions of that section's own scroll
    * ------------------------------------------------------------------ */
   /*
-   * The page's last section is one line, held in the middle of the window and
-   * assembling itself over a stretch of its own: its characters arrive in no
-   * order at all, and the ones still to come take up no room, so each line
-   * holds the centre and grows outward. It is all in by USE_TITLE_BY, leaving
-   * the last of the stretch for the finished line to stand on.
+   * The line assembles itself out of characters arriving in no order at all,
+   * each landing whole and each taking up no room until it does — so every
+   * line holds the centre and grows outward out of nothing.
    */
-  var USE_TITLE_BY = 0.72;
+  var USE_TITLE_BY = 0.22;
+  /* Then it dims right back, to the fifth 402:2208 draws it at. */
+  var USE_DIM = [0.24, 0.32];
+  var USE_DIM_TO = 0.1; // the frame's own 0.2 over a colour already at 0.5
+  /*
+   * And the cards run. Each rises from below the fold, stands a while on its
+   * own place across the frame, and carries on up and out as the next comes —
+   * so one is always leaving as another arrives, and they are never stacked in
+   * a single column.
+   */
+  var USE_CARDS_FROM = 0.3;
+  var USE_CARD_HOLD = 0.42; // the share of a card's turn it stands still for
+  var USE_CARD_X = [0, -118, 96]; // px across the frame, each its own
+  var USE_CARD_W = 550;
+  var USE_CARD_H = 354;
+  var USE_STATES = [
+    {
+      name: 'Orbital data centers',
+      body: 'Support scalable computing infrastructure beyond the limits of terrestrial data centers.',
+    },
+    {
+      name: 'Orbital connectivity',
+      body: 'Enable high-capacity data transfer between orbital platforms and infrastructure on Earth.',
+    },
+    {
+      name: 'Crewed operations',
+      body: 'Carry power and a continuous link to missions working far beyond low Earth orbit.',
+    },
+  ];
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1178,18 +1204,14 @@
       var widen = clamp01(p / FLIGHT_WIDEN_BY);
       var zoom = clamp01((p - FLIGHT_WIDEN_BY) / (FLIGHT_OPEN_BY - FLIGHT_WIDEN_BY));
       /*
-       * Once the section has been scrolled clear of, the card is let go
-       * entirely. Its opened state is `position: fixed` over the whole
-       * window, and progressOf clamps at 1 — so left alone it would go on
-       * covering the window for the rest of the page. Nothing followed this
-       * section when it was written; something does now.
+       * Where the pinned stage's own top is. It holds at 0 for as long as the
+       * section owns the window, and once the section starts leaving it rides
+       * up with the page. The opened card is `position: fixed`, so it does not
+       * ride with anything on its own — given this it leaves exactly with the
+       * copy standing on the same frame, rather than being cut away and
+       * leaving the copy to travel up alone.
        */
-      if (scene.getBoundingClientRect().bottom < window.innerHeight) {
-        card.classList.remove('is-opening');
-        card.style.cssText = '';
-        if (row) foldNarrow(row, null);
-        return;
-      }
+      var away = Math.min(0, scene.getBoundingClientRect().bottom - window.innerHeight);
 
       var open = p >= FLIGHT_OPEN_BY ? 1 : 0;
 
@@ -1227,10 +1249,16 @@
         card.classList.add('is-opening');
         if (row) {
           var rb = row.getBoundingClientRect();
-          foldNarrow(row, { x0: rb.left, y: 0, h: window.innerHeight, ww: rb.width, rowWidth: rb.width });
+          foldNarrow(row, {
+            x0: rb.left,
+            y: away,
+            h: window.innerHeight,
+            ww: rb.width,
+            rowWidth: rb.width,
+          });
         }
         card.style.left = '0px';
-        card.style.top = '0px';
+        card.style.top = away.toFixed(1) + 'px';
         card.style.width = '100%';
         card.style.height = '100%';
       } else {
@@ -1309,20 +1337,29 @@
    * ------------------------------------------------------------------ */
 
   /*
-   * One line, held in the middle of the window, putting itself together out
-   * of scattered characters as its stretch of scroll is spent. Each character
-   * lands whole rather than fading in, and one still to come takes up no room
-   * at all — so every line holds the centre and grows outward out of nothing,
-   * rather than filling in across a gap already the width of the finished
-   * line. That is the whole of the effect.
+   * The page's last section. The line puts itself together out of scattered
+   * characters — each landing whole rather than fading in, each arriving in
+   * the accent and settling to white the way the tunnel's copy does, and each
+   * still to come taking up no room at all, so every line holds the centre
+   * and grows outward out of nothing.
+   *
+   * Once it is whole it dims right back and the cards run over it: each rises
+   * from below the fold, stands a while on its own place across the frame,
+   * and carries on up and out as the next comes. The foot's name, paragraph
+   * and button change with whichever card is standing.
    */
   function setUpUse() {
     var scene = document.querySelector('[data-scene="use"]');
     if (!scene) return;
 
-    var intro = scene.querySelector('[data-use-intro]');
+    var pin = scene.querySelector('[data-use-pin]');
     var headline = scene.querySelector('[data-use-headline]');
-    if (!intro || !headline || reduced) return;
+    var cards = [].slice.call(scene.querySelectorAll('[data-use-card]'));
+    var name = scene.querySelector('[data-use-name]');
+    var body = scene.querySelector('[data-use-body]');
+    var aside = scene.querySelector('[data-use-aside]');
+    if (!pin || !headline || !cards.length || !name || !body || !aside) return;
+    if (reduced) return;
 
     var chars = [];
     var order = [];
@@ -1377,20 +1414,99 @@
       paint();
     });
 
-    register(function () {
-      if (!chars.length) return;
+    /*
+     * A character cannot transition out of `display: none`, so the settling
+     * to white is asked for a frame after it is put back — by which point it
+     * is being drawn and the colour has somewhere to move from.
+     */
+    function land(el) {
+      el.classList.remove('is-away');
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          if (!el.classList.contains('is-away')) el.classList.add('is-set');
+        });
+      });
+    }
+
+    var shown = -1;
+
+    function show(i) {
+      if (i === shown) return;
+      shown = i;
       /*
-       * How many have landed is the scroll's business; which ones is the
-       * shuffled order's.
+       * Written fresh from the state rather than read back off the element:
+       * once a line has been split, its own textContent has lost the spaces
+       * that were between the lines.
        */
-      var landed = Math.round(clamp01(progressOf(intro) / USE_TITLE_BY) * chars.length);
-      for (var i = 0; i < order.length; i++) {
-        var el = chars[order[i]];
-        var away = i >= landed;
-        if (el.classList.contains('is-away') !== away) {
-          el.classList.toggle('is-away', away);
+      name.textContent = USE_STATES[i].name;
+      body.textContent = USE_STATES[i].body;
+      blockReveal(name);
+      blockReveal(body);
+    }
+
+    register(function () {
+      var q = progressOf(pin);
+
+      /*
+       * How many characters have landed is the scroll's business; which ones
+       * is the shuffled order's.
+       */
+      if (chars.length) {
+        var landed = Math.round(clamp01(q / USE_TITLE_BY) * chars.length);
+        for (var i = 0; i < order.length; i++) {
+          var el = chars[order[i]];
+          var away = i >= landed;
+          if (el.classList.contains('is-away') === away) continue;
+          if (away) {
+            el.classList.add('is-away');
+            el.classList.remove('is-set');
+          } else {
+            land(el);
+          }
         }
       }
+
+      /* Whole, then straight back down to the fifth the frame draws it at. */
+      var dim = clamp01((q - USE_DIM[0]) / (USE_DIM[1] - USE_DIM[0]));
+      headline.style.opacity = String(1 - (1 - USE_DIM_TO) * dim);
+
+      /*
+       * The cards. `t` runs 0..N across the run, and card i stands at the
+       * centre while t is within USE_CARD_HOLD of i + 0.5; either side of
+       * that it travels, easing out of the stand and into it so it gathers
+       * and brakes rather than sliding at one speed.
+       */
+      var run = clamp01((q - USE_CARDS_FROM) / (1 - USE_CARDS_FROM));
+      /*
+       * `t` is shifted half a turn back and runs the full count, so the first
+       * card starts wholly below the fold and the last one is still standing
+       * at the centre when the run — and the page — ends, rather than being
+       * halfway out of the frame with nothing following it.
+       */
+      var t = run * cards.length - 0.5;
+      var reach = (window.innerHeight + USE_CARD_H) / 2;
+      var hold = USE_CARD_HOLD / 2;
+
+      for (var c = 0; c < cards.length; c++) {
+        var d = t - (c + 0.5);
+        var travel = 0;
+        if (d < -hold) travel = (d + hold) / (1 - hold);
+        else if (d > hold) travel = (d - hold) / (1 - hold);
+        travel = travel < -1 ? -1 : travel > 1 ? 1 : travel;
+        var eased = easeInOut(Math.abs(travel)) * (travel < 0 ? -1 : 1);
+        cards[c].style.transform =
+          'translate3d(' +
+          (USE_CARD_X[c] - USE_CARD_W / 2).toFixed(1) +
+          'px,' +
+          (-eased * reach - USE_CARD_H / 2).toFixed(1) +
+          'px,0)';
+      }
+
+      /* The foot arrives with the cards and changes with whichever stands. */
+      var on = clamp01((q - USE_CARDS_FROM) / 0.05);
+      name.style.opacity = String(on);
+      aside.style.opacity = String(on);
+      show(Math.max(0, Math.min(cards.length - 1, Math.floor(t))));
     });
   }
 
