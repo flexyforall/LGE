@@ -1572,6 +1572,73 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
+ * The blue ground under the cards.
+ *
+ * The uploaded reference is a soft mesh of blue blooms on black: one bright
+ * near the top, a second off the upper right, a broad navy across the right
+ * half, and nothing at all in the lower left. It is rebuilt here out of
+ * radial gradients rather than carried as a file — the layer has to fill the
+ * frame at every angle of its turn, and a drawn gradient has no size to run
+ * out of. Swapping a picture back in is one `background` away.
+ */
+.use__glow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+ * Square, and wider than the frame's own diagonal, so that whatever angle it
+ * has turned to there is still gradient under every corner. 150vmax clears
+ * the diagonal of any window shape — the worst case is a square one, whose
+ * diagonal is 1.42 of its side.
+ */
+.use__glowSheet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 150vmax;
+  height: 150vmax;
+  background:
+    radial-gradient(38% 30% at 34% 13%, rgba(0, 116, 208, 0.95) 0%, rgba(0, 78, 158, 0.42) 42%, rgba(0, 0, 0, 0) 74%),
+    radial-gradient(30% 34% at 76% 18%, rgba(0, 92, 182, 0.7) 0%, rgba(0, 0, 0, 0) 72%),
+    radial-gradient(44% 46% at 70% 46%, rgba(6, 44, 124, 0.92) 0%, rgba(3, 22, 70, 0.5) 46%, rgba(0, 0, 0, 0) 80%),
+    radial-gradient(52% 50% at 56% 66%, rgba(2, 17, 58, 0.8) 0%, rgba(0, 0, 0, 0) 72%),
+    #000000;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+  animation: use-glow-turn 160s linear infinite;
+}
+
+/*
+ * Slow enough that it is never read as a rotation — only as the light in it
+ * drifting. The translate has to be carried through the keyframes, or the
+ * animation would drop it and the sheet would sit off-centre.
+ */
+@keyframes use-glow-turn {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Reduced motion: the ground simply stands, lit and still. */
+@media (prefers-reduced-motion: reduce) {
+  .use__glow {
+    opacity: 1;
+  }
+
+  .use__glowSheet {
+    animation: none;
+  }
+}
+
+/*
  * 402:2215, again — the copy of the line the card's mark is drawn on. It sits
  * exactly under the real one and is invisible until a card strikes it, when a
  * ring of the accent is opened out across it. It carries its own opacity, so

@@ -369,6 +369,15 @@
     <div class="scene__stage">
       <div class="frame frame--use" data-node-id="402:2207">
 
+        <!-- The ground the cards arrive on. The section opens on black — the
+             line assembles against nothing — and this comes up under it as the
+             first card is about to rise into the frame. It turns very slowly,
+             which is what makes the light in it read as moving. js/scene.js
+             brings it in; the turn is CSS. -->
+        <div class="use__glow" data-use-glow aria-hidden="true">
+          <span class="use__glowSheet"></span>
+        </div>
+
         <!-- 402:2215 — headline/H1 at 110/120, dead centre; 402:2208 takes it
              to a fifth once the cards have the frame -->
         <h2 class="use__headline" data-use-headline data-node-id="402:2215"><span class="use__line">Built for missions that</span><span class="use__line">demand more from orbit.</span></h2>

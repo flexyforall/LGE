@@ -252,6 +252,13 @@
    * out from the middle of the line and off its ends. Fast, and once per
    * card — it is armed again only after that card has cleared the line.
    */
+  /*
+   * The blue ground comes up under the line as the first card is about to
+   * rise into the frame. The section opens on black — the line assembles
+   * against nothing — and this is in by the time the card shows.
+   */
+  var USE_GLOW_FROM = 0.22;
+  var USE_GLOW_BY = 0.34;
   var WAVE_MS = 760; // the ring's whole run
   var WAVE_BAND = 190; // px of the ring's own width
   var WAVE_FROM = 0.55; // the overlap that sets it off...
@@ -1556,6 +1563,7 @@
     var name = scene.querySelector('[data-use-name]');
     var body = scene.querySelector('[data-use-body]');
     var aside = scene.querySelector('[data-use-aside]');
+    var glow = scene.querySelector('[data-use-glow]');
     if (!pin || !headline || !cards.length || !name || !body || !aside) return;
     if (reduced) return;
 
@@ -1828,6 +1836,13 @@
           marks[c].style.inset = outY.toFixed(1) + 'px ' + outX.toFixed(1) + 'px';
           marks[c].style.opacity = over.toFixed(3);
         }
+      }
+
+      /* The ground, in just before the first card is up. */
+      if (glow) {
+        glow.style.opacity = String(
+          clamp01((q - USE_GLOW_FROM) / (USE_GLOW_BY - USE_GLOW_FROM))
+        );
       }
 
       /* Dimmed by whatever is over it, and no further. */
