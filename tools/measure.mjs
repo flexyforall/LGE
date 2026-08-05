@@ -66,6 +66,27 @@ const BOXES = [
   ['402:2302', 1041, 642, 343, 112, 'use: aside'],
   ['402:2303', 1041, 642, 343, 48, 'use: paragraph'],
   ['402:2304', 1041, 714, 199, 40, 'use: button'],
+
+  // --- newsroom, 396:975. Not pinned, so it is measured against its own
+  // section. The cards' own y is not asserted: the frame draws card 1 open and
+  // lets its 20px halo take room in the column, which puts every card below it
+  // 40 further down than here — the halo is drawn outside the flow so that a
+  // card growing never shunts the ones under it. The 100 between them is
+  // asserted below instead.
+  ['396:976', 56, 80, 1328, 164, 'news: head'],
+  ['396:977', 56, 80, 707, 164, 'news: title block'],
+  ['396:978', 56, 80, 181, 20, 'news: label row'],
+  ['396:979', 56, 86, 8, 8, 'news: label square (left)'],
+  ['396:982', 229, 86, 8, 8, 'news: label square (right)'],
+  ['396:983', 56, 116, 707, 128, 'news: headline'],
+  ['396:1210', 1012, 124, 372, 120, 'news: aside'],
+  ['396:1211', 1012, 124, 372, 56, 'news: aside paragraph'],
+  ['396:1187', 1012, 204, 130, 40, 'news: read-more button'],
+  ['396:1342', 56, 344, 1328, null, 'news: cards'],
+  ['396:1027', 56, 344, 655, 431, 'news: card 1 picture'],
+  ['396:1156', 729, null, 655, 431, 'news: card 2 picture'],
+  ['396:1124', 56, null, 655, 431, 'news: card 3 picture'],
+  ['396:1133', 542, null, 145, 40, 'news: card 3 button'],
 ];
 
 /**
@@ -93,6 +114,13 @@ const GAPS = [
   ['339:481', '339:374', 24, 'cards: label -> heading'],
   ['339:354', '339:365', 8, 'cards: wide -> narrow'],
   ['402:2303', '402:2304', 24, 'use: paragraph -> button'],
+  ['396:979', '396:981', 40, 'news: square -> NEWSROOM'],
+  ['396:981', '396:982', 40, 'news: NEWSROOM -> square'],
+  ['396:978', '396:983', 16, 'news: label -> headline'],
+  ['396:1211', '396:1187', 24, 'news: note -> button'],
+  ['396:983', '396:1342', 100, 'news: head -> cards'],
+  ['396:1029', '396:1155', 100, 'news: card 1 -> card 2'],
+  ['396:1155', '396:1123', 100, 'news: card 2 -> card 3'],
 ];
 
 const TOL = 0.5;
@@ -159,6 +187,7 @@ const rects = await page.evaluate(() => {
     const frame =
       el.closest('.frame') ||
       el.closest('[data-cards]') ||
+      el.closest('[data-scene-news]') ||
       el.closest('.use__introStage');
     /*
      * The menu is fixed to the window and lives in no frame; the viewport is

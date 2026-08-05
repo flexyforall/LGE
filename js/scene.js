@@ -248,6 +248,15 @@
   var USE_DIM_TO = 0.1; // the frame's own 0.2 over a colour already at 0.5
   var USE_DIM_OVER = 210; // px of approach the dimming is spread across
   /*
+   * And the mark a card leaves as it crosses: a ring of the accent running
+   * out from the middle of the line and off its ends. Fast, and once per
+   * card — it is armed again only after that card has cleared the line.
+   */
+  var WAVE_MS = 760; // the ring's whole run
+  var WAVE_BAND = 190; // px of the ring's own width
+  var WAVE_FROM = 0.55; // the overlap that sets it off...
+  var WAVE_REARM = 0.2; // ...and the one it can be set off from again
+  /*
    * And the cards run. Each rises from below the fold, stands a while on its
    * own place across the frame, and carries on up and out as the next comes —
    * so one is always leaving as another arrives, and they are never stacked in
@@ -1554,6 +1563,24 @@
     var order = [];
 
     /*
+     * The mark a card leaves is drawn on a copy of the line rather than on the
+     * line itself. By the time a card is across it the line is down to a tenth
+     * of its opacity, and anything coloured on it is taken down with it — the
+     * accent would arrive at a tenth of the accent. The copy carries its own
+     * opacity, sits exactly under the real one, and shows through a ring that
+     * is opened out across it.
+     *
+     * Taken before the characters are scattered, so it is the whole line and
+     * the two of them break in the same places by construction.
+     */
+    var ghost = headline.cloneNode(true);
+    ghost.className = 'use__ghost';
+    ghost.removeAttribute('data-use-headline');
+    ghost.removeAttribute('data-node-id');
+    ghost.setAttribute('aria-hidden', 'true');
+    headline.parentNode.insertBefore(ghost, headline);
+
+    /*
      * Split so every character can be taken away on its own. The lines are
      * left as they are — each centres itself, and each keeps its row whether
      * or not anything has landed on it — and the spaces stay bare text, so a
@@ -1615,6 +1642,61 @@
           if (!el.classList.contains('is-away')) el.classList.add('is-set');
         });
       });
+    }
+
+    /*
+     * The touch. A card crossing the line does not only put it out — it leaves
+     * a mark: a ring of the accent runs out from the middle of the line and
+     * off its ends, once, quickly, as though the card had struck it there.
+     *
+     * It is a clock rather than the scroll, so it reads the same however fast
+     * the crossing is scrolled, and it fires once per card: armed again only
+     * after that card has cleared the line.
+     *
+     * The characters are coloured one by one rather than by a gradient over
+     * the line, because each of them is already carrying its own colour — the
+     * accent it arrives in, settling to white — and a background clipped to
+     * the text would have to take that over. Their own transition is stood
+     * down while the ring is on them, or every step of it would be smeared
+     * across the settle's 320ms.
+     */
+    var waveArmed = true;
+    var waveRunning = false;
+    var waveStart = 0;
+    var waveReach = 0;
+
+    function waveFrame(now) {
+      var t = (now - waveStart) / WAVE_MS;
+      if (t >= 1) {
+        ghost.style.opacity = '0';
+        waveRunning = false;
+        return;
+      }
+      /* Out fast and easing as it goes, thinning on the way. */
+      var r = (1 - Math.pow(1 - t, 2)) * (waveReach + WAVE_BAND);
+      ghost.style.opacity = (1 - t * t).toFixed(3);
+      var ring =
+        'radial-gradient(circle at 50% 50%, rgba(0,0,0,0) ' +
+        Math.max(0, r - WAVE_BAND).toFixed(0) +
+        'px, #000 ' +
+        r.toFixed(0) +
+        'px, rgba(0,0,0,0) ' +
+        (r + WAVE_BAND).toFixed(0) +
+        'px)';
+      ghost.style.webkitMaskImage = ring;
+      ghost.style.maskImage = ring;
+      requestAnimationFrame(waveFrame);
+    }
+
+    function strike() {
+      if (waveRunning) return;
+      var box = ghost.getBoundingClientRect();
+      if (!box.width) return;
+      /* Far enough for the ring to leave by every corner of the line. */
+      waveReach = Math.sqrt(box.width * box.width + box.height * box.height) / 2;
+      waveRunning = true;
+      waveStart = performance.now();
+      requestAnimationFrame(waveFrame);
     }
 
     /*
@@ -1751,11 +1833,148 @@
       /* Dimmed by whatever is over it, and no further. */
       headline.style.opacity = String(1 - (1 - USE_DIM_TO) * nearest);
 
+      /*
+       * ...and struck once as each card comes across it. Armed again only
+       * once that card has cleared, so three cards leave three marks and a
+       * scroll held still on one leaves nothing more.
+       */
+      if (nearest >= WAVE_FROM) {
+        if (waveArmed) {
+          waveArmed = false;
+          strike();
+        }
+      } else if (nearest <= WAVE_REARM) {
+        waveArmed = true;
+      }
+
       /* The foot arrives with the cards and changes with whichever stands. */
       var on = clamp01((q - USE_CARDS_FROM) / 0.05);
       name.style.opacity = String(on);
       aside.style.opacity = String(on);
       show(Math.max(0, Math.min(cards.length - 1, Math.round(at))));
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Newsroom
+   * ------------------------------------------------------------------ */
+
+  /*
+   * 396:975. The only section that is not pinned — it stands in the page and
+   * is read by scrolling past it, so everything here is measured off where a
+   * block has got to in the window rather than off a section's own progress.
+   *
+   * Two things happen. Every piece of copy writes itself on with the block
+   * reveal as it comes up, and is put back as it goes down again so that
+   * scrolling through a second time replays it. And each card grows as it
+   * reaches the middle of the window and settles back as it leaves, bracketed
+   * while it stands large by two 8px squares 20 off its corners.
+   *
+   * The growth is out from the margin the card is set against, not from its
+   * own middle: the edge standing on the margin holds, and the picture opens
+   * into the empty half of the row. That is `transform-origin` in the
+   * stylesheet; what is here is how far it opens and where the squares go.
+   */
+  var NEWS_TEXT_FROM = 0.86; // a block writes on once its top is this far up
+  var NEWS_CARD_OVER = 1.08; // how much bigger a card stands at the middle
+  var NEWS_CARD_HOLD = 90; // px either side of the middle it stays there
+  var NEWS_CARD_RAMP = 300; // ...and the px of approach it grows across
+  var NEWS_MARK_OUT = 20; // 396:1811 — the squares' corners, off the picture
+  var NEWS_CARD_W = 655;
+  var NEWS_CARD_H = 431;
+
+  function setUpNews() {
+    var section = document.querySelector('[data-scene-news]');
+    if (!section) return;
+
+    var texts = [];
+    section.querySelectorAll('[data-news-text]').forEach(function (el) {
+      texts.push({ el: el, lines: null, on: false });
+    });
+    var cards = section.querySelectorAll('[data-news-card]');
+    var menu = document.querySelector('[data-site-menu]');
+
+    if (reduced) return;
+
+    register(function () {
+      var vh = window.innerHeight;
+      var band = section.getBoundingClientRect();
+
+      /*
+       * The bar is drawn for dark ground and this is the one light section on
+       * the page, so it is turned over while this is what is behind it. 84 is
+       * the bar's own bottom edge — 20 of inset over its 64.
+       */
+      if (menu) {
+        menu.classList.toggle('is-inverted', band.top < 84 && band.bottom > 0);
+      }
+
+      for (var i = 0; i < texts.length; i++) {
+        var t = texts[i];
+        var on = t.el.getBoundingClientRect().top < vh * NEWS_TEXT_FROM;
+        if (on === t.on) continue;
+        t.on = on;
+        /*
+         * Split on the first crossing rather than up front: the lines are
+         * measured, and measuring before the fonts have landed splits the
+         * copy where the fallback wrapped it.
+         */
+        if (!t.lines) t.lines = splitIntoLines(t.el);
+        hideReveal(t.lines);
+        if (on) runReveal(t.lines);
+      }
+
+      for (var c = 0; c < cards.length; c++) {
+        var card = cards[c];
+        var shot = card.querySelector('[data-news-shot]');
+        var marks = card.querySelector('[data-news-marks]');
+        var box = card.getBoundingClientRect();
+        /*
+         * How near the card's middle is to the window's: full size across a
+         * band either side of it, easing off over the approach.
+         */
+        var off = Math.abs(box.top + box.height / 2 - vh / 2);
+        var over = clamp01((NEWS_CARD_HOLD + NEWS_CARD_RAMP - off) / NEWS_CARD_RAMP);
+        var scale = 1 + (NEWS_CARD_OVER - 1) * over;
+        var right = card.classList.contains('news__card--right');
+
+        /*
+         * ...and steps in off the margin by exactly the squares' offset as it
+         * does, so that what stands on the page's 56 once the card is open is
+         * the squares' own edge and not the picture — 396:1811 draws the halo
+         * flush to the margin, with the picture 20 inside it.
+         */
+        var slide = NEWS_MARK_OUT * over;
+        if (shot) {
+          shot.style.transform =
+            'translateX(' +
+            (right ? -slide : slide).toFixed(2) +
+            'px) scale(' +
+            scale.toFixed(4) +
+            ')';
+        }
+        if (marks) {
+          /*
+           * The picture grows to one side only, and evenly above and below.
+           * The squares' box is that grown picture with 20 added all round,
+           * written as insets on the card's own box — so the margin side
+           * closes to 0 as the card opens and the other three run negative.
+           */
+          var inner = -(NEWS_MARK_OUT - slide);
+          var outer = -(slide + NEWS_CARD_W * (scale - 1) + NEWS_MARK_OUT);
+          var tall = -((NEWS_CARD_H * (scale - 1)) / 2 + NEWS_MARK_OUT);
+          marks.style.inset =
+            tall.toFixed(1) +
+            'px ' +
+            (right ? inner : outer).toFixed(1) +
+            'px ' +
+            tall.toFixed(1) +
+            'px ' +
+            (right ? outer : inner).toFixed(1) +
+            'px';
+          marks.style.opacity = over.toFixed(3);
+        }
+      }
     });
   }
 
@@ -1811,6 +2030,7 @@
   setUpCards();
   setUpFlight();
   setUpUse();
+  setUpNews();
   setUpMenu();
 
   if (!reduced) {
