@@ -61,6 +61,7 @@
   var HERO_PUSH = 40;
   var CURSOR_EASE = 0.22; // fraction of the distance the cursor closes per frame
   var CURSOR_LEAVE_MS = 520; // ...and how long its line takes to turn itself out
+  var LOADER_TYPE_MS = 52; // ms per character as the loader's line writes on
   var CURSOR_TYPE_MS = 34; // ms per character as that line writes itself on
   var CURSOR_HOLD_MS = 1700; // ...and how long it stands before it is written again
   /*
@@ -109,6 +110,11 @@
 
   var REVEAL_MS = 950; // one line's wipe — unhurried enough to be watched
   var REVEAL_STAGGER = 220; // ms between lines setting off
+  /*
+   * The way out is the same wipe, driven by the hero's run rather than a
+   * clock, so this stagger is a share of that run rather than milliseconds.
+   */
+  var EXIT_STAGGER = 0.12;
 
   /* Outside the spacecraft — fractions of that section's own scroll. */
   var FLIGHT_PREROLL = 1.2; // seconds the clip creeps through while the card scales
@@ -253,6 +259,78 @@
       if (go === false) return void at(text.length);
       write(0);
     };
+  }
+
+  /* ------------------------------------------------------------------ *
+   * The loader
+   * ------------------------------------------------------------------ */
+
+  /*
+   * The burst plays once over a black sheet, the counter riding its playhead
+   * so 100% lands exactly as it whites out — and then the sheet lifts. The
+   * promise is the page's starting gun: the hero's reveal waits on it, so the
+   * copy wipes on just as the white clears, and the hero only takes hold of
+   * the window once the sheet is out of the way.
+   *
+   * If the clip cannot play — autoplay refused, file missing — the loader
+   * gets out of the way instead of standing over the page, and a hard
+   * deadline catches a stalled clip the same way.
+   */
+  function setUpLoader() {
+    var sheet = document.querySelector('[data-loader]');
+    var video = document.querySelector('[data-loader-video]');
+    var count = document.querySelector('[data-loader-count]');
+    if (!sheet || !video || reduced) {
+      if (sheet) sheet.classList.add('is-done');
+      return Promise.resolve();
+    }
+
+    document.documentElement.classList.add('is-loading');
+
+    return new Promise(function (resolve) {
+      var lifted = false;
+
+      function lift() {
+        if (lifted) return;
+        lifted = true;
+        if (count) count.textContent = '100%';
+        sheet.classList.add('is-done');
+        document.documentElement.classList.remove('is-loading');
+        resolve();
+      }
+
+      /*
+       * The copy leaves before the burst whites the frame out — because
+       * against white, exclusion turns the text black, and nothing should be
+       * standing there when the flash lands. It is held as a share of the clip
+       * rather than a number of seconds, so re-timing the clip re-times this
+       * with it: measured on the footage, the fill is total by the last sixth.
+       */
+      var copy = sheet.querySelector('.loader__copy');
+      var COPY_GONE_BY = 0.17; // share of the clip still to run when it has gone
+      var COPY_OVER = 0.06; // ...and the share it fades over
+
+      typeOn(sheet.querySelector('[data-loader-type]'), LOADER_TYPE_MS)();
+
+      (function tick() {
+        if (lifted) return;
+        if (video.duration) {
+          if (count) {
+            var pct = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
+            count.textContent = pct + '%';
+          }
+          if (copy) {
+            var left = (video.duration - video.currentTime) / video.duration;
+            copy.style.opacity = String(clamp01((left - COPY_GONE_BY) / COPY_OVER));
+          }
+        }
+        requestAnimationFrame(tick);
+      })();
+
+      video.addEventListener('ended', lift);
+      video.play().catch(lift);
+      setTimeout(lift, 12000);
+    });
   }
 
   /* ------------------------------------------------------------------ *
@@ -505,18 +583,42 @@
     if (lead) lead.style.opacity = '0';
     var fontsReady =
       document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    fontsReady.then(function () {
+
+    /*
+     * The lines are kept so the way out can be the way in run backwards. The
+     * sets are held separately from the flat list because cancelling belongs
+     * to the set a reveal was started on.
+     */
+    var revealSets = [];
+    var wipeLines = [];
+
+    function keep(lines) {
+      revealSets.push(lines);
+      wipeLines = wipeLines.concat(lines);
+    }
+
+    Promise.all([fontsReady, loaderLifted]).then(function () {
       if (headline) {
         headline.style.opacity = '';
-        blockReveal(headline);
+        keep(blockReveal(headline));
       }
       if (lead) {
         setTimeout(function () {
           lead.style.opacity = '';
-          blockReveal(lead);
+          keep(blockReveal(lead));
         }, 2 * REVEAL_STAGGER);
       }
     });
+
+    /*
+     * Everything in the hero that did not arrive on a wipe leaves on a fade —
+     * the tag row, the button, the note and the partner strip. The two that
+     * did are driven by wipeOut instead, so the fade is put on these rather
+     * than on the block that holds them all.
+     */
+    var fades = scene.querySelectorAll(
+      '.hero__tag, .hero__content .button, .verify, .logos'
+    );
 
     var seek = seeker(video);
     var anchor = null;
@@ -535,13 +637,15 @@
     })();
 
     /*
-     * The hero holds the window from the off. Restoration is switched off so a
-     * reload cannot drop the page somewhere below the held section, where
-     * nothing would scroll.
+     * The hero takes hold of the window as the loader lifts. Restoration is
+     * switched off so a reload cannot drop the page somewhere below the held
+     * section, where nothing would scroll.
      */
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     window.scrollTo(0, 0);
-    document.documentElement.classList.add('is-held');
+    loaderLifted.then(function () {
+      document.documentElement.classList.add('is-held');
+    });
 
     /*
      * The click. It runs the hero's progress from 0 to 1 on a clock, and every
@@ -552,9 +656,11 @@
      * last beat lifts that white to leave the tunnel running.
      */
     function explore() {
-      if (spent) return;
+      if (spent || document.documentElement.classList.contains('is-loading')) return;
       spent = true;
       dropCursor();
+      /* The reveal lets go of the lines so the exit can take them over. */
+      for (var r = 0; r < revealSets.length; r++) revealSets[r].cancelled = true;
 
       var t0 = null;
       requestAnimationFrame(function step(now) {
@@ -675,8 +781,14 @@
         }
       }
 
+      /*
+       * The copy leaves the way it arrived: the headline and the lead are
+       * wiped out under the same rectangle that uncovered them, and the rest
+       * fades. The whole block still drifts up as it goes.
+       */
       var fade = Math.min(1, p / COPY_FADE);
-      copy.style.opacity = String(1 - fade);
+      for (var f = 0; f < fades.length; f++) fades[f].style.opacity = String(1 - fade);
+      wipeOut(wipeLines, fade);
       copy.style.transform = 'translateY(' + (-fade * COPY_RISE).toFixed(1) + 'px)';
       copy.style.visibility = fade === 1 ? 'hidden' : '';
 
@@ -816,6 +928,8 @@
   function runReveal(lines, done) {
     var t0 = null;
     function frame(now) {
+      /* The exit takes the line over; two hands on it would fight per frame. */
+      if (lines.cancelled) return;
       if (t0 === null) t0 = now;
       var settled = true;
       for (var i = 0; i < lines.length; i++) {
@@ -838,6 +952,31 @@
       }
     }
     requestAnimationFrame(frame);
+  }
+
+  /*
+   * The way out, and the mirror of the way in: the same white rectangle that
+   * uncovered a line sweeps across it again, and everything it has passed is
+   * gone behind it. The lines set off one after another the way they arrived,
+   * and `p` is a position rather than a clock — so the run can be scrubbed and
+   * put back exactly.
+   */
+  function wipeOut(lines, p) {
+    var span = 1 - (lines.length - 1) * EXIT_STAGGER;
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i];
+      var k = clamp01((p - i * EXIT_STAGGER) / span);
+      if (k === 0) {
+        /* Untouched: no clip at all, rather than one that happens to show all. */
+        l.text.style.clipPath = '';
+        l.block.style.display = 'none';
+        continue;
+      }
+      l.text.style.clipPath = 'inset(-0.25em 0 -0.25em ' + (k * 101).toFixed(2) + '%)';
+      l.block.style.display = k < 1 ? '' : 'none';
+      l.block.style.opacity = k < 1 ? '1' : '0';
+      l.block.style.transform = 'translateX(' + (k * l.text.offsetWidth).toFixed(1) + 'px)';
+    }
   }
 
   function blockReveal(el, done) {
@@ -1255,6 +1394,7 @@
 
   /* ------------------------------------------------------------------ */
 
+  var loaderLifted = setUpLoader();
   setUpHero();
   setUpRole();
   setUpCards();

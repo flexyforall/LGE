@@ -24,14 +24,15 @@
   }
 
   /*
-   * The hero holds the window and says so with a class on the root.
-   * `overflow: hidden` stops the browser scrolling the page, but not this —
-   * scrollTo goes through regardless — so the hold has to be honoured here
-   * too, or the wheel would walk straight out of a section that is supposed to
-   * be waiting to be let go.
+   * The loader and the hero each hold the window, and say so with a class on
+   * the root. `overflow: hidden` stops the browser scrolling the page, but not
+   * this — scrollTo goes through regardless — so the hold has to be honoured
+   * here too, or the wheel would walk straight out of a section that is
+   * supposed to be waiting to be let go.
    */
   function held() {
-    return document.documentElement.classList.contains('is-held');
+    var root = document.documentElement.classList;
+    return root.contains('is-loading') || root.contains('is-held');
   }
 
   function tick() {
