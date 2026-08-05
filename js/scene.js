@@ -1592,6 +1592,7 @@
     var glow = scene.querySelector('[data-use-glow]');
     var footButton = aside ? aside.querySelector('.button') : null;
     var paper = scene.querySelector('[data-use-paper]');
+    var menu = document.querySelector('[data-site-menu]');
 
     var chars = [];
     var order = [];
@@ -1978,143 +1979,16 @@
         (q - USE_TITLE2_FROM) / (USE_TITLE2_BY - USE_TITLE2_FROM)
       );
       if (paper) {
-        paper.style.opacity = String(
-          clamp01((q - USE_WHITE_FROM) / (USE_WHITE_BY - USE_WHITE_FROM))
+        var white = clamp01(
+          (q - USE_WHITE_FROM) / (USE_WHITE_BY - USE_WHITE_FROM)
         );
-      }
-    });
-  }
-
-  /* ------------------------------------------------------------------ *
-   * Newsroom
-   * ------------------------------------------------------------------ */
-
-  /*
-   * 396:975. The only section that is not pinned — it stands in the page and
-   * is read by scrolling past it, so everything here is measured off where a
-   * block has got to in the window rather than off a section's own progress.
-   *
-   * Two things happen. Every piece of copy writes itself on with the block
-   * reveal as it comes up, and is put back as it goes down again so that
-   * scrolling through a second time replays it. And each card grows as it
-   * reaches the middle of the window and settles back as it leaves, bracketed
-   * while it stands large by two 8px squares 20 off its corners.
-   *
-   * The growth is out from the margin the card is set against, not from its
-   * own middle: the edge standing on the margin holds, and the picture opens
-   * into the empty half of the row. That is `transform-origin` in the
-   * stylesheet; what is here is how far it opens and where the squares go.
-   */
-  var NEWS_TEXT_FROM = 0.86; // a block writes on once its top is this far up
-  var NEWS_CARD_OVER = 1.08; // how much bigger a card stands at the middle
-  var NEWS_CARD_HOLD = 90; // px either side of the middle it stays there
-  var NEWS_CARD_RAMP = 300; // ...and the px of approach it grows across
-  var NEWS_MARK_OUT = 20; // 396:1811 — the squares' corners, off the picture
-  var NEWS_CARD_W = 655;
-  var NEWS_CARD_H = 431;
-
-  function setUpNews() {
-    var section = document.querySelector('[data-scene-news]');
-    if (!section) return;
-
-    var texts = [];
-    section.querySelectorAll('[data-news-text]').forEach(function (el) {
-      texts.push({ el: el, lines: null, on: false });
-    });
-    var cards = section.querySelectorAll('[data-news-card]');
-    var menu = document.querySelector('[data-site-menu]');
-    var usePaper = document.querySelector('[data-use-paper]');
-
-    if (reduced) return;
-
-    register(function () {
-      var vh = window.innerHeight;
-      var band = section.getBoundingClientRect();
-
-      /*
-       * The bar is drawn for dark ground and this is the one light section on
-       * the page, so it is turned over while this is what is behind it. 84 is
-       * the bar's own bottom edge — 20 of inset over its 64.
-       */
-      if (menu) {
+        paper.style.opacity = String(white);
         /*
-         * ...and over the white the use section ends on, which is the same
-         * paper by the time the two meet.
+         * ...and the bar turns over with it. One bar serves the whole site and
+         * it is drawn for dark ground — white type, a white logo, a white
+         * plate under black type — all of which would disappear here.
          */
-        var paperUp =
-          usePaper && +getComputedStyle(usePaper).opacity > 0.5 &&
-          usePaper.getBoundingClientRect().bottom > 84;
-        menu.classList.toggle(
-          'is-inverted',
-          (band.top < 84 && band.bottom > 0) || paperUp
-        );
-      }
-
-      for (var i = 0; i < texts.length; i++) {
-        var t = texts[i];
-        var on = t.el.getBoundingClientRect().top < vh * NEWS_TEXT_FROM;
-        if (on === t.on) continue;
-        t.on = on;
-        /*
-         * Split on the first crossing rather than up front: the lines are
-         * measured, and measuring before the fonts have landed splits the
-         * copy where the fallback wrapped it.
-         */
-        if (!t.lines) t.lines = splitIntoLines(t.el);
-        hideReveal(t.lines);
-        if (on) runReveal(t.lines);
-      }
-
-      for (var c = 0; c < cards.length; c++) {
-        var card = cards[c];
-        var shot = card.querySelector('[data-news-shot]');
-        var marks = card.querySelector('[data-news-marks]');
-        var box = card.getBoundingClientRect();
-        /*
-         * How near the card's middle is to the window's: full size across a
-         * band either side of it, easing off over the approach.
-         */
-        var off = Math.abs(box.top + box.height / 2 - vh / 2);
-        var over = clamp01((NEWS_CARD_HOLD + NEWS_CARD_RAMP - off) / NEWS_CARD_RAMP);
-        var scale = 1 + (NEWS_CARD_OVER - 1) * over;
-        var right = card.classList.contains('news__card--right');
-
-        /*
-         * ...and steps in off the margin by exactly the squares' offset as it
-         * does, so that what stands on the page's 56 once the card is open is
-         * the squares' own edge and not the picture — 396:1811 draws the halo
-         * flush to the margin, with the picture 20 inside it.
-         */
-        var slide = NEWS_MARK_OUT * over;
-        if (shot) {
-          shot.style.transform =
-            'translateX(' +
-            (right ? -slide : slide).toFixed(2) +
-            'px) scale(' +
-            scale.toFixed(4) +
-            ')';
-        }
-        if (marks) {
-          /*
-           * The picture grows to one side only, and evenly above and below.
-           * The squares' box is that grown picture with 20 added all round,
-           * written as insets on the card's own box — so the margin side
-           * closes to 0 as the card opens and the other three run negative.
-           */
-          var inner = -(NEWS_MARK_OUT - slide);
-          var outer = -(slide + NEWS_CARD_W * (scale - 1) + NEWS_MARK_OUT);
-          var tall = -((NEWS_CARD_H * (scale - 1)) / 2 + NEWS_MARK_OUT);
-          marks.style.inset =
-            tall.toFixed(1) +
-            'px ' +
-            (right ? inner : outer).toFixed(1) +
-            'px ' +
-            tall.toFixed(1) +
-            'px ' +
-            (right ? outer : inner).toFixed(1) +
-            'px';
-          marks.style.opacity = over.toFixed(3);
-        }
+        if (menu) menu.classList.toggle('is-inverted', white > 0.5);
       }
     });
   }
@@ -2171,7 +2045,6 @@
   setUpCards();
   setUpFlight();
   setUpUse();
-  setUpNews();
   setUpMenu();
 
   if (!reduced) {

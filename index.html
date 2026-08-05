@@ -375,7 +375,12 @@
              which is what makes the light in it read as moving. js/scene.js
              brings it in; the turn is CSS. -->
         <div class="use__glow" data-use-glow aria-hidden="true">
-          <span class="use__glowSheet"></span>
+          <span class="use__glowSheet">
+            <!-- 406:2416 draws the stars over the gradient in colour dodge,
+                 so they only light where there is already light to lift —
+                 bright across the top, and gone into the black corner. -->
+            <span class="use__stars"></span>
+          </span>
         </div>
 
         <!-- 402:2215 — headline/H1 at 110/120, dead centre; 402:2208 takes it
@@ -451,120 +456,6 @@
     </div>
   </div>
 </div>
-
-
-<!-- =====================================================================
-     Figma: "Use Cases" (396:975) — the newsroom, and the page's first
-     light section.
-
-     It is not pinned: it stands in the page and is read by scrolling past
-     it. The head writes itself on with the block reveal the rest of the
-     page uses, and so does each card's copy as it comes up. The cards
-     alternate against the two margins and each grows as it reaches the
-     middle of the window, out from the margin it is aligned to rather
-     than from its own centre — so the edge it is set against never moves
-     — and while it stands large it is bracketed by two 8px squares.
-     See js/scene.js.
-     ===================================================================== -->
-<section class="news" data-scene-news data-node-id="396:975">
-
-  <!-- 396:976 — the head: the title block against the left margin, the
-       note and its button against the right, sitting on the same baseline -->
-  <div class="news__head" data-node-id="396:976">
-
-    <div class="news__intro" data-node-id="396:977">
-      <div class="news__label" data-node-id="396:978">
-        <span class="news__square" data-node-id="396:979"></span>
-        <span class="news__labelText" data-node-id="396:981">Newsroom</span>
-        <span class="news__square" data-node-id="396:982"></span>
-      </div>
-      <!-- the frame breaks this line itself rather than letting its 707 do it -->
-      <h2 class="news__headline" data-news-text data-node-id="396:983">Progress, partnerships<br>and perspective.</h2>
-    </div>
-
-    <div class="news__aside" data-node-id="396:1210">
-      <p class="news__lead" data-news-text data-node-id="396:1211">Plasma power and propulsion, connected by high-bandwidth laser links</p>
-      <a class="button button--plate button--plate-dark" href="#newsroom" data-node-id="396:1187">
-        <span class="button__face" aria-hidden="true"></span>
-        <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-        <span class="button__label">Read more</span>
-        <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-      </a>
-    </div>
-
-  </div>
-
-  <!-- 396:1342 — three cards, 100 apart, against alternate margins -->
-  <div class="news__cards" data-node-id="396:1342">
-
-    <div class="news__row" data-node-id="396:1029">
-      <article class="news__card" data-news-card>
-        <div class="news__shot" data-news-shot data-node-id="396:1027">
-          <img class="news__pic" src="assets/images/news-1.jpg" alt="" width="1310" height="862">
-          <div class="news__wash" aria-hidden="true"></div>
-          <div class="news__copy">
-            <p class="news__kicker" data-news-text data-node-id="396:1041">[Technology update]</p>
-            <p class="news__title" data-news-text data-node-id="396:1042">A New Path for Power in Orbit</p>
-            <p class="news__note" data-news-text data-node-id="396:1044">Inside Core Space’s plasma-based approach to receiving and converting laser-transmitted energy.</p>
-          </div>
-          <a class="button button--plate button--plate-light" href="#newsroom" data-node-id="396:1046">
-            <span class="button__face" aria-hidden="true"></span>
-            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-            <span class="button__label">Read article</span>
-            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-          </a>
-        </div>
-        <!-- 396:1812 / 396:1814 — 8px squares on the picture's diagonal, their
-             outer corners 20 off it. They stand outside what is scaled, so they
-             hold their 8 whatever size the picture is at. -->
-        <span class="news__marks" data-news-marks><i></i><i></i></span>
-      </article>
-    </div>
-
-    <div class="news__row news__row--right" data-node-id="396:1155">
-      <article class="news__card news__card--right" data-news-card>
-        <div class="news__shot" data-news-shot data-node-id="396:1156">
-          <img class="news__pic" src="assets/images/news-2.jpg" alt="" width="1310" height="862">
-          <div class="news__wash" aria-hidden="true"></div>
-          <div class="news__copy">
-            <p class="news__kicker" data-news-text data-node-id="396:1160">[Industry insight]</p>
-            <p class="news__title" data-news-text data-node-id="396:1161">Why VLEO Could Become the Missing Data Layer</p>
-            <p class="news__note" data-news-text data-node-id="396:1163">How edge processing and high-bandwidth relay can connect orbital platforms with infrastructure on Earth</p>
-          </div>
-          <a class="button button--plate button--plate-light" href="#newsroom" data-node-id="396:1165">
-            <span class="button__face" aria-hidden="true"></span>
-            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-            <span class="button__label">Read article</span>
-            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-          </a>
-        </div>
-        <span class="news__marks" data-news-marks><i></i><i></i></span>
-      </article>
-    </div>
-
-    <div class="news__row" data-node-id="396:1123">
-      <article class="news__card" data-news-card>
-        <div class="news__shot" data-news-shot data-node-id="396:1124">
-          <img class="news__pic" src="assets/images/news-3.jpg" alt="" width="1310" height="862">
-          <div class="news__wash" aria-hidden="true"></div>
-          <div class="news__copy">
-            <p class="news__kicker" data-news-text data-node-id="396:1128">[Research]</p>
-            <p class="news__title" data-news-text data-node-id="396:1129">Rethinking Cooling for Space-Based Compute</p>
-            <p class="news__note" data-news-text data-node-id="396:1131">Exploring electron-emission cooling as a compact alternative to conventional radiative panels.</p>
-          </div>
-          <a class="button button--plate button--plate-light" href="#newsroom" data-node-id="396:1133">
-            <span class="button__face" aria-hidden="true"></span>
-            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-            <span class="button__label">Read article</span>
-            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
-          </a>
-        </div>
-        <span class="news__marks" data-news-marks><i></i><i></i></span>
-      </article>
-    </div>
-
-  </div>
-</section>
 
 
 <script src="js/smooth.js"></script>

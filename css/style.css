@@ -1579,14 +1579,13 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
- * The blue ground under the cards.
+ * The blue ground under the cards — 406:2416.
  *
- * The uploaded reference is a soft mesh of blue blooms on black: one bright
- * near the top, a second off the upper right, a broad navy across the right
- * half, and nothing at all in the lower left. It is rebuilt here out of
- * radial gradients rather than carried as a file — the layer has to fill the
- * frame at every angle of its turn, and a drawn gradient has no size to run
- * out of. Swapping a picture back in is one `background` away.
+ * The frame's own is a bloom off the top left that carries across the whole
+ * of the top and down the right, and falls away to plain black in the bottom
+ * left corner. It is rebuilt here out of radial gradients rather than carried
+ * as a file: the layer has to fill the frame at every angle of its turn, and
+ * a drawn gradient has no size to run out of.
  */
 .use__glow {
   position: absolute;
@@ -1610,14 +1609,34 @@ html.is-held [data-scene='hero'] button {
   width: 150vmax;
   height: 150vmax;
   background:
-    radial-gradient(38% 30% at 34% 13%, rgba(0, 116, 208, 0.95) 0%, rgba(0, 78, 158, 0.42) 42%, rgba(0, 0, 0, 0) 74%),
-    radial-gradient(30% 34% at 76% 18%, rgba(0, 92, 182, 0.7) 0%, rgba(0, 0, 0, 0) 72%),
-    radial-gradient(44% 46% at 70% 46%, rgba(6, 44, 124, 0.92) 0%, rgba(3, 22, 70, 0.5) 46%, rgba(0, 0, 0, 0) 80%),
-    radial-gradient(52% 50% at 56% 66%, rgba(2, 17, 58, 0.8) 0%, rgba(0, 0, 0, 0) 72%),
+    radial-gradient(46% 44% at 30% 4%, rgba(24, 132, 240, 1) 0%, rgba(14, 92, 200, 0.82) 30%, rgba(8, 52, 130, 0.42) 58%, rgba(0, 0, 0, 0) 82%),
+    radial-gradient(52% 56% at 88% 12%, rgba(15, 86, 186, 0.85) 0%, rgba(8, 44, 116, 0.45) 46%, rgba(0, 0, 0, 0) 80%),
+    radial-gradient(78% 62% at 60% 8%, rgba(10, 58, 140, 0.7) 0%, rgba(4, 24, 66, 0.3) 52%, rgba(0, 0, 0, 0) 80%),
+    radial-gradient(64% 58% at 84% 52%, rgba(8, 38, 100, 0.6) 0%, rgba(0, 0, 0, 0) 74%),
     #000000;
   transform: translate(-50%, -50%);
   will-change: transform;
-  animation: use-glow-turn 160s linear infinite;
+  animation: use-glow-turn 100s linear infinite;
+}
+
+/*
+ * 406:2416 — the stars, in colour dodge over the gradient. The mode is what
+ * makes them belong to it: they light where it is already lit and go out
+ * where it is black, instead of being an even dusting over the whole frame.
+ * They turn with it, being the same sky.
+ */
+.use__stars {
+  position: absolute;
+  inset: 0;
+  /*
+   * Tiled well under its own size rather than covering: the sheet is half as
+   * wide again as the frame, so at full size the stars come out several times
+   * the dots the frame draws. A field of dots has no edge to give a seam away.
+   */
+  background: url('../assets/images/strs.png') 0 0 / 38% auto repeat;
+  mix-blend-mode: color-dodge;
+  /* dodge over a blue this strong runs the channel out to cyan; held back */
+  opacity: 0.5;
 }
 
 /*
@@ -1854,329 +1873,6 @@ html.is-held [data-scene='hero'] button {
   mask-size: 16px 16px;
 }
 
-
-/* --- Newsroom ------------------------------------------------------------
-   Figma "Use Cases" (396:975) — the page's first light section, and the only
-   one that is not pinned: it stands in the page and is read by scrolling past
-   it. See js/scene.js for the reveals and the cards' growth.
-   ------------------------------------------------------------------------- */
-
-/*
- * 396:975 — white, 80 above the head and 120 under the last card, 56 either
- * side, and 100 between the head and the cards.
- */
-.news {
-  position: relative;
-  z-index: 43; /* clear of the pinned use stage it follows */
-  padding: 80px 56px 120px;
-  background: #ffffff;
-  color: #030303;
-}
-
-/* 396:976 — the two blocks sit on the same baseline, not the same top */
-.news__head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-
-/* 396:977 — 707 wide, its label 16 above the line */
-.news__intro {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 707px;
-}
-
-/* 396:978 — a square, 40 of air, the word, 40, a square */
-.news__label {
-  display: flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: 40px;
-  height: 20px;
-}
-
-.news__square {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  background: #030303;
-}
-
-/* 396:981 — label/M */
-.news__labelText {
-  font-family: var(--font-label);
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-
-/* 396:983 — headline/H2, two lines on its 707 */
-.news__headline {
-  margin: 0;
-  width: 100%;
-  font-family: var(--font-headline);
-  font-weight: 400;
-  font-size: 56px;
-  line-height: 64px;
-  letter-spacing: -0.5px;
-}
-
-/* 396:1210 — the note over its button, 24 apart, 372 wide */
-.news__aside {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 24px;
-  width: 372px;
-}
-
-/* 396:1211 — paragraph/L at 65% */
-.news__lead {
-  margin: 0;
-  width: 100%;
-  font-family: var(--font-text);
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 28px;
-  color: rgba(3, 3, 3, 0.65);
-}
-
-/*
- * The plate, drawn rather than fetched. Every button on the page is the same
- * notched shape — 8 off each end, 7 off each corner — and the exported plates
- * are one file per width. This section asks for two more widths, so the shape
- * is cut out of a solid instead: a clip-path is geometry, not a fetch, so it
- * still works from a file:// page, and it takes any width and any colour.
- */
-.button--plate {
-  height: 40px;
-  padding: 12px 8px;
-}
-
-.button__face {
-  position: absolute;
-  inset: 0;
-  clip-path: polygon(
-    8px 0,
-    calc(100% - 8px) 0,
-    100% 7px,
-    100% calc(100% - 7px),
-    calc(100% - 8px) 100%,
-    8px 100%,
-    0 calc(100% - 7px),
-    0 7px
-  );
-}
-
-.button--plate .button__label {
-  font-size: 12px;
-  line-height: 16px;
-}
-
-/* 396:1187 — 130 x 40, the dark one */
-.button--plate-dark {
-  width: 130px;
-  color: var(--color-fg);
-}
-
-.button--plate-dark .button__face {
-  background: #030303;
-}
-
-/* 396:1046 etc — 145 x 40 on the picture, the light one */
-.button--plate-light {
-  width: 145px;
-  color: #030303;
-}
-
-.button--plate-light .button__face {
-  background: #ffffff;
-}
-
-/* the plus is exported white; the light plate wants it black */
-.button--plate-light .button__icon {
-  filter: brightness(0);
-}
-
-/* 396:1342 — 100 between the cards */
-.news__cards {
-  display: flex;
-  flex-direction: column;
-  gap: 100px;
-  margin-top: 100px;
-}
-
-/*
- * 396:1029 / 396:1155 / 396:1123 — a card is a full-width row with the
- * picture against one margin or the other, the way the frame lays them out.
- *
- * The row keeps the picture's resting height, not the taller one the frame
- * draws for the card it happens to show open: the halo is drawn outside the
- * flow, so the column does not shunt every card below it as one grows.
- */
-.news__row {
-  display: flex;
-  width: 100%;
-}
-
-.news__row--right {
-  justify-content: flex-end;
-}
-
-.news__card {
-  position: relative;
-  flex: none;
-  width: 655px;
-  height: 431px;
-}
-
-/*
- * 396:1027 — the picture and everything on it. It is scaled out from the
- * margin the card is set against rather than from its own middle, so the
- * growth goes inwards, into the empty half of the row.
- */
-.news__shot {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #000000;
-  transform-origin: left center;
-  will-change: transform;
-}
-
-.news__card--right .news__shot {
-  transform-origin: right center;
-}
-
-.news__pic {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 396:1804 — black at the top, gone by 271, so the copy has its own ground */
-.news__wash {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 271px;
-  background: linear-gradient(180deg, #000000 0%, rgba(0, 0, 0, 0) 100%);
-}
-
-/* 396:1039 — 24 in from the top and the sides, its parts 8 apart */
-.news__copy {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  right: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  color: var(--color-fg);
-}
-
-/* 396:1041 — label/M */
-.news__kicker {
-  margin: 0;
-  font-family: var(--font-label);
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-
-/* 396:1042 — headline/H5 */
-.news__title {
-  margin: 0;
-  font-family: var(--font-headline);
-  font-weight: 400;
-  font-size: 24px;
-  line-height: 32px;
-}
-
-/* 396:1044 — paragraph/M at 70% */
-.news__note {
-  margin: 0;
-  font-family: var(--font-text);
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 24px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* 396:1046 — 24 off the bottom-right corner */
-.news__shot .button {
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
-}
-
-/*
- * 396:1812 / 396:1814 — the two squares, on the picture's diagonal and 20 off
- * it. This box is what js/scene.js sizes to whatever the picture has grown to;
- * the squares themselves are never scaled, so they hold their 8.
- */
-.news__marks {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.news__marks i {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: #000000;
-}
-
-.news__marks i:nth-child(1) {
-  left: 0;
-  bottom: 0;
-}
-
-.news__marks i:nth-child(2) {
-  right: 0;
-  top: 0;
-}
-
-/* mirrored, so the outer square always stands against the page's margin */
-.news__card--right .news__marks i:nth-child(1) {
-  left: auto;
-  right: 0;
-}
-
-.news__card--right .news__marks i:nth-child(2) {
-  right: auto;
-  left: 0;
-}
-
-/*
- * The wipe's rectangle is white, which is right on the pictures and invisible
- * on the section's own white — the copy standing on that takes the ink.
- */
-.news .rv-block {
-  background: #030303;
-}
-
-.news__shot .rv-block {
-  background: var(--color-fg);
-}
-
-/* Reduced motion: everything simply stands where it lands. */
-@media (prefers-reduced-motion: reduce) {
-  .news__shot {
-    transform: none;
-  }
-}
 
 /*
  * The bar over a light section. It is one bar for the whole site and it is
