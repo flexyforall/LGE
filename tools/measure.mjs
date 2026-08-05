@@ -57,15 +57,12 @@ const BOXES = [
   ['339:360', 79.5, 515.5, 360, null, 'wide card overline'],
   ['339:372', 1118.5, 602, 380, 380, 'narrow card figure'],
 
-  // --- use cases, 394:309. The head rides in the page's flow, its 160 of
-  // air above it, so it is measured against its own intro block; the card is
-  // measured in the pinned frame, on the row that leaves equal air above it
-  // (to the menu) and below it (to the window's edge) — at 810 and 650 tall,
-  // y 122. The copy block stays on 361: the card's centre never moves.
-  ['394:324', 338, 160, 764, 232, 'use: head'],
-  ['394:312', null, 160, 173, 20, 'use: label row'],
-  ['394:317', 338, 196, 764, 144, 'use: headline'],
-  ['394:322', 338, 364, 764, 28, 'use: lead'],
+  // --- use cases, 394:309. The head is held in the middle of the window on
+  // its own stretch, so it is measured against that stage rather than a
+  // frame: 764 wide, two lines of headline/H1 at 72. The card is measured in
+  // the pinned frame, on the row that leaves equal air above it (to the menu)
+  // and below it (to the window's edge) — at 810 and 650 tall, y 122.
+  ['394:317', 338, null, 764, 144, 'use: headline (landed)'],
   ['394:381', 56, 122, 1328, 650, 'use: card'],
   ['394:352', 56, 122, 664, 650, 'use: panel'],
   ['394:370', 720, 122, 664, 650, 'use: picture half'],
@@ -99,8 +96,6 @@ const GAPS = [
   ['356:1235', '356:1236', 9, 'verify: text -> rule'],
   ['339:481', '339:374', 24, 'cards: label -> heading'],
   ['339:354', '339:365', 8, 'cards: wide -> narrow'],
-  ['394:312', '394:317', 16, 'use: label -> headline'],
-  ['394:317', '394:322', 24, 'use: headline -> lead'],
   ['394:405', '394:382', 24, 'use: text -> button'],
   ['394:352', '394:370', 0, 'use: panel meets the picture'],
 ];
@@ -128,6 +123,12 @@ await page.evaluate(() => {
     c.style.transition = 'none';
     c.classList.add('is-in');
   });
+  /*
+   * The use head assembles itself out of characters that take up no room
+   * until they land, so at the top of the page it measures as nothing.
+   * Parity is about the line it finishes on — land them all.
+   */
+  document.querySelectorAll('.use__ch').forEach((c) => c.classList.remove('is-away'));
 });
 await page.waitForTimeout(300);
 
@@ -154,7 +155,9 @@ const rects = await page.evaluate(() => {
      * is not pinned and is its own origin.
      */
     const frame =
-      el.closest('.frame') || el.closest('[data-cards]') || el.closest('[data-use-intro]');
+      el.closest('.frame') ||
+      el.closest('[data-cards]') ||
+      el.closest('.use__introStage');
     /*
      * The menu is fixed to the window and lives in no frame; the viewport is
      * its origin, which at the top of the page is the hero frame's own.

@@ -144,6 +144,9 @@
   --scene-length-flight: 520vh;
   --scene-length-role: 560vh;
   --scene-length-use: 760vh;
+  --scene-length-use-intro: 240vh;
+  /* lifted off the page's #030303 so the section's own edge reads */
+  --use-bg: #121212;
 }
 
 
@@ -1470,24 +1473,38 @@ html.is-held [data-scene='hero'] button {
    are equal. At the design's 810 that resolves to the sequence's own y 147.
    ------------------------------------------------------------------------- */
 
+/*
+ * The section is lifted off the #030303 the page is otherwise on, so its edge
+ * against the section above it can be seen rather than guessed at.
+ */
 .frame--use {
-  background: #030303;
+  background: var(--use-bg);
 }
 
 /*
- * The head lives in the page's flow, so the section is only as tall as its
- * pieces: the intro, then the pinned run the cards play out over.
+ * Two stretches of scroll, one after the other: the head is held in the
+ * middle of the window while it assembles itself, and only then do the cards
+ * take the window.
  */
+.use__intro {
+  position: relative;
+  height: var(--scene-length-use-intro);
+  background: var(--use-bg);
+}
+
+.use__introStage {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+}
+
 .use__pin {
   position: relative;
   height: var(--scene-length-use);
-}
-
-/* 394:324 — the section's 160 above the head, per section-margins/vertical */
-.use__intro {
-  position: relative;
-  padding: 160px 0 120px;
-  background: #030303;
 }
 
 .frame--use {
@@ -1497,32 +1514,6 @@ html.is-held [data-scene='hero'] button {
   --use-top: calc(
     var(--use-menu-b) + (var(--frame-height) - var(--use-menu-b) - var(--use-card-h)) / 2
   );
-}
-
-/* 394:324 — 764 on the centre line, 24 under the title block, 16 inside it */
-.use__head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  width: 764px;
-  margin: 0 auto;
-}
-
-.use__title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-/* 394:312 — 8px squares, 40 of air either side of the line */
-.use__label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 40px;
 }
 
 .use__square {
@@ -1536,22 +1527,10 @@ html.is-held [data-scene='hero'] button {
   background: rgba(255, 255, 255, 0.7);
 }
 
-/* 394:315 — label/M in caps */
-.use__labelText {
-  font-family: var(--font-label);
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: var(--color-fg);
-  white-space: nowrap;
-}
-
-/* 394:317 — headline/H1: 64/72, tracking -0.8, centred */
+/* 394:317 — headline/H1: 64/72, tracking -0.8, centred on the frame */
 .use__headline {
   margin: 0;
-  width: 100%;
+  width: 764px;
   font-family: var(--font-headline);
   font-weight: 400;
   font-size: 64px;
@@ -1561,36 +1540,34 @@ html.is-held [data-scene='hero'] button {
   color: var(--color-fg);
 }
 
-/* 394:322 — paragraph/L: 18/28 at 65% */
-.use__lead {
-  margin: 0;
-  width: 100%;
-  font-family: var(--font-text);
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 28px;
-  text-align: center;
-  color: #ffffffb2;
+/*
+ * Each line is its own block and keeps its row whether or not anything has
+ * landed on it — the zero-width strut is what holds the row open. Without it
+ * a line still empty would collapse, and the block would grow under the text
+ * the moment its first character arrived, shunting the line above.
+ */
+.use__line {
+  display: block;
+}
+
+.use__line::before {
+  content: '';
+  display: inline-block;
+  width: 0;
 }
 
 /*
- * The head wipes on the way the hero's copy does, then reads itself in as it
- * travels up. Unread characters hold an opaque grey — a translucent one
- * would read as nearly-white on this ground and the fill would never be
- * seen.
+ * A character that has not landed yet takes up no room at all — display, not
+ * opacity. That is the whole effect: every line holds the centre and grows
+ * outward out of nothing as the characters arrive, rather than filling in
+ * across a gap that was already the width of the finished line.
  */
-.use__headline span,
-.use__lead span {
-  color: rgb(53, 53, 53);
-  transition: color 300ms ease;
+.use__ch {
+  display: inline;
 }
 
-.use__headline span.is-read {
-  color: var(--color-fg);
-}
-
-.use__lead span.is-read {
-  color: #ffffffb2;
+.use__ch.is-away {
+  display: none;
 }
 
 /* --- the card ------------------------------------------------------------ */
@@ -1782,9 +1759,8 @@ html.is-held [data-scene='hero'] button {
     display: none;
   }
 
-  .use__headline span,
-  .use__lead span {
-    color: var(--color-fg);
+  .use__ch {
+    display: inline;
   }
 }
 

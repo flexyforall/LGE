@@ -138,13 +138,13 @@
    * Use cases
    * ------------------------------------------------------------------ */
   /*
-   * The head is in the page's flow, so its two moves are mapped onto its own
-   * travel up the window rather than a pinned scroll: it wipes on as its top
-   * passes USE_WIPE_AT, and reads itself in from USE_READ_FROM to USE_READ_TO.
+   * The head is held in the middle of the window and assembles itself over
+   * its own stretch of scroll: its characters arrive in no order at all, and
+   * the ones still to come take up no room, so each line holds the centre and
+   * grows outward. It is all in by USE_TITLE_BY, which leaves the last of the
+   * stretch to stand finished before the cards take over.
    */
-  var USE_WIPE_AT = 0.85;
-  var USE_READ_FROM = 0.8;
-  var USE_READ_TO = 0.25;
+  var USE_TITLE_BY = 0.72;
   /*
    * The pinned run. The loose cards drift to their marks, the main one then
    * scales into the card's picture half while the other two take their leave,
@@ -1373,7 +1373,8 @@
     var scene = document.querySelector('[data-scene="use"]');
     if (!scene) return;
 
-    var head = scene.querySelector('[data-use-head]');
+    var intro = scene.querySelector('[data-use-intro]');
+    var headline = scene.querySelector('[data-use-headline]');
     var pin = scene.querySelector('[data-use-pin]');
     var frame = pin ? pin.querySelector('.frame') : null;
     var card = scene.querySelector('[data-use-card]');
@@ -1384,34 +1385,64 @@
     var body = scene.querySelector('[data-use-body]');
     var tags = scene.querySelectorAll('[data-use-tag]');
     var flies = [].slice.call(scene.querySelectorAll('[data-use-fly]'));
-    if (!head || !pin || !frame || !card || !panel || !track || !title) return;
+    if (!intro || !headline || !pin || !frame || !card || !panel || !track || !title) return;
 
     if (reduced) {
       return;
     }
 
     /*
-     * The head's two effects share its text: the block reveal owns the lines,
-     * the reading fill owns the characters inside them. Lines first, then
-     * characters within each line — the other way round, the line splitter
-     * would flatten the character spans away. Split only once the fonts are
-     * in, or the lines land on fallback metrics.
+     * The head, split so every character can be taken away on its own. The
+     * lines are left as they are — each centres itself, and each keeps its
+     * row whether or not anything has landed on it — and the spaces are left
+     * as bare text, so a gap between words survives even while the words
+     * either side of it are still arriving.
+     *
+     * Splitting waits on the fonts: measured any sooner, the line the browser
+     * chooses is the fallback's.
      */
-    var headLines = [];
-    var headLetters = [];
-    var wiped = false;
+    var chars = [];
+    var order = [];
+
+    function scatter(el) {
+      var out = [];
+      [].forEach.call(el.querySelectorAll('.use__line'), function (line) {
+        var text = line.textContent;
+        line.textContent = '';
+        for (var c = 0; c < text.length; c++) {
+          if (text[c] === ' ') {
+            line.appendChild(document.createTextNode(' '));
+            continue;
+          }
+          var span = document.createElement('span');
+          span.className = 'use__ch is-away';
+          span.textContent = text[c];
+          line.appendChild(span);
+          out.push(span);
+        }
+      });
+      return out;
+    }
 
     var fontsReady =
       document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
     fontsReady.then(function () {
-      [].forEach.call(scene.querySelectorAll('[data-use-text]'), function (el) {
-        var lines = splitIntoLines(el);
-        headLines = headLines.concat(lines);
-        for (var i = 0; i < lines.length; i++) {
-          headLetters = headLetters.concat(splitCharacters(lines[i].text));
-        }
+      chars = scatter(headline);
+      /*
+       * The order is drawn once and kept, so the same scroll position always
+       * shows the same characters — scrolling back up takes them away in the
+       * order they arrived rather than picking a fresh set every frame.
+       */
+      order = chars.map(function (_, i) {
+        return i;
       });
-      hideReveal(headLines);
+      for (var i = order.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = order[i];
+        order[i] = order[j];
+        order[j] = t;
+      }
+      paint();
     });
 
     /* The copy the card is showing, and the reveal that changes it over. */
@@ -1433,20 +1464,21 @@
 
     register(function () {
       /*
-       * The head, against its own travel. The wipe fires once, as it comes
-       * into view; the fill follows it up the window, reading the characters
-       * in behind the wipe.
+       * The head assembles itself over its own held stretch. How many
+       * characters have landed is the scroll's business; which ones is the
+       * shuffled order's, drawn once and kept — so the same position always
+       * shows the same word half-built.
        */
-      if (headLines.length && !wiped && progressUp(head, USE_WIPE_AT, 0) > 0) {
-        wiped = true;
-        runReveal(headLines);
-      }
-      if (headLetters.length && wiped) {
-        var fill = progressUp(head, USE_READ_FROM, USE_READ_TO);
-        var read = Math.round(fill * headLetters.length);
-        for (var i = 0; i < headLetters.length; i++) {
-          var want = i < read ? 'is-read' : '';
-          if (headLetters[i].className !== want) headLetters[i].className = want;
+      if (chars.length) {
+        var landed = Math.round(
+          clamp01(progressOf(intro) / USE_TITLE_BY) * chars.length
+        );
+        for (var i = 0; i < order.length; i++) {
+          var el = chars[order[i]];
+          var away = i >= landed;
+          if (el.classList.contains('is-away') !== away) {
+            el.classList.toggle('is-away', away);
+          }
         }
       }
 
