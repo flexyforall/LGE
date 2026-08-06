@@ -28,6 +28,29 @@
   set();
   addEventListener('resize', set);
 })();
+
+/*
+ * Nothing that js/scene.js owns is drawn until it owns it.
+ *
+ * The hero's copy arrives on a wipe, and the newsroom's travelling line is
+ * assembled a character at a time — until their script runs, both are plain
+ * visible text. That script is at the end of the body, and the browser is
+ * free to paint before it has been fetched and run. What that paint showed
+ * was the hero's headline whole and, lying right across it, the newsroom's
+ * line: it is a fixed overlay, so it is over the window wherever the page
+ * happens to be. Two headlines on top of each other, for one frame.
+ *
+ * This runs before first paint, and scene.js drops it the moment it has the
+ * page. The timer is a floor under it: if the script never arrives at all,
+ * the page still ends up readable rather than blank.
+ */
+(function () {
+  var root = document.documentElement;
+  root.classList.add('is-booting');
+  setTimeout(function () {
+    root.classList.remove('is-booting');
+  }, 3000);
+})();
 </script>
 </head>
 <body>

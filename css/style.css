@@ -193,6 +193,20 @@ img {
 
 
 /*
+ * Held from before first paint until js/scene.js has the page — see the boot
+ * script in index.html. These two are text that is meant to be assembled
+ * rather than shown: the hero's copy is wiped on line by line, and the
+ * newsroom's travelling line is put together a character at a time. Until
+ * their script runs they are simply visible, and the travelling line is a
+ * fixed overlay, so it would be drawn straight across the hero's own
+ * headline. Hidden here, and handed over the moment the script is ready.
+ */
+html.is-booting [data-scene-copy],
+html.is-booting [data-use-over] {
+  visibility: hidden;
+}
+
+/*
  * The hero is not scrolled through: it holds the window until it is let go,
  * and only then does the page below it become reachable. js/scene.js takes
  * this off as the transition lands.
@@ -686,6 +700,18 @@ html.is-held [data-scene='hero'] button {
   pointer-events: auto;
 }
 
+/*
+ * Everything in the hero that did not arrive on a wipe leaves on a fade. The
+ * strength is written by js/scene.js as `--fade` rather than as an opacity,
+ * so a piece that is meant to rest at less than full — the partner row — can
+ * say so in the sheet and have the exit multiply it; see .logos.
+ */
+.hero__tag,
+.hero__content .button,
+.verify {
+  opacity: var(--fade, 1);
+}
+
 /* 356:1255 — x 56, centred on the frame, 40 between the title and the button */
 .hero__content {
   position: absolute;
@@ -861,8 +887,13 @@ html.is-held [data-scene='hero'] button {
   height: 132px;
   padding: 40px 0 56px;
   overflow: hidden;
-  /* the row sits behind the hero's copy, not beside it — kept well back */
-  opacity: 0.3;
+  /*
+   * The marks are drawn solid white; on request the row is carried at half.
+   * `--fade` is what js/scene.js writes as the hero leaves — it multiplies
+   * this rather than replacing it, so the row's own strength is the sheet's
+   * to set and the exit only takes it the rest of the way down.
+   */
+  opacity: calc(0.5 * var(--fade, 1));
 }
 
 .logos__track {
@@ -896,32 +927,31 @@ html.is-held [data-scene='hero'] button {
 /* --- Our role ------------------------------------------------------------- */
 
 /*
- * 330:497 — centred: 764 wide on the frame's midline, its top 84px above the
- * frame's middle (321 on the 810 design). headline/H1: Stack Sans Headline
- * Regular 64/72, tracking -0.8.
+ * 330:497 — centred on the frame's midline, sitting 24px below its middle.
+ * The frame sets headline/H1 at 64/72 on a 764 box; on request it is set at
+ * 110/120 instead, and the box widened in step (764 x 110/64 = 1313, held to
+ * the frame's own 1328 content width) so the sentence still breaks over the
+ * three lines the design gives it. Its tracking is carried across as the
+ * ratio the frame set rather than the number — -0.8 of 64 is -0.0125em,
+ * which is the -1.375 here.
+ *
+ * Centred by transform rather than pinned by its top, so a passage that
+ * takes a line more or less than its neighbour still sits on the same spot.
  */
 .role__statement {
   position: absolute;
-  top: calc(50% - 84px);
+  top: 50%;
   left: 50%;
   margin: 0;
-  width: 764px;
-  transform: translateX(-50%);
+  width: min(1328px, calc(100% - 112px));
+  transform: translate(-50%, calc(-50% + 24px));
   font-family: var(--font-headline);
   font-weight: 400;
-  font-size: 64px;
-  line-height: 72px;
-  letter-spacing: -0.8px;
+  font-size: 110px;
+  line-height: 120px;
+  letter-spacing: -1.375px;
   text-align: center;
   color: var(--color-fg);
-}
-
-/*
- * Both passages sit on the same spot — the second only starts writing once the
- * first has rubbed itself out, so they never share the frame.
- */
-.role__statement + .role__statement {
-  top: calc(50% - 84px);
 }
 
 /*

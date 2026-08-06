@@ -924,8 +924,16 @@
        * wiped out under the same rectangle that uncovered them, and the rest
        * fades. The whole block still drifts up as it goes.
        */
+      /*
+       * Written as `--fade`, not as opacity. Some of these are not meant to
+       * stand at full strength even before the hero starts leaving — the
+       * partner row is held well back — and an opacity written straight on
+       * would have overruled the sheet's resting value from the first frame.
+       * The sheet multiplies its own by this instead.
+       */
       var fade = Math.min(1, p / COPY_FADE);
-      for (var f = 0; f < fades.length; f++) fades[f].style.opacity = String(1 - fade);
+      for (var f = 0; f < fades.length; f++)
+        fades[f].style.setProperty('--fade', (1 - fade).toFixed(3));
       wipeOut(wipeLines, fade);
       copy.style.transform = 'translateY(' + (-fade * COPY_RISE).toFixed(1) + 'px)';
       copy.style.visibility = fade === 1 ? 'hidden' : '';
@@ -2357,4 +2365,16 @@
       video.addEventListener('loadedmetadata', paint);
     });
   }
+
+  /*
+   * The page is ours now — see the boot script in index.html for what was
+   * being held back and why. Every painter is given a frame to put its
+   * elements where they belong first, so the veil comes off onto a page that
+   * is already in the state the scroll says it should be in, rather than onto
+   * whatever the markup happens to say.
+   */
+  paint();
+  requestAnimationFrame(function () {
+    document.documentElement.classList.remove('is-booting');
+  });
 })();
