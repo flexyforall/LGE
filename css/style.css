@@ -2388,15 +2388,19 @@ html.is-held [data-scene='hero'] button {
 
 /* --- the ground ---
    438:716 — the field, and 438:720 the stars over it. The frame crops the
-   field to 2564 x 1710 centred on its 1440 x 810, which is 1.78 of its own
-   width; here it is a square instead, because it turns. A rectangle only
-   covers a turning frame while its short side clears the frame's diagonal,
-   and at the frame's own proportions that is true by 29px and stops being
-   true on any window taller than about 1440 x 940. A square of 130vmax
-   clears it by 110 at any shape, and `cover` holds the field's own aspect
-   inside it: the window then sees the middle 51% of its width against the
-   frame's 56%, which on a field this diffuse is not a difference you can
-   point at.
+   field to 2564 x 1710 centred on its 1440 x 810; here both are large
+   centred squares instead, because they turn.
+
+   Neither of them is carried across the frame. A tile that is moved takes
+   its own box with it, and the edge of that box comes into the window from
+   the side it is moving away from — which is the seam that was showing in
+   the lower left. Turned about the middle instead, a centred square has no
+   edge to bring in, and a tiled field has none of its own at all.
+
+   Their rims are faded out even so. Whether a square covers a turning frame
+   depends on the frame's proportions, and under --frame-scale the frame can
+   be a good deal taller than the window it is drawn in; a rim that fades has
+   nothing to show whatever the shape, where a cut one has to be proved.
    ------------------------------------------------------------------------- */
 
 .faq__glow {
@@ -2404,38 +2408,61 @@ html.is-held [data-scene='hero'] button {
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  /* the field's own deep tone, so a faded rim lands on it rather than on black */
+  background: #020d16;
   /* the ground the stars are dodged against, and nothing behind it */
   isolation: isolate;
   pointer-events: none;
 }
 
+/*
+ * The field turns. Its box is a large centred square rather than the frame,
+ * because a rectangle only covers a turning frame while its short side
+ * clears the frame's diagonal — and its rim is faded even so, since whether
+ * a square covers depends on the frame's proportions and under
+ * --frame-scale the frame can be a good deal taller than the window it is
+ * drawn in. A rim that fades has nothing to show whatever the shape.
+ */
 .faq__glowSheet {
   position: absolute;
   top: 50%;
   left: 50%;
   display: block;
-  width: 130vmax;
-  height: 130vmax;
+  width: 170vmax;
+  height: 170vmax;
   background: url('../assets/images/faq-bg.jpg') center / cover no-repeat;
+  -webkit-mask-image: radial-gradient(closest-side, #000 80%, rgba(0, 0, 0, 0) 100%);
+  mask-image: radial-gradient(closest-side, #000 80%, rgba(0, 0, 0, 0) 100%);
   transform: translate(-50%, -50%);
   will-change: transform;
   animation: faq-glow-turn 140s linear infinite;
 }
 
 /*
+ * The stars do not. Their box is the frame exactly, and what moves is the
+ * pattern inside it — a tile carried by precisely one of itself in each
+ * direction, so the loop closes on a field that has no edge anywhere in it.
+ *
+ * This is the part that had a seam in it. Carrying the box instead of the
+ * pattern takes the box's own edge into the window from the side it is
+ * moving away from; turning the box would answer that, but a box big enough
+ * to turn is three times the frame's area, and all of it is dodged every
+ * frame. Pinned to the frame there is no edge to bring in and the least
+ * possible area to blend: measured at 57/49 fps against 53/39 for the
+ * turning box, on the same scroll.
+ *
  * Tiled well under its own size rather than covering, as the use-cases
  * section's are: at full size the stars come out several times the dots the
- * frame draws. A field of dots has no edge to give a seam away.
+ * frame draws.
  */
 .faq__stars {
   position: absolute;
   inset: 0;
-  background: url('../assets/images/strs.png') 0 0 / 38% auto repeat;
+  background: url('../assets/images/strs.png') 0 0 / 38vmax auto repeat;
   mix-blend-mode: color-dodge;
-  /* the field under these is far darker than the use-cases blue; less held back */
-  opacity: 0.75;
-  will-change: transform;
-  animation: faq-stars-drift 90s linear infinite;
+  /* dodge over a field with this much blue in it runs out to cyan; held back */
+  opacity: 0.5;
+  animation: faq-stars-drift 150s linear infinite;
 }
 
 @keyframes faq-glow-turn {
@@ -2447,17 +2474,13 @@ html.is-held [data-scene='hero'] button {
   }
 }
 
-/*
- * The stars do not turn with the field — they are a flat tile, and turning
- * one shows its corners. They are carried across it instead, by exactly one
- * tile, so the loop closes on itself with nothing to see.
- */
+/* one tile across and one down — 4320 x 2430 is 38 x 21.375 of vmax */
 @keyframes faq-stars-drift {
   from {
-    transform: translate(0, 0);
+    background-position: 0 0;
   }
   to {
-    transform: translate(-38%, -21.4%);
+    background-position: -38vmax -21.375vmax;
   }
 }
 

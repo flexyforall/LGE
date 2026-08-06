@@ -2594,7 +2594,11 @@
     function marks(n, on) {
       if (!labels[n]) return;
       var sq = labels[n].querySelectorAll('.faq__square');
-      for (var i = 0; i < sq.length; i++) sq[i].style.opacity = String(on);
+      /* ...and to two places, so a scrub does not write on every frame */
+      var v = (+on).toFixed(2);
+      for (var i = 0; i < sq.length; i++) {
+        if (sq[i].style.opacity !== v) sq[i].style.opacity = v;
+      }
     }
 
     /*
@@ -2738,10 +2742,18 @@
          */
         var deg = -d * FAQ_STEP;
         var roll = FAQ_ROLL * d * (i % 2 ? 1 : -1);
-        el.style.transform =
+        /*
+         * Written only when they have moved. A question is standing still for
+         * more of this scroll than it is turning — the hold is a third of
+         * every step — and a style set to the value it already holds still
+         * costs the whole section a recalculation.
+         */
+        var turn =
           'translateZ(' + -FAQ_RADIUS + 'px) rotateX(' + deg.toFixed(2) + 'deg) translateZ(' +
           FAQ_RADIUS + 'px) rotateZ(' + roll.toFixed(2) + 'deg)';
-        el.style.opacity = clamp01(1 - Math.abs(d)).toFixed(3);
+        if (el.style.transform !== turn) el.style.transform = turn;
+        var lit = clamp01(1 - Math.abs(d)).toFixed(3);
+        if (el.style.opacity !== lit) el.style.opacity = lit;
       }
 
       /*
