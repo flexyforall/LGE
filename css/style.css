@@ -2458,10 +2458,16 @@ html.is-held [data-scene='hero'] button {
 .faq__stars {
   position: absolute;
   inset: 0;
-  background: url('../assets/images/strs.png') 0 0 / 38vmax auto repeat;
+  /*
+   * Tiled small — 22 of vmax rather than 38, so the field reads as points of
+   * light rather than as marks. The star sprites are the same pixels either
+   * way; drawn a third smaller they stop showing the source's own grain and
+   * stop competing with the copy over them.
+   */
+  background: url('../assets/images/strs.png') 0 0 / 22vmax auto repeat;
   mix-blend-mode: color-dodge;
   /* dodge over a field with this much blue in it runs out to cyan; held back */
-  opacity: 0.5;
+  opacity: 0.34;
   animation: faq-stars-drift 150s linear infinite;
 }
 
@@ -2474,13 +2480,13 @@ html.is-held [data-scene='hero'] button {
   }
 }
 
-/* one tile across and one down — 4320 x 2430 is 38 x 21.375 of vmax */
+/* one tile across and one down — 4320 x 2430 at 22 of vmax is 22 x 12.375 */
 @keyframes faq-stars-drift {
   from {
     background-position: 0 0;
   }
   to {
-    background-position: -38vmax -21.375vmax;
+    background-position: -22vmax -12.375vmax;
   }
 }
 

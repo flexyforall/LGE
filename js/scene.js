@@ -2417,6 +2417,12 @@
    * exit scrubbed by the turn itself — as it starts to leave.
    */
   var FAQ_WORD_BY = 0.1; // the word is whole by here...
+  /*
+   * ...and unwritten again by the time the drum is this far toward the first
+   * question. It does not ride the drum: it arrives the way a tunnel passage
+   * does and leaves the same way, the head running back through it.
+   */
+  var FAQ_WORD_OUT = 0.6;
   var FAQ_INK_FROM = 0.11; // ...and the ground turns over this band
   var FAQ_INK_BY = 0.17;
   var FAQ_RUN_FROM = 0.19; // the drum has the scroll from here to the end
@@ -2620,14 +2626,6 @@
       if (p < 0) p = 0;
 
       /*
-       * The word writes itself on first, on the ground the newsroom left.
-       * The tail is held at 0 — the tunnel's passages rub themselves out
-       * behind the head because a second one follows them, and this one has
-       * to stand whole and then leave on the drum.
-       */
-      write(chars, Math.round(clamp01(p / FAQ_WORD_BY) * chars.length), 0);
-
-      /*
        * The ground turns over, and the ink with it — written as one value the
        * whole section reads, so the copy and what it stands on never disagree.
        */
@@ -2675,7 +2673,23 @@
       var eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
       var pos = at + eased;
 
-      for (var i = 0; i < titles.length; i++) {
+      /*
+       * The word is not one of the questions and does not leave like one. It
+       * is written on as the section arrives and written off again as the
+       * drum starts to turn — the same head running back the way it came,
+       * so it goes the way it came rather than tipping away on a radius.
+       * The drum's first turn therefore has nothing above it, and question
+       * one simply rises into an empty frame.
+       */
+      var fill = pos > 0 ? 1 - clamp01(pos / FAQ_WORD_OUT) : clamp01(p / FAQ_WORD_BY);
+      write(chars, Math.round(fill * chars.length), 0);
+      if (word) {
+        if (word.style.transform !== 'none') word.style.transform = 'none';
+        var here = fill > 0 ? '' : 'hidden';
+        if (word.style.visibility !== here) word.style.visibility = here;
+      }
+
+      for (var i = 1; i < titles.length; i++) {
         var d = i - pos;
         var el = titles[i];
         if (Math.abs(d) > 1.05) {
