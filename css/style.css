@@ -2449,21 +2449,25 @@ html.is-held [data-scene='hero'] button {
 .faq__drum {
   position: relative;
   flex: none;
-  width: 965px;
-  height: 72px;
+  /*
+   * The frame's row is 965 x 72, which is one line of its 64. On request the
+   * questions are set at the tunnel's 80/88 instead, and the row is the
+   * frame's own content width and two lines tall — at 80 the longest of them
+   * runs to 1721 on a single line, so four of the five take two, and a row
+   * that only held one had them reaching up over the label.
+   */
+  width: 1328px;
+  height: 176px;
   perspective: 900px;
 }
 
 /*
  * 438:451 — headline/H1 at 64/72, tracking -0.8, centred on its 965.
  *
- * The frame's 72 is one line of it, and one line is all the frame's own
- * question needs; the rest run to 1377 at this size, past even the frame's
- * 1328 of content width, so they take a second line. A line is centred on
- * the row rather than laid into it, so the second one takes its room evenly
- * above and below: the row's height then never changes with the copy, the
- * label above it never moves, and every question — one line or two — swings
- * about the same axis, which is the middle of the row.
+ * A line is centred on the row rather than laid into it, so a second line
+ * takes its room evenly above and below the first: the row's height never
+ * changes with the copy, the label above it never moves, and every question
+ * — one line or two — swings about the same axis, the middle of the row.
  */
 .faq__title {
   position: absolute;
@@ -2474,9 +2478,10 @@ html.is-held [data-scene='hero'] button {
   margin: 0;
   font-family: var(--font-headline);
   font-weight: 400;
-  font-size: 64px;
-  line-height: 72px;
-  letter-spacing: -0.8px;
+  font-size: 80px;
+  line-height: 88px;
+  /* the frame's -0.8 of 64 carried across as its ratio, -0.0125em */
+  letter-spacing: -1px;
   text-align: center;
   color: var(--faq-ink);
   /* the far side of a turning line is never wanted */
@@ -2522,6 +2527,33 @@ html.is-held [data-scene='hero'] button {
 /* room is only taken by a character that has landed — see js/scene.js */
 .faq__ch.is-away {
   display: none;
+}
+
+/*
+ * The touch, as the use-cases headline has it: a ring of the accent runs out
+ * from the middle of a question as it lands and off its ends, once. It is a
+ * second copy of the line rather than a colour laid over the first, because
+ * the ring has to carry its own strength — see .use__ghost, which does the
+ * same for the same reason. js/scene.js sets its copy and runs the ring.
+ */
+.faq__ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 80px;
+  line-height: 88px;
+  letter-spacing: -1px;
+  text-align: center;
+  color: var(--color-accent);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
 }
 
 /* --- the label ---
@@ -2624,6 +2656,16 @@ html.is-held [data-scene='hero'] button {
   height: 40px;
   margin: 24px auto 0;
   color: var(--color-fg);
+}
+
+/*
+ * 438:671 — label/S. Said here because this button wears no plate class of
+ * its own: without it the label fell back to the page's 16 and ran 92 wide,
+ * which put the whole row at 124 inside a 121 outline.
+ */
+.faq__skip .button__label {
+  font-size: 12px;
+  line-height: 16px;
 }
 
 /* 438:673 — assets/btn_stroke.png, the outline, at its own 121 x 40 */

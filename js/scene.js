@@ -1084,7 +1084,15 @@
         var k = 1 - Math.pow(1 - clamp01(raw), 3);
         var l = lines[i];
         l.text.style.clipPath = 'inset(-0.25em ' + ((1 - k) * 101).toFixed(2) + '% -0.25em 0)';
-        l.block.style.transform = 'translateX(' + (k * l.text.offsetWidth).toFixed(1) + 'px)';
+        /*
+         * From where the text starts, not from where its line does. The
+         * rectangle is placed against the line, and on centred copy the text
+         * sits in from the line's left edge — so travelling the text's own
+         * width from 0 left the rectangle short of the end of the line by
+         * exactly that inset. It is 0 on everything set flush left.
+         */
+        l.block.style.transform =
+          'translateX(' + (l.text.offsetLeft + k * l.text.offsetWidth).toFixed(1) + 'px)';
         l.block.style.opacity = raw >= 0 && raw < 1 ? '1' : '0';
       }
       if (!settled) {
@@ -1126,7 +1134,7 @@
       l.block.style.display = k < 1 ? '' : 'none';
       l.block.style.opacity = k < 1 ? '1' : '0';
       l.block.style.transform =
-        'translateX(' + ((1 - k) * l.text.offsetWidth).toFixed(1) + 'px)';
+        'translateX(' + (l.text.offsetLeft + (1 - k) * l.text.offsetWidth).toFixed(1) + 'px)';
     }
   }
 
@@ -2417,6 +2425,8 @@
   var FAQ_STEP = 42; // degrees between one line and the next on it
   var FAQ_ROLL = 7; // ...and how far a line rolls in its own plane as it goes
   var FAQ_FOOT_OUT = 0.55; // the share of a turn the foot is wiped away over
+  var FAQ_WAVE_MS = 760; // the ring's whole run over a question that has landed
+  var FAQ_WAVE_BAND = 190; // ...and px of its own width
   /*
    * ...and the share by which the next one is up. Not 1: the turn is eased,
    * so a line is all but square to the window well before its step is over —
@@ -2436,6 +2446,7 @@
     var labels = scene.querySelectorAll('[data-faq-label]');
     var answers = scene.querySelectorAll('[data-faq-answer]');
     var skip = scene.querySelector('[data-faq-skip]');
+    var ghost = scene.querySelector('[data-faq-ghost]');
     var menu = document.querySelector('[data-site-menu]');
     if (!frame || !titles.length) return;
 
@@ -2583,6 +2594,61 @@
       for (var i = 0; i < sq.length; i++) sq[i].style.opacity = String(on);
     }
 
+    /*
+     * The touch. A question that has come to rest is struck once: a ring of
+     * the accent runs out from the middle of the line and off its ends, the
+     * same one the use-cases headline takes when a card crosses it. It is
+     * drawn on a second copy of the line rather than on the line itself,
+     * because the ring carries its own strength and the line is already
+     * carrying the ink's.
+     */
+    var waveRunning = false;
+    var waveStart = 0;
+    var waveReach = 0;
+
+    function waveFrame(now) {
+      var t = (now - waveStart) / FAQ_WAVE_MS;
+      if (t >= 1) {
+        ghost.style.opacity = '0';
+        waveRunning = false;
+        return;
+      }
+      /* Out fast and easing as it goes, thinning on the way. */
+      var r = (1 - Math.pow(1 - t, 2)) * (waveReach + FAQ_WAVE_BAND);
+      ghost.style.opacity = (1 - t * t).toFixed(3);
+      var ring =
+        'radial-gradient(circle at 50% 50%, rgba(0,0,0,0) ' +
+        Math.max(0, r - FAQ_WAVE_BAND).toFixed(0) +
+        'px, #000 ' +
+        r.toFixed(0) +
+        'px, rgba(0,0,0,0) ' +
+        (r + FAQ_WAVE_BAND).toFixed(0) +
+        'px)';
+      ghost.style.webkitMaskImage = ring;
+      ghost.style.maskImage = ring;
+      requestAnimationFrame(waveFrame);
+    }
+
+    function strike(n) {
+      if (!ghost || !titles[n]) return;
+      ghost.textContent = titles[n].textContent;
+      var box = ghost.getBoundingClientRect();
+      if (!box.width) return;
+      /* Far enough for the ring to leave by every corner of the line. */
+      waveReach = Math.sqrt(box.width * box.width + box.height * box.height) / 2;
+      /*
+       * A strike that lands while the last one is still going restarts it on
+       * the new line rather than being dropped — two questions are seconds
+       * apart at a reading pace, but a scroll flung through them is not, and
+       * the one that arrives is the one that should be struck.
+       */
+      waveStart = performance.now();
+      if (!waveRunning) {
+        waveRunning = true;
+        requestAnimationFrame(waveFrame);
+      }
+    }
+
     function hideFeet() {
       for (var i = 0; i < labels.length; i++) {
         labels[i].style.opacity = '0';
@@ -2693,8 +2759,13 @@
       if (want < 1) want = -1;
       if (want !== shown) {
         shown = want;
-        if (want > 0) showFoot(want - 1);
-        else hideFeet();
+        if (want > 0) {
+          showFoot(want - 1);
+          /* ...and the line it belongs to is struck as it comes to rest. */
+          strike(want);
+        } else {
+          hideFeet();
+        }
       }
 
       /*

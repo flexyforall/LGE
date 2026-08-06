@@ -79,8 +79,8 @@ const BOXES = [
   // is centred instead in what is left between the bar's lower edge (84) and
   // the top of the foot (642), so the air above and below them is equal —
   // 225 either side on the 810, which is what moves them to 309 and 345.
-  ['438:664', 237.5, 345, 965, 72, 'faq: question'],
-  ['438:657', 628, 309, 184, 20, 'faq: label row'],
+  ['438:662', 56, 293, 1328, 176, 'faq: question row'],
+  ['438:657', 628, 257, 184, 20, 'faq: label row'],
   // ...and the foot is hung from the bottom edge, where the frame's own 642
   // and 714 sit: 56 clear of it, with the frame's 24 between the two.
   ['438:666', 301, 642, 838, 48, 'faq: answer'],
@@ -115,8 +115,8 @@ const GAPS = [
   ['339:354', '339:365', 8, 'cards: wide -> narrow'],
   ['402:2303', '402:2304', 24, 'use: paragraph -> button'],
   // the two that were asked to match: bar -> label, and line -> answer
-  ['356:1237', '438:657', 225, 'faq: bar -> label'],
-  ['438:664', '438:666', 225, 'faq: line -> answer'],
+  ['356:1237', '438:657', 173, 'faq: bar -> label'],
+  ['438:662', '438:666', 173, 'faq: row -> answer'],
   ['438:666', '438:667', 24, 'faq: answer -> skip'],
 ];
 
