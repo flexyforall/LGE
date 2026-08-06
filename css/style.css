@@ -2612,19 +2612,31 @@ html.is-held [data-scene='hero'] button {
   white-space: nowrap;
 }
 
-.faq__ch {
-  display: inline;
+/*
+ * The word writes itself on the way the tunnel's passages do: js/scene.js
+ * runs a head through the characters and lights everything behind it. A
+ * character rests unwritten — no opacity, and already holding the accent —
+ * and `is-in` brings it up over 140ms so it lands in the accent, and only
+ * then does the delayed colour transition carry it to the ink. The arriving
+ * edge reads as a coloured leading character trailing off into the settled
+ * ink behind it. Room is held from the start, so the phrase does not move
+ * as it is written.
+ */
+/*
+ * The characters, and only them: a line is a span too, and the two of them
+ * caught by a descendant selector took the opacity meant for the characters
+ * inside them — which hides everything in a line however lit its own
+ * characters are. Their direct children are the characters and nothing else.
+ */
+.faq__wordLine > span {
+  opacity: 0;
   color: var(--color-accent);
-  transition: color 320ms ease 120ms;
+  transition: opacity 140ms linear, color 260ms ease 130ms;
 }
 
-.faq__ch.is-set {
+.faq__wordLine > span.is-in {
+  opacity: 1;
   color: var(--faq-ink);
-}
-
-/* room is only taken by a character that has landed — see js/scene.js */
-.faq__ch.is-away {
-  display: none;
 }
 
 /*
@@ -2781,9 +2793,10 @@ html.is-held [data-scene='hero'] button {
 
 /* Reduced motion: the word stands, the first question with it. */
 @media (prefers-reduced-motion: reduce) {
-  .faq__ch,
-  .faq__ch.is-away {
-    display: inline;
+  .faq__wordLine > span {
+    opacity: 1;
+    color: var(--faq-ink);
+    transition: none;
   }
 
   .faq__title {

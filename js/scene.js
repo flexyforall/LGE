@@ -2458,81 +2458,24 @@
     }
 
     /*
-     * The word's characters, taken away to begin with and put back in a fixed
-     * order — drawn once and kept, so the same scroll position always shows
-     * the same half-built word and scrolling back takes them away in the
-     * order they arrived.
+     * The word's characters, each in a span of its own so the line can be
+     * written on the way the tunnel's passages are: a head runs through them
+     * left to right and every character it has passed is lit. They hold their
+     * room from the start — it is a line being written, not one being
+     * assembled out of nothing — so the phrase never moves as it arrives.
      */
     var chars = [];
-    var order = [];
 
     /* Split once the fonts are in, or the line lands on fallback metrics. */
     var fontsReady =
       document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
     fontsReady.then(function () {
       var lines = word ? word.querySelectorAll('.faq__wordLine') : [];
-      if (!lines.length) return;
-      /*
-       * The lines are left as they are — each centres itself and each keeps
-       * its row whether or not anything has landed on it — and the spaces
-       * stay bare text, so a gap between words survives while the words
-       * either side are still arriving.
-       */
       for (var l = 0; l < lines.length; l++) {
-        var line = lines[l];
-        var text = line.textContent;
-        line.textContent = '';
-        for (var c = 0; c < text.length; c++) {
-          if (text.charAt(c) === ' ') {
-            line.appendChild(document.createTextNode(' '));
-            continue;
-          }
-          var span = document.createElement('span');
-          span.className = 'faq__ch is-away';
-          span.textContent = text.charAt(c);
-          line.appendChild(span);
-          chars.push(span);
-        }
-      }
-      for (var i = 0; i < chars.length; i++) order.push(i);
-      for (var k = order.length - 1; k > 0; k--) {
-        var j = Math.floor(Math.random() * (k + 1));
-        var t = order[k];
-        order[k] = order[j];
-        order[j] = t;
+        chars = chars.concat(splitCharacters(lines[l]));
       }
       paint();
     });
-
-    /*
-     * A character cannot transition out of `display: none`, so the settling
-     * to the ink is asked for a frame after it is put back — by which point
-     * it is being drawn and the colour has somewhere to move from.
-     */
-    function land(el) {
-      el.classList.remove('is-away');
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          if (!el.classList.contains('is-away')) el.classList.add('is-set');
-        });
-      });
-    }
-
-    function assembleWord(fill) {
-      if (!chars.length) return;
-      var landed = Math.round(clamp01(fill) * chars.length);
-      for (var i = 0; i < order.length; i++) {
-        var el = chars[order[i]];
-        var away = i >= landed;
-        if (el.classList.contains('is-away') === away) continue;
-        if (away) {
-          el.classList.add('is-away');
-          el.classList.remove('is-set');
-        } else {
-          land(el);
-        }
-      }
-    }
 
     /*
      * The foot. Each question's label and answer are their own elements,
@@ -2676,8 +2619,13 @@
       var p = progressOf(scene);
       if (p < 0) p = 0;
 
-      /* The word assembles first, on the ground the newsroom left. */
-      assembleWord(p / FAQ_WORD_BY);
+      /*
+       * The word writes itself on first, on the ground the newsroom left.
+       * The tail is held at 0 — the tunnel's passages rub themselves out
+       * behind the head because a second one follows them, and this one has
+       * to stand whole and then leave on the drum.
+       */
+      write(chars, Math.round(clamp01(p / FAQ_WORD_BY) * chars.length), 0);
 
       /*
        * The ground turns over, and the ink with it — written as one value the
