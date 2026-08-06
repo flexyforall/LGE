@@ -189,14 +189,16 @@
   /*
    * Six pieces of copy turned past the window: the word, then five
    * questions. Five turns and five holds, and the word's own arrival before
-   * any of them, and the field's own run after all of them. Long, because a
-   * turn that is over in half a window's worth of scroll reads as a jump
-   * rather than a turn: this gives the word 262vh to be swept through, clear
-   * of the questions entirely, each of the six turns after it about 100vh to
-   * be made in — six, because the last question is carried off as the others
-   * were — and the field 394vh to be run through, about 39vh a second.
+   * any of them, and the two clips after all of them. Long, because a turn
+   * that is over in half a window's worth of scroll reads as a jump rather
+   * than a turn: this gives the word 260vh to be swept through, clear of the
+   * questions entirely; each of the six turns after it about 160vh, of which
+   * 99 is the turn itself — six turns, because the last question is carried
+   * off as the others were; then 593vh for the field's remainder and the coin
+   * together, about 35vh a second of clip; and 167vh at the end for the copy
+   * to be written on while the coin stands on its last frame.
    */
-  --scene-length-faq: 1740vh;
+  --scene-length-faq: 2100vh;
 }
 
 
@@ -2413,8 +2415,6 @@ html.is-held [data-scene='hero'] button {
   overflow: hidden;
   /* the field's own deep tone, so a faded rim lands on it rather than on black */
   background: #020d16;
-  /* the ground the stars are dodged against, and nothing behind it */
-  isolation: isolate;
   pointer-events: none;
 }
 
@@ -2432,6 +2432,129 @@ html.is-held [data-scene='hero'] button {
   object-fit: cover;
 }
 
+/*
+ * 450:1036 — the clip the field hands over to. It lies over the field and is
+ * not drawn until the scroll reaches it, so the two are never both on screen;
+ * the cut between them is on the frame each of them shares — the field's last
+ * against this one's first, which measure 3.54 apart where two adjacent
+ * frames inside either clip measure 2.12.
+ */
+.faq__field--coin {
+  z-index: 1;
+  visibility: hidden;
+}
+
+/* --- the CTA ---
+   450:1041. It arrives once the coin has run to its last frame, over an
+   overlay that carries the lower half of the clip down into the copy.
+   ------------------------------------------------------------------------- */
+
+.faq__cta {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.faq__cta > * {
+  pointer-events: auto;
+}
+
+/*
+ * 450:1038 — 1440 x 531 from 279 down, which is the frame's lower two thirds.
+ * Two rectangles on the frame; one gradient here, black at the foot and gone
+ * by the top of it, which is what they add up to.
+ */
+.faq__ctaWash {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 65.56%;
+  background: linear-gradient(
+    to bottom,
+    rgba(2, 6, 12, 0) 0%,
+    rgba(2, 6, 12, 0.55) 38%,
+    rgba(2, 6, 12, 0.86) 68%,
+    rgba(2, 6, 12, 0.96) 100%
+  );
+}
+
+/* 450:1043 — the label row, 20 tall, its top on 478 of the 810 */
+.faq__ctaLabel {
+  position: absolute;
+  top: 59.01%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  height: 20px;
+  transform: translateX(-50%);
+}
+
+/* 450:1050 — headline/H1 at 80/88, one line on its 1048, 16 under the label */
+.faq__ctaTitle {
+  position: absolute;
+  top: 63.46%;
+  left: 50%;
+  margin: 0;
+  width: 1048px;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 80px;
+  line-height: 88px;
+  letter-spacing: -0.8px;
+  text-align: center;
+  color: var(--color-fg);
+  transform: translateX(-50%);
+}
+
+/* 450:1051 — paragraph/M on its 838, 16 under the headline */
+.faq__ctaLead {
+  position: absolute;
+  top: 76.30%;
+  left: 50%;
+  margin: 0;
+  width: 838px;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  transform: translateX(-50%);
+}
+
+/* 450:1053 — the hero's own primary button, 32 under the line */
+.faq__ctaButton {
+  position: absolute;
+  top: 83.21%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* the wipe's rectangle over the clip is white, as everywhere else dark */
+.faq__cta .rv-block {
+  background: var(--color-fg);
+}
+
+/*
+ * The headline is written on a character at a time, the way the tunnel's
+ * passages are — see .faq__wordLine. Only the head runs here: it arrives and
+ * stays.
+ */
+.faq__ctaTitle span {
+  opacity: 0;
+  color: var(--color-accent);
+  transition: opacity 140ms linear, color 260ms ease 130ms;
+}
+
+.faq__ctaTitle span.is-in {
+  opacity: 1;
+  color: var(--color-fg);
+}
+
 .faq__stars {
   position: absolute;
   inset: 0;
@@ -2440,10 +2563,19 @@ html.is-held [data-scene='hero'] button {
    * section's are: at full size the stars come out several times the dots
    * the frame draws.
    */
-  background: url('../assets/images/strs.png') 0 0 / 38vmax auto repeat;
-  mix-blend-mode: color-dodge;
-  /* dodge over a field with this much blue in it runs out to cyan; held back */
-  opacity: 0.5;
+  /*
+   * The dodge is baked into this sheet's alpha rather than asked for here.
+   * Everywhere else the stars lie over a gradient and a blend mode costs
+   * nothing; over a clip it costs half the frame, because a blending
+   * descendant pulls the video into the group and it can no longer be handed
+   * to the compositor as its own layer — measured at 30fps against 60 with
+   * either the blend or the clip taken away. White at alpha = dodge(sky, dot)
+   * puts the same light in the same places over the sky this clip actually
+   * has; what it gives up is the dots brightening further over the lit part
+   * of the frame, which is the one place the two part company. The 0.5 the
+   * mode was held back by is in the alpha too, so this is drawn at full.
+   */
+  background: url('../assets/images/strs-lit.png') 0 0 / 38vmax auto repeat;
   animation: faq-stars-drift 150s linear infinite;
 }
 
@@ -2788,6 +2920,12 @@ html.is-held [data-scene='hero'] button {
 
   .faq__stars {
     animation: none;
+  }
+
+  .faq__ctaTitle span {
+    opacity: 1;
+    color: var(--color-fg);
+    transition: none;
   }
 }
 

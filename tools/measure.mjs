@@ -86,6 +86,15 @@ const BOXES = [
   ['438:666', 301, 642, 838, 48, 'faq: answer'],
   ['438:667', 659.5, 714, 121, 40, 'faq: skip button'],
 
+  // --- the CTA the coin arrives at, 450:1041. Measured with its copy shown:
+  // it is only put on once the clip has run to its last frame.
+  ['450:1043', 619, 478, 202, 20, 'cta: label row'],
+  ['450:1050', 196, 514, 1048, 88, 'cta: headline'],
+  ['450:1051', 301, 618, 838, 24, 'cta: lead'],
+  // the hero's own primary button, which measures 210 there and is asserted
+  // at 210 there; this frame rounds the same component to 207
+  ['450:1053', 615, 674, 210, 56, 'cta: button'],
+
 ];
 
 /**
@@ -170,6 +179,17 @@ await page.evaluate(() => {
   document.querySelectorAll('[data-faq-label], [data-faq-answer]').forEach((e) => {
     e.style.opacity = '1';
   });
+  /*
+   * ...and the CTA, which is written on over the coin's last frames and so
+   * measures as nothing until the scroll has taken the clip all the way out.
+   */
+  const cta = document.querySelector('[data-faq-cta]');
+  if (cta) {
+    cta.style.opacity = '1';
+    cta.querySelectorAll('[data-faq-cta-title] span').forEach((s) => {
+      s.className = 'is-in';
+    });
+  }
 });
 await page.waitForTimeout(300);
 

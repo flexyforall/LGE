@@ -623,7 +623,45 @@
           <source src="assets/videos/faq-field.mp4" type="video/mp4">
           <source src="assets/videos/faq-field.webm" type="video/webm">
         </video>
+        <!--
+          450:1036 — the clip the field hands over to, cut in on the frame it
+          ends on. It is held on its own first frame until the scroll reaches
+          it, so nothing of it is seen before its turn.
+        -->
+        <video class="faq__field faq__field--coin" data-faq-coin muted playsinline preload="auto">
+          <source src="assets/videos/faq-coin.mp4" type="video/mp4">
+          <source src="assets/videos/faq-coin.webm" type="video/webm">
+        </video>
         <span class="faq__stars" data-node-id="438:720"></span>
+      </div>
+
+      <!--
+        450:1034 — what the coin arrives at. The overlay carries the lower
+        half of the clip down into the copy (450:1038), and the copy comes on
+        once the clip has reached its last frame: the headline written on a
+        character at a time as the tunnel's are, the label, the line under it
+        and the button wiped on by the rectangle as the hero's are.
+      -->
+      <div class="faq__cta" data-faq-cta data-node-id="450:1041">
+        <div class="faq__ctaWash" aria-hidden="true" data-node-id="450:1038"></div>
+
+        <div class="faq__ctaLabel" data-faq-cta-label data-node-id="450:1043">
+          <span class="faq__square"></span>
+          <span class="faq__labelText" data-node-id="450:1046">Work with us</span>
+          <span class="faq__square"></span>
+        </div>
+
+        <h2 class="faq__ctaTitle" data-faq-cta-title data-node-id="450:1050">Let’s build what’s next in orbit.</h2>
+
+        <p class="faq__ctaLead" data-faq-cta-lead data-node-id="450:1051">Talk with our team about integrating Core Space technologies into your next platform or mission.</p>
+
+        <a class="button button--dark faq__ctaButton" href="#partner" data-faq-cta-button data-node-id="450:1053">
+          <img class="button__plate" src="assets/images/buttonPrimary.svg"
+               alt="" width="314" height="163" aria-hidden="true">
+          <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
+          <span class="button__label">Become partner</span>
+          <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
+        </a>
       </div>
 
       <!-- the white the newsroom leaves, lifted as the questions begin -->

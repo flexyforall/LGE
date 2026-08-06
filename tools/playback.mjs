@@ -59,7 +59,19 @@ const SCENES = [
     label: 'field',
     video: '[data-faq-field]',
     restsOnTarget: true,
-    loops: true,
+    returnsToZero: true,
+  },
+  /*
+   * ...and the clip it hands over to, which is held on its own first frame
+   * until the field has reached its last. Ramping the section runs it out to
+   * its end and leaves it there for the copy to arrive over.
+   */
+  {
+    name: 'faq',
+    label: 'coin',
+    video: '[data-faq-coin]',
+    restsOnTarget: true,
+    returnsToZero: true,
   },
 ];
 
@@ -73,9 +85,11 @@ await page.goto(pathToFileURL(path.join(root, 'index.html')).href, {
 });
 
 /*
- * Largest backward step in a run of currentTime samples. The hero idles as a
- * loop, so with `allowWraps` a drop that lands back near 0 is a loop wrap and
- * not a rewind — only partial jumps backwards count.
+ * Largest backward step in a run of currentTime samples. With `allowWraps` a
+ * drop that lands back near 0 is not a rewind — only partial jumps backwards
+ * count. Two things do that legitimately: a clip on a loop cycling, and a
+ * clip that is held on its first frame until its turn comes, which has to be
+ * put back there when the scroll leaves its leg.
  */
 function worstDrop(samples, allowWraps) {
   let worst = 0;
@@ -235,13 +249,14 @@ for (const scene of SCENES) {
 
   const label = scene.label || scene.name;
   /*
-   * `loops` and `restsOnTarget` are separate questions, and the FAQ's field
-   * is the first camera to answer yes to both. It loops behind the questions
-   * and is cut back to its first frame when the scroll takes it, so drops to
-   * zero are the clip doing its job; that it then runs forward to its last
-   * frame and stays there is what has to hold.
+   * Going back to zero and resting on a target are separate questions, and
+   * the FAQ's two clips are the first cameras to answer yes to both — the
+   * field because it loops behind the questions, the coin because it is held
+   * on its first frame until the field has run out. Drops to zero are those
+   * clips doing their job; that each then runs forward to its last frame and
+   * stays there is what has to hold.
    */
-  const drop = worstDrop(run.samples, scene.loops || !scene.restsOnTarget);
+  const drop = worstDrop(run.samples, scene.returnsToZero || !scene.restsOnTarget);
   const atScrollEnd = run.samples.find((s) => s[0] >= 2000)[1];
   const settled = run.samples[run.samples.length - 1][1];
   const offTarget = Math.abs(settled - run.end);

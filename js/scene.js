@@ -2423,7 +2423,7 @@
    * never stops and never turns round. This is the share of the section that
    * movement takes, from the first character lighting to the last going out.
    */
-  var FAQ_WORD_SPAN = 0.16;
+  var FAQ_WORD_SPAN = 0.13;
   /*
    * ...and the distance between those two edges, in characters. The tunnel
    * holds 26 across sentences of about seventy, so its window is never wide
@@ -2443,7 +2443,7 @@
    * eating its way along the title, and the two read as one another's
    * wreckage. This is FAQ_WORD_SPAN and a hair.
    */
-  var FAQ_RUN_FROM = 0.17;
+  var FAQ_RUN_FROM = 0.14;
   /*
    * ...and where it gives it up again. The drum takes one step more than
    * there are questions, so the last of them is carried away exactly as the
@@ -2451,7 +2451,7 @@
    * left of the section after that is the field's own: it stops looping and
    * the scroll runs it from its first frame to its last.
    */
-  var FAQ_RUN_BY = 0.76;
+  var FAQ_RUN_BY = 0.62;
   var FAQ_TURN = 0.62; // the share of a step that is the turn; the rest holds
   var FAQ_RADIUS = 260; // px — the radius every line stands on
   var FAQ_STEP = 42; // degrees between one line and the next on it
@@ -2468,6 +2468,22 @@
   var FAQ_FOOT_GONE = 0.34;
   var FAQ_WAVE_MS = 760; // the ring's whole run over a question that has landed
   var FAQ_WAVE_BAND = 190; // ...and px of its own width
+  /*
+   * The field is not only played but rocked: every so often it is wound back
+   * a little and let run forward again, so the coin in it turns both ways
+   * rather than only one. Rarely enough that it reads as the thing turning
+   * rather than as the page stuttering.
+   */
+  var FAQ_ROCK_EVERY = 7600; // ms between one wind-back and the next
+  var FAQ_ROCK_BACK = 0.85; // seconds of clip it is wound back by
+  var FAQ_ROCK_MS = 620; // ...and how long the winding takes
+  /*
+   * How much of what is left after the questions the two clips have. The rest
+   * of it is the CTA's: the coin stands on its last frame and the copy is put
+   * on over it, which is what makes the copy arrive with that frame rather
+   * than across it.
+   */
+  var FAQ_CTA_FROM = 0.78;
 
   function setUpFaq() {
     var scene = document.querySelector('[data-scene="faq"]');
@@ -2482,6 +2498,9 @@
     var skip = scene.querySelector('[data-faq-skip]');
     var ghost = scene.querySelector('[data-faq-ghost]');
     var field = scene.querySelector('[data-faq-field]');
+    var coin = scene.querySelector('[data-faq-coin]');
+    var cta = scene.querySelector('[data-faq-cta]');
+    var stars = scene.querySelector('.faq__stars');
     var menu = document.querySelector('[data-site-menu]');
     if (!frame || !titles.length) return;
 
@@ -2518,26 +2537,86 @@
      * the copy where the fallback wrapped it.
      */
     /*
-     * The field has two lives. Behind the questions it simply loops, on its
-     * own clock, as a background does; once the last question has gone the
-     * scroll takes it and runs it from its first frame to its last. The
-     * hand-over is a cut to frame 0 — the clip loops cleanly, its last frame
-     * within 2.6 of its first against 3.2 for two adjacent ones, so the cut
-     * is invisible if the loop happens to be near its end and a jump if it
-     * is not. That is what was asked for: the run starts at the first frame.
+     * The two clips, and the three lives between them.
+     *
+     * Behind the questions the field loops on its own clock, as a background
+     * does — and is rocked while it does: wound back a little every so often
+     * and let run forward again, so the coin in it turns both ways.
+     *
+     * Once the last question has gone the scroll takes it. It carries on from
+     * whatever frame the loop was showing rather than cutting back to the
+     * first, so there is no jump at the hand-over; that frame is the anchor,
+     * and it is taken fresh on each forward crossing.
+     *
+     * When the field reaches its own end the coin takes over from its first
+     * frame. That cut is a cut, but not one that can be seen: the field's
+     * last frame and the coin's first measure 3.54 apart, where two adjacent
+     * frames inside either clip measure 2.12.
+     *
+     * The two legs share the band in proportion to what each has left to
+     * play, so the clip runs at one rate across both of them however far
+     * through its loop the field happened to be.
      */
     var seekField = field ? seeker(field) : null;
+    var seekCoin = coin ? seeker(coin) : null;
     var looping = null; // what the field is doing, so it is only ever told once
+    var anchor = null; // ...and the frame the scroll picked it up on
+    var rockAt = 0; // when the field was last wound back
+    var rocking = false;
 
     function loopField(on) {
       if (!field || on === looping) return;
       looping = on;
       field.loop = on;
       if (on) {
+        rockAt = 0;
         field.play().catch(function () {});
+        /*
+         * On a clock of its own, not on the painter's. The painter only runs
+         * when the page is scrolling, and the whole point of the rock is that
+         * it happens while it is standing still.
+         */
+        requestAnimationFrame(function watch(now) {
+          if (!looping) return;
+          requestAnimationFrame(watch);
+          rock(now);
+        });
       } else {
+        rocking = false;
         field.pause();
       }
+    }
+
+    /*
+     * The wind-back. The clip is stepped backwards over its own clock rather
+     * than played — a video has no reverse — and then handed back to `play`,
+     * which is what makes the turn read as one movement out and back rather
+     * than as a jump and a restart.
+     */
+    function rock(now) {
+      if (!field || !looping || rocking) return;
+      if (!rockAt) rockAt = now;
+      if (now - rockAt < FAQ_ROCK_EVERY) return;
+      rockAt = now;
+      rocking = true;
+      var from = field.currentTime;
+      var to = Math.max(0, from - FAQ_ROCK_BACK);
+      field.pause();
+      var began = 0;
+      requestAnimationFrame(function back(at) {
+        if (!began) began = at;
+        if (!rocking || !looping) return;
+        var k = clamp01((at - began) / FAQ_ROCK_MS);
+        /* out and slowing, so it settles into the turn rather than stopping */
+        var eased = 1 - Math.pow(1 - k, 2);
+        field.currentTime = from + (to - from) * eased;
+        if (k < 1) {
+          requestAnimationFrame(back);
+        } else {
+          rocking = false;
+          if (looping) field.play().catch(function () {});
+        }
+      });
     }
 
     var shown = -1; // whose foot is up
@@ -2655,6 +2734,55 @@
       }
     }
 
+    /*
+     * The CTA. Its headline is written on a character at a time as the
+     * tunnel's passages are — only the head runs, so it arrives and stays —
+     * and its label, its line and its button are wiped on by the rectangle
+     * the hero's copy uses. Both are keyed off how far the coin has run, so
+     * they arrive with its last frame rather than on a clock of their own.
+     */
+    var ctaTitle = cta ? cta.querySelector('[data-faq-cta-title]') : null;
+    var ctaChars = [];
+    var ctaSets = null;
+    var ctaOn = false;
+
+    if (cta) {
+      var ready =
+        document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+      ready.then(function () {
+        if (ctaTitle) ctaChars = splitCharacters(ctaTitle);
+        paint();
+      });
+      /* nothing of it is drawn until the coin has been run to its end */
+      cta.style.opacity = '0';
+    }
+
+    function ctaLines() {
+      if (ctaSets) return ctaSets;
+      ctaSets = [];
+      var pieces = cta.querySelectorAll(
+        '[data-faq-cta-label] .faq__labelText, [data-faq-cta-lead]'
+      );
+      for (var i = 0; i < pieces.length; i++) ctaSets.push(splitIntoLines(pieces[i]));
+      for (var j = 0; j < ctaSets.length; j++) hideReveal(ctaSets[j]);
+      return ctaSets;
+    }
+
+    function showCta(on) {
+      if (!cta || on === ctaOn) return;
+      ctaOn = on;
+      cta.style.opacity = on ? '1' : '0';
+      var set = ctaLines();
+      for (var i = 0; i < set.length; i++) {
+        set[i].cancelled = !on;
+        hideReveal(set[i]);
+        if (on) runReveal(set[i]);
+      }
+      /* the marks and the button have no line to be wiped on; they arrive */
+      var plain = cta.querySelectorAll('.faq__square, .faq__ctaButton');
+      for (var q = 0; q < plain.length; q++) plain[q].style.opacity = on ? '1' : '0';
+    }
+
     function hideFeet() {
       for (var i = 0; i < labels.length; i++) {
         labels[i].style.opacity = '0';
@@ -2703,8 +2831,8 @@
        * time.
        */
       if (menu) {
-        var box = scene.getBoundingClientRect();
-        if (box.top < window.innerHeight && box.bottom > 0) {
+        var seen = scene.getBoundingClientRect();
+        if (seen.top < window.innerHeight && seen.bottom > 0) {
           menu.classList.toggle('is-inverted', ink < 0.5);
         }
       }
@@ -2797,14 +2925,71 @@
         var lit = (ink * (1 - clamp01((pos - steps + 1) * 2))).toFixed(3);
         if (skip.style.opacity !== lit) skip.style.opacity = lit;
       }
+
+      /*
+       * The stars are the questions' ground, not the clips'. The frame puts
+       * them behind the video in the CTA, which is where the coin already
+       * leaves them, and dodging a full frame over a clip that is being
+       * seeked every frame is the most expensive thing this section does —
+       * measured at 31fps against 59 with the clip above them. So they go
+       * when the scroll takes the clips, which is both what the frame says
+       * and what the frame rate wants.
+       */
+      if (stars) {
+        var dust = p < FAQ_RUN_BY ? '' : 'hidden';
+        if (stars.style.visibility !== dust) stars.style.visibility = dust;
+      }
+
       if (field) {
         if (p < FAQ_RUN_BY) {
-          loopField(true);
-        } else {
+          /*
+           * Looping and holding no anchor — the next crossing takes a fresh
+           * one from wherever the loop has got to. And only while the section
+           * is somewhere near the window: there is no sense running a clip,
+           * let alone rocking it, six sections below anything anyone can see.
+           */
+          anchor = null;
+          var box = scene.getBoundingClientRect();
+          var vh = window.innerHeight;
+          loopField(box.top < vh * 1.5 && box.bottom > -vh * 0.5);
+          if (coin && coin.style.visibility !== 'hidden') coin.style.visibility = 'hidden';
+        } else if (field.duration && (!coin || coin.duration)) {
           loopField(false);
-          if (field.duration) seekField(over * field.duration);
+          if (anchor === null) anchor = field.currentTime;
+          var left = Math.max(0.001, field.duration - anchor);
+          var after = coin ? coin.duration : 0;
+          var run = clamp01(over / FAQ_CTA_FROM) * (left + after);
+          var onCoin = run >= left;
+          if (coin) {
+            /*
+             * Said out loud rather than cleared: the sheet hides it, so
+             * clearing the inline value hands it straight back to that.
+             */
+            var see = onCoin ? 'visible' : 'hidden';
+            if (coin.style.visibility !== see) coin.style.visibility = see;
+          }
+          if (onCoin) {
+            /* the field is left standing on its last frame, under the coin */
+            seekField(field.duration);
+            if (seekCoin) seekCoin(Math.min(after, run - left));
+          } else {
+            seekField(anchor + run);
+            if (seekCoin) seekCoin(0);
+          }
+
+          /*
+           * ...and the copy comes on over the coin's last frames. The
+           * headline is written on across that band; the rest is wiped on
+           * once it has been reached, and taken away again on the way back.
+           */
+          var told = clamp01((over - FAQ_CTA_FROM) / (1 - FAQ_CTA_FROM));
+          write(ctaChars, Math.round(told * ctaChars.length), 0);
+          showCta(told > 0);
+        } else {
+          write(ctaChars, 0, 0);
+          showCta(false);
         }
-      }
+      } 
 
       /*
        * Which way the drum is turning, taken from where it stood last rather
