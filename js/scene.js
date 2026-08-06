@@ -2424,16 +2424,18 @@
   var FAQ_RADIUS = 260; // px — the radius every line stands on
   var FAQ_STEP = 42; // degrees between one line and the next on it
   var FAQ_ROLL = 7; // ...and how far a line rolls in its own plane as it goes
-  var FAQ_FOOT_OUT = 0.55; // the share of a turn the foot is wiped away over
+  /*
+   * How close to a line the drum has to be for that line's foot to be up, and
+   * how far off it before the foot has gone — both measured in lines, so they
+   * read the same going forwards and going back. Keyed instead to how far
+   * through a step the scroll is, a foot only knows one direction: coming
+   * back up through that step it wiped itself away again at exactly the place
+   * it should have been putting itself back.
+   */
+  var FAQ_FOOT_NEAR = 0.16;
+  var FAQ_FOOT_GONE = 0.34;
   var FAQ_WAVE_MS = 760; // the ring's whole run over a question that has landed
   var FAQ_WAVE_BAND = 190; // ...and px of its own width
-  /*
-   * ...and the share by which the next one is up. Not 1: the turn is eased,
-   * so a line is all but square to the window well before its step is over —
-   * at 0.82 of the way through it, it is 99% of the way there. Waiting for
-   * the whole step would leave a settled question sitting there unlabelled.
-   */
-  var FAQ_FOOT_IN = 0.82;
 
   function setUpFaq() {
     var scene = document.querySelector('[data-scene="faq"]');
@@ -2539,7 +2541,8 @@
      * only one is ever wanted, and splitting before the fonts land would cut
      * the copy where the fallback wrapped it.
      */
-    var shown = -1;
+    var shown = -1; // whose foot is up
+    var went = null; // ...and where the drum stood last, which gives its way
     var kept = [];
     var inked = -1;
 
@@ -2748,45 +2751,58 @@
        * back up puts it back exactly.
        */
       /*
-       * Which foot belongs on screen is read off the position rather than
-       * caught as the drum passes a mark — a scrollbar dragged, or a wheel
-       * flung hard enough to skip frames, would step straight over the mark
-       * and leave the last question's label standing under the next one's.
-       * Read this way there is no mark to miss: wherever the scroll lands,
-       * the answer under the line is the line's own.
+       * Which foot belongs on screen is read off where the drum is standing,
+       * in lines, rather than off how far through a step the scroll has got.
+       * Two things follow. A scrollbar dragged, or a wheel flung hard enough
+       * to skip frames, cannot step over a mark and leave the last question's
+       * label under the next one's — there is no mark to miss. And it reads
+       * the same in both directions: coming back up to a question puts its
+       * label and its answer back exactly as going down to it put them there.
        */
-      var want = k >= FAQ_FOOT_IN ? at + 1 : at;
-      if (want < 1) want = -1;
-      if (want !== shown) {
-        shown = want;
-        if (want > 0) {
-          showFoot(want - 1);
-          /* ...and the line it belongs to is struck as it comes to rest. */
-          strike(want);
-        } else {
-          hideFeet();
-        }
+      /*
+       * Which way the drum is turning, taken from where it stood last rather
+       * than from which question was last arrived at: a scroll that jumps
+       * clean over a question never arrives at it, and a record of arrivals
+       * would still be pointing at one from two questions back.
+       */
+      var onward = went === null || pos > went;
+      went = pos;
+
+      var near = Math.round(pos);
+      if (near >= 1 && Math.abs(pos - near) <= FAQ_FOOT_NEAR && near !== shown) {
+        shown = near;
+        showFoot(near - 1);
+        /*
+         * The touch is for a question being come to, not for one being come
+         * back to: turning back to something already read is not an arrival,
+         * and striking it again would answer a move nobody made.
+         */
+        if (onward) strike(near);
       }
 
       /*
-       * ...and it rewinds as its question turns away, scrubbed by the turn
-       * itself, so scrolling back up puts it back exactly. Only once the turn
-       * is under way: at rest on a line there is nothing to rewind, and
-       * touching it there would take the reveal's own clock off it.
+       * ...and the foot rewinds as its own question turns away, scrubbed by
+       * how far the drum has moved off it, whichever way it went. At rest on
+       * the line there is nothing to rewind, and touching it there would take
+       * the reveal's own clock off it.
        */
-      if (shown > 0 && k > 0 && k < FAQ_FOOT_IN) {
+      if (shown > 0) {
         var was = shown - 1;
-        var set = kept[was];
-        var out = clamp01(k / FAQ_FOOT_OUT);
-        for (var w = 0; w < set.length; w++) {
-          set[w].cancelled = true;
-          wipeOut(set[w], out);
-        }
-        /* The marks go as the copy does; the boxes only once it has gone. */
-        marks(was, 1 - out);
-        if (out >= 1) {
-          if (labels[was]) labels[was].style.opacity = '0';
-          if (answers[was]) answers[was].style.opacity = '0';
+        var off = Math.abs(pos - shown);
+        var out = clamp01((off - FAQ_FOOT_NEAR) / (FAQ_FOOT_GONE - FAQ_FOOT_NEAR));
+        if (out > 0) {
+          var set = kept[was];
+          for (var w = 0; w < set.length; w++) {
+            set[w].cancelled = true;
+            wipeOut(set[w], out);
+          }
+          /* The marks go as the copy does; the boxes only once it has gone. */
+          marks(was, 1 - out);
+          if (out >= 1) {
+            if (labels[was]) labels[was].style.opacity = '0';
+            if (answers[was]) answers[was].style.opacity = '0';
+            shown = -1;
+          }
         }
       }
     });

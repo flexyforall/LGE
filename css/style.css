@@ -2386,6 +2386,81 @@ html.is-held [data-scene='hero'] button {
   color: var(--faq-ink);
 }
 
+/* --- the ground ---
+   438:716 — the field, and 438:720 the stars over it. The frame crops the
+   field to 2564 x 1710 centred on its 1440 x 810, which is 1.78 of its own
+   width; here it is a square instead, because it turns. A rectangle only
+   covers a turning frame while its short side clears the frame's diagonal,
+   and at the frame's own proportions that is true by 29px and stops being
+   true on any window taller than about 1440 x 940. A square of 130vmax
+   clears it by 110 at any shape, and `cover` holds the field's own aspect
+   inside it: the window then sees the middle 51% of its width against the
+   frame's 56%, which on a field this diffuse is not a difference you can
+   point at.
+   ------------------------------------------------------------------------- */
+
+.faq__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  /* the ground the stars are dodged against, and nothing behind it */
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.faq__glowSheet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 130vmax;
+  height: 130vmax;
+  background: url('../assets/images/faq-bg.jpg') center / cover no-repeat;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+  animation: faq-glow-turn 140s linear infinite;
+}
+
+/*
+ * Tiled well under its own size rather than covering, as the use-cases
+ * section's are: at full size the stars come out several times the dots the
+ * frame draws. A field of dots has no edge to give a seam away.
+ */
+.faq__stars {
+  position: absolute;
+  inset: 0;
+  background: url('../assets/images/strs.png') 0 0 / 38% auto repeat;
+  mix-blend-mode: color-dodge;
+  /* the field under these is far darker than the use-cases blue; less held back */
+  opacity: 0.75;
+  will-change: transform;
+  animation: faq-stars-drift 90s linear infinite;
+}
+
+@keyframes faq-glow-turn {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/*
+ * The stars do not turn with the field — they are a flat tile, and turning
+ * one shows its corners. They are carried across it instead, by exactly one
+ * tile, so the loop closes on itself with nothing to see.
+ */
+@keyframes faq-stars-drift {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-38%, -21.4%);
+  }
+}
+
 /*
  * The white the newsroom leaves behind. The frame under it is already the
  * page's black, so this is lifted rather than something else being laid down.
@@ -2690,6 +2765,11 @@ html.is-held [data-scene='hero'] button {
 
   .faq__title {
     will-change: auto;
+  }
+
+  .faq__glowSheet,
+  .faq__stars {
+    animation: none;
   }
 }
 
