@@ -2423,7 +2423,7 @@
    * never stops and never turns round. This is the share of the section that
    * movement takes, from the first character lighting to the last going out.
    */
-  var FAQ_WORD_SPAN = 0.3;
+  var FAQ_WORD_SPAN = 0.24;
   /*
    * ...and the distance between those two edges, in characters. The tunnel
    * holds 26 across sentences of about seventy, so its window is never wide
@@ -2436,7 +2436,14 @@
   var FAQ_WORD_TRAIL = 40;
   var FAQ_INK_FROM = 0.11; // ...and the ground turns over this band
   var FAQ_INK_BY = 0.17;
-  var FAQ_RUN_FROM = 0.19; // the drum has the scroll from here to the end
+  /*
+   * The drum has the scroll from here to the end — and not before the word's
+   * last character has gone out. The two used to share the frame: the first
+   * question was already rising on the radius while the tail was still
+   * eating its way along the title, and the two read as one another's
+   * wreckage. This is FAQ_WORD_SPAN and a hair.
+   */
+  var FAQ_RUN_FROM = 0.25;
   var FAQ_TURN = 0.62; // the share of a step that is the turn; the rest holds
   var FAQ_RADIUS = 260; // px — the radius every line stands on
   var FAQ_STEP = 42; // degrees between one line and the next on it

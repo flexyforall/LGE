@@ -190,10 +190,11 @@
    * Six pieces of copy turned past the window: the word, then five
    * questions. Five turns and five holds, and the word's own arrival before
    * any of them. Long, because a turn that is over in half a window's worth
-   * of scroll reads as a jump rather than a turn — this gives each of them
-   * about 110vh to make it in.
+   * of scroll reads as a jump rather than a turn: this gives the word its own
+   * 259vh to be swept through, clear of the questions entirely, and each of
+   * the five turns after it about 100vh to be made in.
    */
-  --scene-length-faq: 1100vh;
+  --scene-length-faq: 1180vh;
 }
 
 
