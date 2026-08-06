@@ -2392,6 +2392,291 @@
     });
   }
 
+
+  /* ------------------------------------------------------------------ *
+   * The FAQ
+   * ------------------------------------------------------------------ */
+
+  /*
+   * 438:443. Six pieces of copy turned past the window on one radius —
+   * madewithgsap 102. The word FAQ arrives first, assembled out of scattered
+   * characters the way the use-cases headline is, on the white the newsroom
+   * leaves behind; the ground then goes to black, and from there each line is
+   * turned up and away while the next rises into its place.
+   *
+   * The label and the answer stay square to the window. They are wiped on by
+   * the rectangle once their question has landed, and wiped off again — the
+   * exit scrubbed by the turn itself — as it starts to leave.
+   */
+  var FAQ_WORD_BY = 0.1; // the word is whole by here...
+  var FAQ_INK_FROM = 0.11; // ...and the ground turns over this band
+  var FAQ_INK_BY = 0.17;
+  var FAQ_RUN_FROM = 0.19; // the drum has the scroll from here to the end
+  var FAQ_TURN = 0.44; // the share of a step that is the turn; the rest holds
+  var FAQ_RADIUS = 260; // px — the radius every line stands on
+  var FAQ_STEP = 42; // degrees between one line and the next on it
+  var FAQ_ROLL = 7; // ...and how far a line rolls in its own plane as it goes
+  var FAQ_FOOT_OUT = 0.55; // the share of a turn the foot is wiped away over
+  /*
+   * ...and the share by which the next one is up. Not 1: the turn is eased,
+   * so a line is all but square to the window well before its step is over —
+   * at 0.82 of the way through it, it is 99% of the way there. Waiting for
+   * the whole step would leave a settled question sitting there unlabelled.
+   */
+  var FAQ_FOOT_IN = 0.82;
+
+  function setUpFaq() {
+    var scene = document.querySelector('[data-scene="faq"]');
+    if (!scene) return;
+
+    var frame = scene.querySelector('.faq');
+    var paper = scene.querySelector('[data-faq-paper]');
+    var word = scene.querySelector('[data-faq-word]');
+    var titles = scene.querySelectorAll('.faq__title');
+    var labels = scene.querySelectorAll('[data-faq-label]');
+    var answers = scene.querySelectorAll('[data-faq-answer]');
+    var skip = scene.querySelector('[data-faq-skip]');
+    var menu = document.querySelector('[data-site-menu]');
+    if (!frame || !titles.length) return;
+
+    if (reduced) {
+      scene.style.height = 'auto';
+      return;
+    }
+
+    /*
+     * The word's characters, taken away to begin with and put back in a fixed
+     * order — drawn once and kept, so the same scroll position always shows
+     * the same half-built word and scrolling back takes them away in the
+     * order they arrived.
+     */
+    var chars = [];
+    var order = [];
+
+    /* Split once the fonts are in, or the line lands on fallback metrics. */
+    var fontsReady =
+      document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    fontsReady.then(function () {
+      var line = word ? word.querySelector('.faq__wordLine') : null;
+      if (!line) return;
+      var text = line.textContent;
+      line.textContent = '';
+      for (var c = 0; c < text.length; c++) {
+        if (text.charAt(c) === ' ') {
+          line.appendChild(document.createTextNode(' '));
+          continue;
+        }
+        var span = document.createElement('span');
+        span.className = 'faq__ch is-away';
+        span.textContent = text.charAt(c);
+        line.appendChild(span);
+        chars.push(span);
+      }
+      for (var i = 0; i < chars.length; i++) order.push(i);
+      for (var k = order.length - 1; k > 0; k--) {
+        var j = Math.floor(Math.random() * (k + 1));
+        var t = order[k];
+        order[k] = order[j];
+        order[j] = t;
+      }
+      paint();
+    });
+
+    /*
+     * A character cannot transition out of `display: none`, so the settling
+     * to the ink is asked for a frame after it is put back — by which point
+     * it is being drawn and the colour has somewhere to move from.
+     */
+    function land(el) {
+      el.classList.remove('is-away');
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          if (!el.classList.contains('is-away')) el.classList.add('is-set');
+        });
+      });
+    }
+
+    function assembleWord(fill) {
+      if (!chars.length) return;
+      var landed = Math.round(clamp01(fill) * chars.length);
+      for (var i = 0; i < order.length; i++) {
+        var el = chars[order[i]];
+        var away = i >= landed;
+        if (el.classList.contains('is-away') === away) continue;
+        if (away) {
+          el.classList.add('is-away');
+          el.classList.remove('is-set');
+        } else {
+          land(el);
+        }
+      }
+    }
+
+    /*
+     * The foot. Each question's label and answer are their own elements,
+     * stacked on one mark, and split into lines the first time they are
+     * called for — measuring them all up front would be work for five when
+     * only one is ever wanted, and splitting before the fonts land would cut
+     * the copy where the fallback wrapped it.
+     */
+    var shown = -1;
+    var kept = [];
+
+    function linesFor(n) {
+      if (kept[n]) return kept[n];
+      var set = [];
+      if (labels[n]) set.push(splitIntoLines(labels[n].querySelector('.faq__labelText')));
+      if (answers[n]) set.push(splitIntoLines(answers[n]));
+      for (var i = 0; i < set.length; i++) hideReveal(set[i]);
+      kept[n] = set;
+      return set;
+    }
+
+    function showFoot(n) {
+      /*
+       * Whatever was up lets go of its lines before the next takes them, and
+       * is put away whole. The label's two marks are not part of its split —
+       * they have no line to be wiped on — so hiding the copy alone would
+       * leave the pair of them standing over the next question's label.
+       */
+      for (var q = 0; q < kept.length; q++) {
+        if (q === n) continue;
+        if (labels[q]) labels[q].style.opacity = '0';
+        if (answers[q]) answers[q].style.opacity = '0';
+        marks(q, 0);
+        if (!kept[q]) continue;
+        for (var r = 0; r < kept[q].length; r++) {
+          kept[q][r].cancelled = true;
+          hideReveal(kept[q][r]);
+        }
+      }
+      if (labels[n]) labels[n].style.opacity = '1';
+      if (answers[n]) answers[n].style.opacity = '1';
+      marks(n, 1);
+      var set = linesFor(n);
+      for (var s = 0; s < set.length; s++) {
+        set[s].cancelled = false;
+        hideReveal(set[s]);
+        runReveal(set[s]);
+      }
+    }
+
+    /*
+     * The label's two marks have no line of their own to be wiped on, so they
+     * are faded — on the same short clock the copy beside them takes, and not
+     * on one of their own. Held apart they read as a second thing arriving
+     * after the label rather than as part of it.
+     */
+    function marks(n, on) {
+      if (!labels[n]) return;
+      var sq = labels[n].querySelectorAll('.faq__square');
+      for (var i = 0; i < sq.length; i++) sq[i].style.opacity = String(on);
+    }
+
+    /* Nothing is up to begin with — the word has no question to answer. */
+    for (var h = 0; h < labels.length; h++) {
+      labels[h].style.opacity = '0';
+      marks(h, 0);
+    }
+    for (var a = 0; a < answers.length; a++) answers[a].style.opacity = '0';
+
+    register(function () {
+      var p = progressOf(scene);
+      if (p < 0) p = 0;
+
+      /* The word assembles first, on the ground the newsroom left. */
+      assembleWord(p / FAQ_WORD_BY);
+
+      /*
+       * The ground turns over, and the ink with it — written as one value the
+       * whole section reads, so the copy and what it stands on never disagree.
+       */
+      var ink = clamp01((p - FAQ_INK_FROM) / (FAQ_INK_BY - FAQ_INK_FROM));
+      if (paper) paper.style.opacity = (1 - ink).toFixed(3);
+      var v = Math.round(3 + (255 - 3) * ink);
+      frame.style.setProperty('--faq-ink', 'rgb(' + v + ',' + v + ',' + v + ')');
+      if (skip) skip.style.opacity = ink.toFixed(3);
+
+      /*
+       * The bar is inverted for the white the newsroom above leaves, and has
+       * to come back off as this ground turns. The use section sets it too,
+       * from its own white; this only speaks while the section is actually on
+       * screen, and it is registered after that one, so what it says holds
+       * for as long as it is looking and the other's stands the rest of the
+       * time.
+       */
+      if (menu) {
+        var box = scene.getBoundingClientRect();
+        if (box.top < window.innerHeight && box.bottom > 0) {
+          menu.classList.toggle('is-inverted', ink < 0.5);
+        }
+      }
+
+      /*
+       * The drum. `pos` is where it stands in lines: whole at rest on a line,
+       * and running from one to the next over the first FAQ_TURN of each
+       * step, so every question is held still to be read before it goes.
+       */
+      var run = clamp01((p - FAQ_RUN_FROM) / (1 - FAQ_RUN_FROM));
+      var steps = titles.length - 1;
+      var seg = run * steps;
+      var at = Math.min(steps - 1, Math.floor(seg));
+      var k = clamp01((seg - at) / FAQ_TURN);
+      var eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      var pos = at + eased;
+
+      for (var i = 0; i < titles.length; i++) {
+        var d = i - pos;
+        var el = titles[i];
+        if (Math.abs(d) > 1.05) {
+          if (el.style.visibility !== 'hidden') el.style.visibility = 'hidden';
+          continue;
+        }
+        el.style.visibility = '';
+        /*
+         * Behind on the drum means above and turned away; ahead means still
+         * below it. The pull-back either side of the swing is what puts the
+         * line at the front on z 0, at its true size.
+         */
+        var deg = -d * FAQ_STEP;
+        var roll = FAQ_ROLL * d * (i % 2 ? 1 : -1);
+        el.style.transform =
+          'translateZ(' + -FAQ_RADIUS + 'px) rotateX(' + deg.toFixed(2) + 'deg) translateZ(' +
+          FAQ_RADIUS + 'px) rotateZ(' + roll.toFixed(2) + 'deg)';
+        el.style.opacity = clamp01(1 - Math.abs(d)).toFixed(3);
+      }
+
+      /*
+       * The foot follows the drum rather than a clock of its own: it is wiped
+       * on once a question has come to rest, and rewound as that question
+       * starts to turn away. Its exit is scrubbed by the turn, so scrolling
+       * back up puts it back exactly.
+       */
+      var settled = k >= FAQ_FOOT_IN ? at + 1 : -1;
+      if (settled > 0) {
+        if (settled !== shown) {
+          shown = settled;
+          showFoot(settled - 1);
+        }
+      } else if (shown > 0) {
+        var was = shown - 1;
+        var set = kept[was];
+        var out = clamp01(k / FAQ_FOOT_OUT);
+        for (var w = 0; w < set.length; w++) {
+          set[w].cancelled = true;
+          wipeOut(set[w], out);
+        }
+        /* The marks go as the copy does; the boxes only once it has gone. */
+        marks(was, 1 - out);
+        if (out >= 1) {
+          if (labels[was]) labels[was].style.opacity = '0';
+          if (answers[was]) answers[was].style.opacity = '0';
+          shown = -1;
+        }
+      }
+    });
+  }
+
   /* ------------------------------------------------------------------ *
    * The menu
    * ------------------------------------------------------------------ */
@@ -2445,6 +2730,7 @@
   setUpFlight();
   setUpUse();
   setUpWire();
+  setUpFaq();
   setUpMenu();
 
   if (!reduced) {

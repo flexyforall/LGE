@@ -72,6 +72,13 @@ const BOXES = [
   ['402:2303', 1041, 642, 343, 48, 'use: paragraph'],
   ['402:2304', 1041, 714, 199, 40, 'use: button'],
 
+  // --- FAQ, 438:443. The lines stand on a drum and are turned past the
+  // window, so the one being measured is put square to it first (below).
+  ['438:451', 237.5, 387, 965, 72, 'faq: question'],
+  ['438:562', 628, 351, 184, 20, 'faq: label row'],
+  ['438:535', 301, 642, 838, 48, 'faq: answer'],
+  ['438:539', 659.5, 714, 121, 40, 'faq: skip button'],
+
 ];
 
 /**
@@ -136,6 +143,20 @@ await page.evaluate(() => {
   if (first) first.style.transform = 'translate3d(-275px, -177px, 0)';
   /* ...and the foot shown, which only arrives once the cards are running */
   document.querySelectorAll('[data-use-name], [data-use-aside]').forEach((e) => {
+    e.style.opacity = '1';
+  });
+  /*
+   * The FAQ's lines stand on a drum and only the one at the front is square
+   * to the window; parity is about where that one sits, so the turn is taken
+   * off. Its label and answer are shown for the same reason — they are wiped
+   * on only once their question has landed.
+   */
+  document.querySelectorAll('.faq__title').forEach((t) => {
+    t.style.transform = 'none';
+    t.style.visibility = '';
+    t.style.opacity = '1';
+  });
+  document.querySelectorAll('[data-faq-label], [data-faq-answer]').forEach((e) => {
     e.style.opacity = '1';
   });
 });

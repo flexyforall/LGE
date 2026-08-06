@@ -186,6 +186,12 @@
    * of those falls as a fraction of this.
    */
   --scene-length-use: 870vh;
+  /*
+   * Six pieces of copy turned past the window: the word, then five
+   * questions. Five turns and five holds, and the word's own arrival before
+   * any of them.
+   */
+  --scene-length-faq: 760vh;
 }
 
 
@@ -2346,6 +2352,231 @@ html.is-held [data-scene='hero'] button {
 /* the wipe's rectangle is white; on this ground it takes the ink */
 .wire .rv-block {
   background: #030303;
+}
+
+
+/* --- FAQ ------------------------------------------------------------------
+   Figma: 438:443 — 1440 x 810. A pinned scene holding six pieces of copy that
+   are turned past the window on a drum: the word FAQ, then the five
+   questions. Its label sits 16 above the line and its answer down on 642,
+   and neither of those rides the drum — they are wiped on and off by the
+   rectangle the rest of the page uses. js/scene.js drives all of it.
+   ------------------------------------------------------------------------- */
+
+[data-scene='faq'] {
+  height: var(--scene-length-faq);
+  /* clear of the newsroom above, which is pulled up into the section before */
+  z-index: 44;
+}
+
+[data-scene='faq'] .scene__stage {
+  z-index: 44;
+}
+
+.faq {
+  /*
+   * The ink the landed characters settle to, and the colour every line on the
+   * drum is drawn in. js/scene.js carries it from the newsroom's near-black to
+   * white across the same band the paper lifts over, so the copy turns with
+   * the ground under it rather than after it.
+   */
+  --faq-ink: #030303;
+  color: var(--faq-ink);
+}
+
+/*
+ * The white the newsroom leaves behind. The frame under it is already the
+ * page's black, so this is lifted rather than something else being laid down.
+ */
+.faq__paper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #ffffff;
+}
+
+/* --- the drum ---
+   438:444 — the line's own row: 965 wide, 72 tall, its top on 387 of the 810,
+   which is 18 above the frame's middle.
+
+   Every line stands on the same radius and is swung to its own angle, so what
+   is on screen is one line square to the window and its neighbours arcing
+   away above and below it. The pull-back is written into each line's own
+   transform — translateZ(-R) rotateX() translateZ(R) — rather than onto a
+   wrapper, so the line at the front comes to rest at z 0 and is drawn at its
+   true size, with only the ones turning away receding.
+*/
+.faq__drum {
+  position: absolute;
+  top: calc(50% - 18px);
+  left: 50%;
+  z-index: 2;
+  width: 965px;
+  height: 72px;
+  margin-left: -482.5px;
+  perspective: 900px;
+}
+
+/*
+ * 438:451 — headline/H1 at 64/72, tracking -0.8, centred on its 965.
+ *
+ * The frame's 72 is one line of it, and one line is all the frame's own
+ * question needs; the rest run to 1377 at this size, past even the frame's
+ * 1328 of content width, so they take a second line and hang below. Hence
+ * the height is left to the copy rather than pinned to the row, and the
+ * turn is given the single line's own middle to swing about — every
+ * question then rides the same axis whether it is one line or two, and a
+ * one-line question sits exactly where the frame draws it.
+ */
+.faq__title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  transform-origin: 50% 36px;
+  font-family: var(--font-headline);
+  font-weight: 400;
+  font-size: 64px;
+  line-height: 72px;
+  letter-spacing: -0.8px;
+  text-align: center;
+  color: var(--faq-ink);
+  /* the far side of a turning line is never wanted */
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/*
+ * The word FAQ is the only line that does not arrive on the drum: it is built
+ * out of scattered characters the way the use-cases headline is, each landing
+ * in the accent and settling to the ink. Once it is whole it rides the drum
+ * out like any other line.
+ */
+.faq__wordLine {
+  display: block;
+  white-space: nowrap;
+}
+
+.faq__ch {
+  display: inline;
+  color: var(--color-accent);
+  transition: color 320ms ease 120ms;
+}
+
+.faq__ch.is-set {
+  color: var(--faq-ink);
+}
+
+/* room is only taken by a character that has landed — see js/scene.js */
+.faq__ch.is-away {
+  display: none;
+}
+
+/* --- the label ---
+   438:562 — 20 tall with its two 8px marks 40 out either side, 16 above the
+   line, so its top is on 351 of the 810: 54 above the frame's middle. All
+   five stand on the same mark and only the one whose question is up is shown.
+*/
+.faq__labels {
+  position: absolute;
+  top: calc(50% - 54px);
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 20px;
+}
+
+.faq__label {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  height: 20px;
+  transform: translateX(-50%);
+}
+
+.faq__square {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--faq-ink);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+/* 438:565 — label/M */
+.faq__labelText {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* --- the answer and the way out ---
+   438:536 — the answer's top on 642 of the 810, 237 below the frame's middle,
+   and the button 24 under it.
+*/
+.faq__foot {
+  position: absolute;
+  top: calc(50% + 237px);
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 838px;
+  margin-left: -419px;
+}
+
+/* the five answers stand on the same mark; the row keeps the two lines' 48 */
+.faq__answers {
+  position: relative;
+  width: 100%;
+  height: 48px;
+}
+
+/* 438:535 — paragraph/M at 16/24, centred on its 838 */
+.faq__answer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+}
+
+/* 438:539 — the dark plate again, at its own 121 here */
+.faq__skip {
+  width: 121px;
+}
+
+/* the wipe's rectangle is white, and for as long as the ground is it, ink */
+.faq .rv-block {
+  background: var(--faq-ink);
+}
+
+/* Reduced motion: the word stands, the first question with it. */
+@media (prefers-reduced-motion: reduce) {
+  .faq__ch,
+  .faq__ch.is-away {
+    display: inline;
+  }
+
+  .faq__title {
+    will-change: auto;
+  }
 }
 
 /* --- The pointer over a card ---------------------------------------------
