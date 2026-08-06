@@ -42,13 +42,8 @@ const BOXES = [
   ['356:1267', 0, 679, 1440, 132, 'partner row'],
 
   // --- section 2 (our role), 238:2674, restyled by 330:489 ---
-  // The frame sets headline/H1 at 64/72 on a 764 box, three lines of it: x
-  // 338, y 321, 216 tall. On request it is set at 110/120 instead, and the
-  // box widened in step (764 x 110/64 = 1313, held to the frame's own 1328
-  // content width) so it still breaks over three lines — 360 tall, on the
-  // frame's margin. What is held is where it sits: the frame centres those
-  // three lines 24px below the middle, at 429 of 810, and so does this.
-  ['330:497', 56, 249, 1328, 360, 'statement'],
+  // three lines of headline/H1 at 72 — the 64/72 the Intro frame sets
+  ['330:497', 338, 321, 764, 216, 'statement'],
 
   // --- cards, 339:343 (measured against the section, which is its own origin)
   // 160 + [label 20 + 24 + four 52px lines] + 80 + 600 + 160

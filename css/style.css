@@ -927,31 +927,32 @@ html.is-held [data-scene='hero'] button {
 /* --- Our role ------------------------------------------------------------- */
 
 /*
- * 330:497 — centred on the frame's midline, sitting 24px below its middle.
- * The frame sets headline/H1 at 64/72 on a 764 box; on request it is set at
- * 110/120 instead, and the box widened in step (764 x 110/64 = 1313, held to
- * the frame's own 1328 content width) so the sentence still breaks over the
- * three lines the design gives it. Its tracking is carried across as the
- * ratio the frame set rather than the number — -0.8 of 64 is -0.0125em,
- * which is the -1.375 here.
- *
- * Centred by transform rather than pinned by its top, so a passage that
- * takes a line more or less than its neighbour still sits on the same spot.
+ * 330:497 — centred: 764 wide on the frame's midline, its top 84px above the
+ * frame's middle (321 on the 810 design). headline/H1: Stack Sans Headline
+ * Regular 64/72, tracking -0.8.
  */
 .role__statement {
   position: absolute;
-  top: 50%;
+  top: calc(50% - 84px);
   left: 50%;
   margin: 0;
-  width: min(1328px, calc(100% - 112px));
-  transform: translate(-50%, calc(-50% + 24px));
+  width: 764px;
+  transform: translateX(-50%);
   font-family: var(--font-headline);
   font-weight: 400;
-  font-size: 110px;
-  line-height: 120px;
-  letter-spacing: -1.375px;
+  font-size: 64px;
+  line-height: 72px;
+  letter-spacing: -0.8px;
   text-align: center;
   color: var(--color-fg);
+}
+
+/*
+ * Both passages sit on the same spot — the second only starts writing once the
+ * first has rubbed itself out, so they never share the frame.
+ */
+.role__statement + .role__statement {
+  top: calc(50% - 84px);
 }
 
 /*
