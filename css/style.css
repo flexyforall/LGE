@@ -2423,11 +2423,16 @@ html.is-held [data-scene='hero'] button {
   transform: translateX(var(--px, 0px));
 }
 
-/* 426:672 — label/M, its height held at the line's own */
+/*
+ * 426:672 — the frame sets this at label/M's 14; it is 12 on request. Only
+ * the type shrinks: the line keeps the 20 the frame gives it, and the height
+ * is held at that rather than left to follow the text, so the two squares
+ * stay on the marks the frame puts them on and the disc is unchanged.
+ */
 .lens__label {
   font-family: var(--font-label);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 20px;
   height: 20px;
   letter-spacing: 0.4px;
