@@ -2107,6 +2107,24 @@
   var WIRE_PIC_ZOOM = 0.12; // and how far over size the picture settles from
 
   /*
+   * The disc's label does not simply appear: it arrives scrambled and reads
+   * itself out, a character at a time, left to right.
+   *
+   * The wait is the smallest that is still a wait — one frame's worth. Any
+   * less is nothing at all, and the point of having one is that the decode
+   * does not begin on the very frame the pointer crosses the edge.
+   */
+  var LENS_DECODE_WAIT = 30; // ms before the first character locks
+  var LENS_DECODE_STEP = 34; // ...and how long each one after it takes
+  var LENS_SCRAMBLE_STEP = 45; // how often a character not yet locked is redrawn
+  /*
+   * What an unlocked character is drawn as. Caps and figures only: the label
+   * is set in caps, so anything else would read as a different kind of thing
+   * flickering rather than as this line not having resolved yet.
+   */
+  var LENS_GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&@$*+=/<>';
+
+  /*
    * 425:3537 — the card under the pointer. The shape, the push-in and the two
    * marks are the sheet's, on :hover; what is left for here is the pointer
    * itself, which becomes the button the card is. It is the hero's cursor
@@ -2118,6 +2136,55 @@
     var el = document.querySelector('[data-wire-lens]');
     if (!el || reduced) return;
     var squares = el.querySelectorAll('.lens__square');
+
+    /*
+     * The decode. Every character is scrambled to begin with and they lock
+     * one after another from the left, so what is on screen is a line half
+     * read out rather than a line fading up. Spaces are left alone — they are
+     * what keeps the two words readable as two words the whole way through.
+     */
+    var line = el.querySelector('.lens__line');
+    var word = line ? line.textContent : '';
+    var clock = null;
+
+    function scrambled(locked) {
+      var out = '';
+      for (var i = 0; i < word.length; i++) {
+        if (word.charAt(i) === ' ') out += ' ';
+        else if (i < locked) out += word.charAt(i);
+        else out += LENS_GLYPHS.charAt(Math.floor(Math.random() * LENS_GLYPHS.length));
+      }
+      return out;
+    }
+
+    function decode() {
+      if (!line) return;
+      if (clock) cancelAnimationFrame(clock);
+      var began = 0;
+      var drawnStep = -1;
+      var drawnLocked = -1;
+      clock = requestAnimationFrame(function tick(now) {
+        if (!began) began = now;
+        var run = now - began;
+        var locked = Math.floor(Math.max(0, run - LENS_DECODE_WAIT) / LENS_DECODE_STEP);
+        if (locked >= word.length) {
+          line.textContent = word;
+          clock = null;
+          return;
+        }
+        /*
+         * Redrawn only when it would actually change — when the scramble is
+         * due to be shuffled again, or when another character has locked.
+         */
+        var step = Math.floor(run / LENS_SCRAMBLE_STEP);
+        if (step !== drawnStep || locked !== drawnLocked) {
+          drawnStep = step;
+          drawnLocked = locked;
+          line.textContent = scrambled(locked);
+        }
+        clock = requestAnimationFrame(tick);
+      });
+    }
 
     var tx = 0, ty = 0, x = 0, y = 0;
     var on = false;
@@ -2149,6 +2216,12 @@
         want = 0;
         push = 0;
         place();
+        decode();
+      } else if (clock) {
+        /* Put away mid-read, it is stopped and left whole for the next time. */
+        cancelAnimationFrame(clock);
+        clock = null;
+        if (line) line.textContent = word;
       }
       el.classList.toggle('is-on', on);
     }
