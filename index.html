@@ -40,16 +40,21 @@
  * line: it is a fixed overlay, so it is over the window wherever the page
  * happens to be. Two headlines on top of each other, for one frame.
  *
- * This runs before first paint, and scene.js drops it the moment it has the
- * page. The timer is a floor under it: if the script never arrives at all,
- * the page still ends up readable rather than blank.
+ * This runs before first paint, and scene.js drops it once it has the page
+ * AND the fonts are in — neither piece can be built before its text can be
+ * measured, so an earlier hand-over just moves the flash later.
+ *
+ * The timer is the floor under all of that: if the script never arrives, or
+ * a font never does, the page still ends up readable rather than blank. It
+ * is long enough not to fire ahead of a slow but working load, which would
+ * put the flash straight back.
  */
 (function () {
   var root = document.documentElement;
   root.classList.add('is-booting');
   setTimeout(function () {
     root.classList.remove('is-booting');
-  }, 3000);
+  }, 8000);
 })();
 </script>
 </head>

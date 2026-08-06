@@ -2368,13 +2368,28 @@
 
   /*
    * The page is ours now — see the boot script in index.html for what was
-   * being held back and why. Every painter is given a frame to put its
-   * elements where they belong first, so the veil comes off onto a page that
-   * is already in the state the scroll says it should be in, rather than onto
-   * whatever the markup happens to say.
+   * being held back and why.
+   *
+   * It waits on the fonts, not just on this script running. Both things the
+   * veil covers are built out of measured text and neither can be built
+   * before the fonts land: the hero's lines are split where the real metrics
+   * wrap them, and the travelling line is cut into characters that take up
+   * no room until they are placed. Lifting the veil merely at the end of
+   * this file left a second of the page where the script had run but the
+   * fonts had not, and the travelling line — still one whole piece of raw
+   * text, in a fixed overlay — was drawn straight across the hero again.
+   *
+   * This is registered after every setUp above, so it runs after the two
+   * that wait on the same promise have had their turn, and then one frame
+   * more so their work is painted before it is uncovered.
    */
   paint();
-  requestAnimationFrame(function () {
-    document.documentElement.classList.remove('is-booting');
+  var ready =
+    document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  ready.then(function () {
+    paint();
+    requestAnimationFrame(function () {
+      document.documentElement.classList.remove('is-booting');
+    });
   });
 })();
