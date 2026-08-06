@@ -2141,7 +2141,12 @@
       if (lastX !== null) want = carry(want, tx - lastX);
       lastX = tx;
 
-      var over = !!event.target.closest('[data-wire-card]');
+      /*
+       * The picture only. Its tag and title sit below it in the same card,
+       * and they are the caption rather than the thing being pointed at —
+       * the pointer stays itself over them.
+       */
+      var over = !!event.target.closest('[data-wire-shot]');
       if (over === on) return;
       on = over;
       el.classList.toggle('is-on', on);

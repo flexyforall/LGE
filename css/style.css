@@ -2183,8 +2183,13 @@ html.is-held [data-scene='hero'] button {
  * latches on tap and the card would be left holding the opened state.
  */
 @media (hover: hover) {
-  /* the pointer is stood in for by .lens the whole time it is over a card */
-  .wire__card {
+  /*
+   * The picture, not the card. The frame draws all of this inside the
+   * picture's own box — the cut, the marks and the pointer — and the tag and
+   * title below it are the caption, not part of the thing being pointed at.
+   */
+  .wire__shot {
+    /* the pointer is stood in for by .lens the whole time it is in here */
     cursor: none;
   }
 
@@ -2194,15 +2199,15 @@ html.is-held [data-scene='hero'] button {
    * 112 of 1365 down; as shares of the box the same cut holds at any card
    * size, and cut rather than masked it needs no fetch to draw.
    */
-  .wire__card:hover .wire__shot {
+  .wire__shot:hover {
     clip-path: polygon(4.48% 0, 100% 0, 100% 91.8%, 95.52% 100%, 0 100%, 0 8.2%);
   }
 
-  .wire__card:hover .wire__shot img {
+  .wire__shot:hover img {
     scale: 1.05;
   }
 
-  .wire__card:hover .wire__mark {
+  .wire__shot:hover .wire__mark {
     opacity: 1;
   }
 }
@@ -2369,7 +2374,7 @@ html.is-held [data-scene='hero'] button {
     display: none;
   }
 
-  .wire__card {
+  .wire__shot {
     cursor: auto;
   }
 
