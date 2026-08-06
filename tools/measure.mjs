@@ -72,12 +72,19 @@ const BOXES = [
   ['402:2303', 1041, 642, 343, 48, 'use: paragraph'],
   ['402:2304', 1041, 714, 199, 40, 'use: button'],
 
-  // --- FAQ, 438:443. The lines stand on a drum and are turned past the
+  // --- FAQ, 438:655. The lines stand on a drum and are turned past the
   // window, so the one being measured is put square to it first (below).
-  ['438:451', 237.5, 387, 965, 72, 'faq: question'],
-  ['438:562', 628, 351, 184, 20, 'faq: label row'],
-  ['438:535', 301, 642, 838, 48, 'faq: answer'],
-  ['438:539', 659.5, 714, 121, 40, 'faq: skip button'],
+  //
+  // The frame puts the label on 351 and the line on 387. On request the pair
+  // is centred instead in what is left between the bar's lower edge (84) and
+  // the top of the foot (642), so the air above and below them is equal —
+  // 225 either side on the 810, which is what moves them to 309 and 345.
+  ['438:664', 237.5, 345, 965, 72, 'faq: question'],
+  ['438:657', 628, 309, 184, 20, 'faq: label row'],
+  // ...and the foot is hung from the bottom edge, where the frame's own 642
+  // and 714 sit: 56 clear of it, with the frame's 24 between the two.
+  ['438:666', 301, 642, 838, 48, 'faq: answer'],
+  ['438:667', 659.5, 714, 121, 40, 'faq: skip button'],
 
 ];
 
@@ -107,6 +114,10 @@ const GAPS = [
   ['339:481', '339:374', 24, 'cards: label -> heading'],
   ['339:354', '339:365', 8, 'cards: wide -> narrow'],
   ['402:2303', '402:2304', 24, 'use: paragraph -> button'],
+  // the two that were asked to match: bar -> label, and line -> answer
+  ['356:1237', '438:657', 225, 'faq: bar -> label'],
+  ['438:664', '438:666', 225, 'faq: line -> answer'],
+  ['438:666', '438:667', 24, 'faq: answer -> skip'],
 ];
 
 const TOL = 0.5;

@@ -2412,7 +2412,7 @@
   var FAQ_INK_FROM = 0.11; // ...and the ground turns over this band
   var FAQ_INK_BY = 0.17;
   var FAQ_RUN_FROM = 0.19; // the drum has the scroll from here to the end
-  var FAQ_TURN = 0.44; // the share of a step that is the turn; the rest holds
+  var FAQ_TURN = 0.62; // the share of a step that is the turn; the rest holds
   var FAQ_RADIUS = 260; // px — the radius every line stands on
   var FAQ_STEP = 42; // degrees between one line and the next on it
   var FAQ_ROLL = 7; // ...and how far a line rolls in its own plane as it goes
@@ -2457,20 +2457,29 @@
     var fontsReady =
       document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
     fontsReady.then(function () {
-      var line = word ? word.querySelector('.faq__wordLine') : null;
-      if (!line) return;
-      var text = line.textContent;
-      line.textContent = '';
-      for (var c = 0; c < text.length; c++) {
-        if (text.charAt(c) === ' ') {
-          line.appendChild(document.createTextNode(' '));
-          continue;
+      var lines = word ? word.querySelectorAll('.faq__wordLine') : [];
+      if (!lines.length) return;
+      /*
+       * The lines are left as they are — each centres itself and each keeps
+       * its row whether or not anything has landed on it — and the spaces
+       * stay bare text, so a gap between words survives while the words
+       * either side are still arriving.
+       */
+      for (var l = 0; l < lines.length; l++) {
+        var line = lines[l];
+        var text = line.textContent;
+        line.textContent = '';
+        for (var c = 0; c < text.length; c++) {
+          if (text.charAt(c) === ' ') {
+            line.appendChild(document.createTextNode(' '));
+            continue;
+          }
+          var span = document.createElement('span');
+          span.className = 'faq__ch is-away';
+          span.textContent = text.charAt(c);
+          line.appendChild(span);
+          chars.push(span);
         }
-        var span = document.createElement('span');
-        span.className = 'faq__ch is-away';
-        span.textContent = text.charAt(c);
-        line.appendChild(span);
-        chars.push(span);
       }
       for (var i = 0; i < chars.length; i++) order.push(i);
       for (var k = order.length - 1; k > 0; k--) {
@@ -2521,6 +2530,7 @@
      */
     var shown = -1;
     var kept = [];
+    var inked = -1;
 
     function linesFor(n) {
       if (kept[n]) return kept[n];
@@ -2573,12 +2583,21 @@
       for (var i = 0; i < sq.length; i++) sq[i].style.opacity = String(on);
     }
 
-    /* Nothing is up to begin with — the word has no question to answer. */
-    for (var h = 0; h < labels.length; h++) {
-      labels[h].style.opacity = '0';
-      marks(h, 0);
+    function hideFeet() {
+      for (var i = 0; i < labels.length; i++) {
+        labels[i].style.opacity = '0';
+        marks(i, 0);
+        if (answers[i]) answers[i].style.opacity = '0';
+        if (!kept[i]) continue;
+        for (var j = 0; j < kept[i].length; j++) {
+          kept[i][j].cancelled = true;
+          hideReveal(kept[i][j]);
+        }
+      }
     }
-    for (var a = 0; a < answers.length; a++) answers[a].style.opacity = '0';
+
+    /* Nothing is up to begin with — the word has no question to answer. */
+    hideFeet();
 
     register(function () {
       var p = progressOf(scene);
@@ -2592,10 +2611,20 @@
        * whole section reads, so the copy and what it stands on never disagree.
        */
       var ink = clamp01((p - FAQ_INK_FROM) / (FAQ_INK_BY - FAQ_INK_FROM));
-      if (paper) paper.style.opacity = (1 - ink).toFixed(3);
+      /*
+       * Only when it has actually moved. `--faq-ink` is inherited by every
+       * line, label, mark and answer under the frame, so writing it puts the
+       * whole section's style up for recalculation — and for all but a
+       * fraction of this scroll it is the same value it already was. That
+       * write every frame is what the turn was stuttering on.
+       */
       var v = Math.round(3 + (255 - 3) * ink);
-      frame.style.setProperty('--faq-ink', 'rgb(' + v + ',' + v + ',' + v + ')');
-      if (skip) skip.style.opacity = ink.toFixed(3);
+      if (v !== inked) {
+        inked = v;
+        frame.style.setProperty('--faq-ink', 'rgb(' + v + ',' + v + ',' + v + ')');
+        if (paper) paper.style.opacity = (1 - ink).toFixed(3);
+        if (skip) skip.style.opacity = ink.toFixed(3);
+      }
 
       /*
        * The bar is inverted for the white the newsroom above leaves, and has
@@ -2652,13 +2681,29 @@
        * starts to turn away. Its exit is scrubbed by the turn, so scrolling
        * back up puts it back exactly.
        */
-      var settled = k >= FAQ_FOOT_IN ? at + 1 : -1;
-      if (settled > 0) {
-        if (settled !== shown) {
-          shown = settled;
-          showFoot(settled - 1);
-        }
-      } else if (shown > 0) {
+      /*
+       * Which foot belongs on screen is read off the position rather than
+       * caught as the drum passes a mark — a scrollbar dragged, or a wheel
+       * flung hard enough to skip frames, would step straight over the mark
+       * and leave the last question's label standing under the next one's.
+       * Read this way there is no mark to miss: wherever the scroll lands,
+       * the answer under the line is the line's own.
+       */
+      var want = k >= FAQ_FOOT_IN ? at + 1 : at;
+      if (want < 1) want = -1;
+      if (want !== shown) {
+        shown = want;
+        if (want > 0) showFoot(want - 1);
+        else hideFeet();
+      }
+
+      /*
+       * ...and it rewinds as its question turns away, scrubbed by the turn
+       * itself, so scrolling back up puts it back exactly. Only once the turn
+       * is under way: at rest on a line there is nothing to rewind, and
+       * touching it there would take the reveal's own clock off it.
+       */
+      if (shown > 0 && k > 0 && k < FAQ_FOOT_IN) {
         var was = shown - 1;
         var set = kept[was];
         var out = clamp01(k / FAQ_FOOT_OUT);
@@ -2671,7 +2716,6 @@
         if (out >= 1) {
           if (labels[was]) labels[was].style.opacity = '0';
           if (answers[was]) answers[was].style.opacity = '0';
-          shown = -1;
         }
       }
     });
