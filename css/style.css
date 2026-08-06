@@ -98,6 +98,33 @@
   font-display: swap;
 }
 
+/*
+ * Geist Mono — every uppercase label on the page, on request: the tag rows,
+ * the tabs, the notes, the card tags and the copy inside every button. Two
+ * static weights rather than the variable file, because that is all the
+ * labels ask for — 500 nearly everywhere and 400 for the flight's.
+ *
+ * Vercel, in collaboration with basement.studio, under the SIL Open Font
+ * License 1.1; the licence travels with the files as
+ * assets/fonts/GeistMono-OFL.txt. Committed like the rest, so the page still
+ * needs no network.
+ */
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('../assets/fonts/GeistMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('../assets/fonts/GeistMono-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 /* --- Tokens --------------------------------------------------------------
    Figma has no published variables on these frames, so these mirror the raw
@@ -116,11 +143,14 @@
 
   /*
    * The hero frame's three roles: Headline for the title, Text for the lead,
-   * Notch for every label.
+   * and a third for every label. The frame sets that third in Stack Sans
+   * Notch; on request every one of them is Geist Mono instead. There is one
+   * token behind all of them and every rule that reaches for it is an
+   * uppercase label, so this line is the whole change.
    */
   --font-headline: 'Stack Sans Headline', 'PP Neue Montreal', system-ui, sans-serif;
   --font-text: 'Stack Sans Text', 'PP Neue Montreal', system-ui, sans-serif;
-  --font-label: 'Stack Sans Notch', 'PP Neue Montreal', system-ui, sans-serif;
+  --font-label: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   /*
    * A frame fills its pinned stage. Dividing by the scale means it still fills
