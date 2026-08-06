@@ -2128,24 +2128,75 @@ html.is-held [data-scene='hero'] button {
   overflow: hidden;
   background: #030303;
   /*
-   * assets/images/base shape.png — a rectangle with the top left and bottom
-   * right corners taken off. Its own cut is 88 of 1965 across by 112 of 1365
-   * down; as shares of the box the same cut holds at any card size, and cut
-   * rather than masked it needs no fetch to draw.
+   * At rest the card is a plain rectangle — but written as a six-cornered
+   * polygon with the cut folded flat, not as `clip-path: none`. The hover
+   * state below is the same six corners with the cut opened out, and a
+   * polygon only animates into another polygon of the same length: against
+   * `none` there is nothing to interpolate and the shape would snap.
    *
-   * This was off for a round while the hairline along the edges was being
-   * chased. It was never the cause — the same card with the clip and without
-   * gave identical pixels along every straight edge — and the seam turned out
-   * to come from the compositing layer under the picture; see below.
+   * The clip itself costs nothing along the straight edges — the same card
+   * with it and without gave identical pixels down every one of them.
    */
-  clip-path: polygon(
-    4.48% 0,
-    100% 0,
-    100% 91.8%,
-    95.52% 100%,
-    0 100%,
-    0 8.2%
-  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 100% 100%, 0 100%, 0 0);
+  transition: clip-path 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* --- The card under the pointer ------------------------------------------
+   Figma: 425:3537. The picture takes the cut corners, two marks strike its
+   other two, the view pushes in a little, and the pointer itself becomes the
+   button that says what the card is for — see .lens.
+   ------------------------------------------------------------------------- */
+
+/*
+ * Only where there is a pointer to hover with. On a touch screen `:hover`
+ * latches on tap and the card would be left holding the opened state.
+ */
+@media (hover: hover) {
+  /* the pointer is stood in for by .lens the whole time it is over a card */
+  .wire__card {
+    cursor: none;
+  }
+
+  /*
+   * 425:3539 — assets/images/base shape.png, a rectangle with the top left
+   * and bottom right corners taken off. Its own cut is 88 of 1965 across by
+   * 112 of 1365 down; as shares of the box the same cut holds at any card
+   * size, and cut rather than masked it needs no fetch to draw.
+   */
+  .wire__card:hover .wire__shot {
+    clip-path: polygon(4.48% 0, 100% 0, 100% 91.8%, 95.52% 100%, 0 100%, 0 8.2%);
+  }
+
+  .wire__card:hover .wire__shot img {
+    scale: 1.05;
+  }
+
+  .wire__card:hover .wire__mark {
+    opacity: 1;
+  }
+}
+
+/*
+ * 426:665 / 426:667 — 8 x 8, held 6 in from the two corners the cut leaves
+ * square. They sit inside the frame, so the clip takes them with it.
+ */
+.wire__mark {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.wire__mark--tr {
+  top: 6px;
+  right: 6px;
+}
+
+.wire__mark--bl {
+  bottom: 6px;
+  left: 6px;
 }
 
 /*
@@ -2171,6 +2222,14 @@ html.is-held [data-scene='hero'] button {
    * taken headless, because headless composites differently. The transform on
    * it is written once a frame at most and does not need the promotion.
    */
+  /*
+   * The push-in under the pointer is written as `scale`, the property, and
+   * not as part of a transform. js/scene.js owns `transform` here — it is
+   * rewritten every frame the card is being scrolled open — and the two are
+   * separate slots that multiply together, so the hover can hold its own
+   * zoom without the painter and the sheet overwriting each other.
+   */
+  transition: scale 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 /* 424:3346 — label/M. The frame leaves 24 under the picture; 16 on request. */
@@ -2201,10 +2260,90 @@ html.is-held [data-scene='hero'] button {
   background: #030303;
 }
 
+/* --- The pointer over a card ---------------------------------------------
+   Figma: 426:674 — a 123 disc carrying the label between two 7px squares,
+   which is what the pointer becomes over a card. It is the hero's cursor
+   again, wearing a face: same follow, same trailing ease, and the same two
+   squares carried apart across the frame by however the pointer is moving.
+   js/scene.js writes both.
+   ------------------------------------------------------------------------- */
+
+.lens {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 71;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /*
+   * 7 + 36 + 20 + 36 + 7 = 106, centred on the 123: the frame stands the top
+   * square at 9 and the line at 52, and this puts them at 8.5 and 51.5.
+   */
+  gap: 36px;
+  width: 123px;
+  height: 123px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #030303;
+  opacity: 0;
+  /*
+   * It grows into place rather than appearing at size. `scale` is used here
+   * rather than a transform for the same reason as the picture's zoom: the
+   * transform slot is written every frame by the follow, and the two
+   * properties multiply instead of overwriting one another.
+   */
+  scale: 0.4;
+  pointer-events: none;
+  transition: opacity 240ms ease, scale 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+
+.lens.is-on {
+  opacity: 1;
+  scale: 1;
+}
+
+/* 426:676 / 426:678 — 7 x 7, and the drift the hero's pair take. */
+.lens__square {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: #030303;
+  transform: translateX(var(--px, 0px));
+}
+
+/* 426:672 — label/M, its height held at the line's own */
+.lens__label {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  height: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 /* Reduced motion: everything simply stands where it lands. */
 @media (prefers-reduced-motion: reduce) {
   .wire__square,
   .wire__aside .button {
     opacity: 1;
+  }
+
+  /* no pointer to stand in for, and nothing that has to move to be read */
+  .lens {
+    display: none;
+  }
+
+  .wire__card {
+    cursor: auto;
+  }
+
+  .wire__shot,
+  .wire__shot img {
+    transition: none;
   }
 }

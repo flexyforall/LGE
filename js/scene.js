@@ -579,6 +579,16 @@
   }
 
   /*
+   * How hard a move tops up the push the two squares are under, and the stop
+   * it is held to. Both the hero's cursor and the newsroom's lens carry their
+   * squares by it, so it is written once here.
+   */
+  function carry(v, by) {
+    var n = v + by * SQUARE_GAIN;
+    return n > SQUARE_THROW ? SQUARE_THROW : n < -SQUARE_THROW ? -SQUARE_THROW : n;
+  }
+
+  /*
    * The cursor that stands in for the pointer over the hero, and the drift it
    * gives the two squares beside the tag: each goes the opposite way as the
    * pointer crosses the window, a few pixels at the very edges. Both are eased
@@ -615,11 +625,6 @@
       retype(on);
     }
 
-    function nudge(v, by) {
-      var n = v + by * SQUARE_GAIN;
-      return n > SQUARE_THROW ? SQUARE_THROW : n < -SQUARE_THROW ? -SQUARE_THROW : n;
-    }
-
     scene.addEventListener('mousemove', function (event) {
       tx = event.clientX;
       ty = event.clientY;
@@ -628,7 +633,7 @@
         x = tx;
         y = ty;
       }
-      if (lastX !== null) want = nudge(want, tx - lastX);
+      if (lastX !== null) want = carry(want, tx - lastX);
       lastX = tx;
       /* Over a link or a button the pointer means what it usually means. */
       show(live() && !event.target.closest('a, button'));
@@ -2093,6 +2098,76 @@
   var WIRE_BAND = 0.34; // the share of its height it opens from
   var WIRE_PIC_ZOOM = 0.12; // and how far over size the picture settles from
 
+  /*
+   * 425:3537 — the card under the pointer. The shape, the push-in and the two
+   * marks are the sheet's, on :hover; what is left for here is the pointer
+   * itself, which becomes the button the card is. It is the hero's cursor
+   * again: the same trailing follow, and the same two squares carried apart
+   * across the frame by however the pointer is moving rather than by where
+   * it is, so they draw back level the moment it stops.
+   */
+  function setUpLens(section) {
+    var el = document.querySelector('[data-wire-lens]');
+    if (!el || reduced) return;
+    var squares = el.querySelectorAll('.lens__square');
+
+    var tx = 0, ty = 0, x = 0, y = 0, placed = false;
+    var on = false;
+    var want = 0;
+    var push = 0;
+    var lastX = null;
+
+    section.addEventListener('mousemove', function (event) {
+      tx = event.clientX;
+      ty = event.clientY;
+      /*
+       * First sighting inside the section — stand it on the pointer rather
+       * than let it fly in from wherever it was last left. It grows in from
+       * nothing on the spot instead.
+       */
+      if (!placed) {
+        placed = true;
+        x = tx;
+        y = ty;
+      }
+      if (lastX !== null) want = carry(want, tx - lastX);
+      lastX = tx;
+
+      var over = !!event.target.closest('[data-wire-card]');
+      if (over === on) return;
+      on = over;
+      el.classList.toggle('is-on', on);
+    });
+
+    /*
+     * Off the section it is put away, and forgets where the pointer was: it
+     * may well come back somewhere else entirely.
+     */
+    section.addEventListener('mouseleave', function () {
+      on = false;
+      placed = false;
+      lastX = null;
+      el.classList.remove('is-on');
+    });
+
+    (function follow() {
+      requestAnimationFrame(follow);
+      /* Nothing showing and nothing left to settle — no work to do. */
+      if (!on && Math.abs(push) < 0.05 && Math.abs(tx - x) < 0.5) return;
+
+      x += (tx - x) * CURSOR_EASE;
+      y += (ty - y) * CURSOR_EASE;
+      el.style.transform =
+        'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) translate(-50%,-50%)';
+
+      want *= SQUARE_BLEED;
+      push += (want - push) * SQUARE_EASE;
+      for (var i = 0; i < squares.length; i++) {
+        squares[i].style.setProperty('--px', ((i % 2 ? -1 : 1) * push).toFixed(2) + 'px');
+      }
+    })();
+  }
+
   function setUpWire() {
     var section = document.querySelector('[data-scene-wire]');
     if (!section) return;
@@ -2100,6 +2175,7 @@
     var label = section.querySelector('[data-wire-label]');
     var aside = section.querySelector('[data-wire-aside]');
     var cards = section.querySelectorAll('[data-wire-card]');
+    setUpLens(section);
     if (reduced) return;
 
     /*
@@ -2162,7 +2238,8 @@
         var box = shot.getBoundingClientRect();
         read.push({
           shot: shot,
-          pic: shot.firstElementChild,
+          /* asked for by name — the frame holds the corner marks too */
+          pic: shot.querySelector('img'),
           top: box.top,
           width: shot.offsetWidth,
           open: clamp01(
