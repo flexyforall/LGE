@@ -35,10 +35,11 @@ const BOXES = [
   ['356:1264', 56, 269, null, 160, 'headline'],
   ['356:1265', 56, 453, 677, 28, 'lead'],
   ['356:1266', 56, 521, 210, 56, 'become-partner button'],
-  // the frame sets this row's label at 14; it is 12 on request, so the row is
-  // narrower than the design's and its left edge follows from the right edge
-  ['356:1234', null, 659, null, 20, 'progress-you-can-verify'],
-  ['356:1236', null, 668.5, 72, 1, 'its rule'],
+  // 342:1716 on the current frame — label/S at 12/16, so the row is 16 tall
+  // on 659. Its left edge follows from the right: the frame runs the rule off
+  // past the frame's edge and this keeps it flush with it instead.
+  ['356:1234', null, 659, null, 16, 'progress-you-can-verify'],
+  ['356:1236', null, 666.5, 72, 1, 'its rule'],
   ['356:1267', 0, 679, 1440, 132, 'partner row'],
 
   // --- section 2 (our role), 238:2674, restyled by 330:489 ---
@@ -94,7 +95,8 @@ const GAPS = [
   ['356:1259', '356:1264', 16, 'tag -> headline'],
   ['356:1264', '356:1265', 24, 'headline -> lead'],
   ['356:1265', '356:1266', 40, 'lead -> button'],
-  ['356:1235', '356:1236', 9, 'verify: text -> rule'],
+  // 342:1714 -> 342:1715 on the frame, 191 - 175
+  ['356:1235', '356:1236', 16, 'verify: text -> rule'],
   ['339:481', '339:374', 24, 'cards: label -> heading'],
   ['339:354', '339:365', 8, 'cards: wide -> narrow'],
   ['402:2303', '402:2304', 24, 'use: paragraph -> button'],

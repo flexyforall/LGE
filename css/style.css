@@ -867,21 +867,27 @@ html.is-held [data-scene='hero'] button {
  */
 .verify {
   position: absolute;
-  bottom: 131px;
+  /* 342:1716 — the row's top on 659 of the 810, and it is 16 tall */
+  bottom: 135px;
   right: 0;
   display: flex;
   align-items: center;
-  gap: 9px;
+  /* 342:1714 -> 342:1715, 191 - 175 */
+  gap: 16px;
 }
 
-/* 356:1235 — label/S in caps. One line, and it stands. */
+/*
+ * 342:1714 — label/S in caps, one line, and it stands. 12/16: the row it
+ * makes is 16 tall on the frame, which is why the height is said out loud —
+ * the line empties itself between passes and an empty box would collapse.
+ */
 .verify__text {
   flex: none;
-  height: 20px;
+  height: 16px;
   font-family: var(--font-label);
   font-weight: 500;
   font-size: 12px;
-  line-height: 20px;
+  line-height: 16px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: var(--color-fg);
@@ -1434,7 +1440,8 @@ html.is-held [data-scene='hero'] button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 21px;
+  /* 342:1559 — its label row's 20 and then 36, so 16 between them */
+  gap: 16px;
   /* 764 on the frame, widened with the headline it holds — see below */
   width: 955px;
   transform: translate(-50%, -50%);
@@ -1455,11 +1462,12 @@ html.is-held [data-scene='hero'] button {
   background: var(--color-fg);
 }
 
+/* 342:1563 — label/M, and the 20 it stands in makes the row's own height */
 .flight__labelText {
   font-family: var(--font-label);
   font-weight: 500;
   font-size: 14px;
-  line-height: 1;
+  line-height: 20px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: var(--color-fg);
