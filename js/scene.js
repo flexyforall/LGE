@@ -2416,13 +2416,24 @@
    * the rectangle once their question has landed, and wiped off again — the
    * exit scrubbed by the turn itself — as it starts to leave.
    */
-  var FAQ_WORD_BY = 0.1; // the word is whole by here...
   /*
-   * ...and unwritten again by the time the drum is this far toward the first
-   * question. It does not ride the drum: it arrives the way a tunnel passage
-   * does and leaves the same way, the head running back through it.
+   * The word does not ride the drum. It is swept through by the tunnel's own
+   * pair of edges — a head lighting characters and a tail putting them out a
+   * fixed distance behind it — so it arrives and leaves in one movement that
+   * never stops and never turns round. This is the share of the section that
+   * movement takes, from the first character lighting to the last going out.
    */
-  var FAQ_WORD_OUT = 0.6;
+  var FAQ_WORD_SPAN = 0.3;
+  /*
+   * ...and the distance between those two edges, in characters. The tunnel
+   * holds 26 across sentences of about seventy, so its window is never wide
+   * enough to show a whole one. This phrase is 25, and it is the section's
+   * title rather than a line of prose: at 40 the head reaches the end of it
+   * well before the tail reaches the start, so it stands whole for about a
+   * quarter of the sweep and is properly readable, without the movement ever
+   * stopping to let it.
+   */
+  var FAQ_WORD_TRAIL = 40;
   var FAQ_INK_FROM = 0.11; // ...and the ground turns over this band
   var FAQ_INK_BY = 0.17;
   var FAQ_RUN_FROM = 0.19; // the drum has the scroll from here to the end
@@ -2674,18 +2685,22 @@
       var pos = at + eased;
 
       /*
-       * The word is not one of the questions and does not leave like one. It
-       * is written on as the section arrives and written off again as the
-       * drum starts to turn — the same head running back the way it came,
-       * so it goes the way it came rather than tipping away on a radius.
-       * The drum's first turn therefore has nothing above it, and question
-       * one simply rises into an empty frame.
+       * The word is not one of the questions and does not come and go like
+       * one. Two edges are run through it, the tunnel's way: characters light
+       * as the head passes them and go out as the tail does, a fixed distance
+       * behind. Both only ever move forward with the scroll, so the phrase
+       * arrives and leaves in a single movement that never pauses and never
+       * runs backwards — and it never tips on the radius either, which is
+       * why the drum's first turn has nothing above it and question one
+       * rises into an empty frame.
        */
-      var fill = pos > 0 ? 1 - clamp01(pos / FAQ_WORD_OUT) : clamp01(p / FAQ_WORD_BY);
-      write(chars, Math.round(fill * chars.length), 0);
+      var head = Math.round(clamp01(p / FAQ_WORD_SPAN) * (chars.length + FAQ_WORD_TRAIL));
+      var back = Math.max(0, head - FAQ_WORD_TRAIL);
+      write(chars, head, back);
       if (word) {
         if (word.style.transform !== 'none') word.style.transform = 'none';
-        var here = fill > 0 ? '' : 'hidden';
+        /* nothing of it left to draw once the tail is past the last character */
+        var here = head > 0 && back < chars.length ? '' : 'hidden';
         if (word.style.visibility !== here) word.style.visibility = here;
       }
 
