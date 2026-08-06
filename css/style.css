@@ -2438,6 +2438,43 @@ html.is-held [data-scene='hero'] button {
   letter-spacing: 0.4px;
   text-transform: uppercase;
   white-space: nowrap;
+  /*
+   * The box the line turns inside, the same pair the hero's tag row is built
+   * from — see .hero__tagText. The depth is what makes the turn a tip rather
+   * than a spin flat in the plane of the page, and the clip is what keeps the
+   * line from swinging out over the disc on its way in.
+   */
+  overflow: hidden;
+  perspective: 400px;
+}
+
+/*
+ * The line arrives once, as the disc does, tipping up into place from below —
+ * the same turn .hero__tagLine.is-in makes, at the same 450ms and on the same
+ * curve. It is keyed off `is-on`, which is put on as the pointer enters a
+ * picture and taken off as it leaves, so the turn plays on the way in and
+ * only then: moving about inside the picture never restarts it, and there is
+ * nothing held back before it starts.
+ */
+.lens__line {
+  display: block;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+}
+
+.lens.is-on .lens__line {
+  animation: lens-turn 450ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes lens-turn {
+  from {
+    transform: translateY(115%) rotateX(-75deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
 }
 
 /* Reduced motion: everything simply stands where it lands. */
