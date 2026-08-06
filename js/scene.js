@@ -2119,25 +2119,43 @@
     if (!el || reduced) return;
     var squares = el.querySelectorAll('.lens__square');
 
-    var tx = 0, ty = 0, x = 0, y = 0, placed = false;
+    var tx = 0, ty = 0, x = 0, y = 0;
     var on = false;
     var want = 0;
     var push = 0;
     var lastX = null;
 
+    /*
+     * `translate`, the property, not a transform — the sheet centres the disc
+     * on its own origin with a margin so this can be the whole of its
+     * placing. See .lens for why the usual translate(-50%,-50%) does not
+     * survive being scaled.
+     */
+    function place() {
+      el.style.translate = x.toFixed(1) + 'px ' + y.toFixed(1) + 'px';
+    }
+
+    function show(next) {
+      if (next === on) return;
+      on = next;
+      if (on) {
+        /*
+         * It is stood on the pointer and its squares put level before it is
+         * shown, rather than eased there from wherever it was last left —
+         * it grows in from nothing on the spot, so the jump is never seen.
+         */
+        x = tx;
+        y = ty;
+        want = 0;
+        push = 0;
+        place();
+      }
+      el.classList.toggle('is-on', on);
+    }
+
     section.addEventListener('mousemove', function (event) {
       tx = event.clientX;
       ty = event.clientY;
-      /*
-       * First sighting inside the section — stand it on the pointer rather
-       * than let it fly in from wherever it was last left. It grows in from
-       * nothing on the spot instead.
-       */
-      if (!placed) {
-        placed = true;
-        x = tx;
-        y = ty;
-      }
       if (lastX !== null) want = carry(want, tx - lastX);
       lastX = tx;
 
@@ -2146,32 +2164,26 @@
        * and they are the caption rather than the thing being pointed at —
        * the pointer stays itself over them.
        */
-      var over = !!event.target.closest('[data-wire-shot]');
-      if (over === on) return;
-      on = over;
-      el.classList.toggle('is-on', on);
+      show(!!event.target.closest('[data-wire-shot]'));
     });
 
-    /*
-     * Off the section it is put away, and forgets where the pointer was: it
-     * may well come back somewhere else entirely.
-     */
     section.addEventListener('mouseleave', function () {
-      on = false;
-      placed = false;
+      show(false);
       lastX = null;
-      el.classList.remove('is-on');
     });
 
     (function follow() {
       requestAnimationFrame(follow);
-      /* Nothing showing and nothing left to settle — no work to do. */
-      if (!on && Math.abs(push) < 0.05 && Math.abs(tx - x) < 0.5) return;
+      /*
+       * It only follows while it is showing. Off, it stands exactly where the
+       * pointer left it and fades from there — chasing the pointer through
+       * its own fade is what read as it flying off the picture.
+       */
+      if (!on) return;
 
       x += (tx - x) * CURSOR_EASE;
       y += (ty - y) * CURSOR_EASE;
-      el.style.transform =
-        'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) translate(-50%,-50%)';
+      place();
 
       want *= SQUARE_BLEED;
       push += (want - push) * SQUARE_EASE;

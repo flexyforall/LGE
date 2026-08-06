@@ -2322,6 +2322,20 @@ html.is-held [data-scene='hero'] button {
   position: fixed;
   top: 0;
   left: 0;
+  /*
+   * Centred on its own origin by margin, so the follow can be a plain
+   * `translate` and the grow-in a plain `scale`, with nothing in the
+   * `transform` slot at all.
+   *
+   * The obvious way — translate(-50%,-50%) in the transform — is wrong here.
+   * The individual properties are applied after `transform`, so the scale
+   * lands on the already-moved disc and takes it back toward the origin with
+   * it: at 0.4 of size it was drawn 40% of the way from the pointer to the
+   * window's top left corner, and grew into place along that line. Measured
+   * at 402/126 with the pointer at 792/200. Centred this way the disc sits
+   * exactly on the pointer at every scale.
+   */
+  margin: -61.5px 0 0 -61.5px;
   z-index: 71;
   display: flex;
   flex-direction: column;
@@ -2343,16 +2357,23 @@ html.is-held [data-scene='hero'] button {
    * rather than a transform for the same reason as the picture's zoom: the
    * transform slot is written every frame by the follow, and the two
    * properties multiply instead of overwriting one another.
+   *
+   * It only grows on the way in. Leaving, it simply fades where it stands —
+   * so the scale is not animated back but reset in no time at all, held off
+   * until the fade has finished and there is nothing left to see it happen
+   * to. A shrink on the way out reads as the thing being taken away; a fade
+   * reads as it being done with.
    */
   scale: 0.4;
   pointer-events: none;
-  transition: opacity 240ms ease, scale 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
-  will-change: transform;
+  transition: opacity 240ms ease, scale 0s linear 240ms;
+  will-change: translate;
 }
 
 .lens.is-on {
   opacity: 1;
   scale: 1;
+  transition: opacity 200ms ease, scale 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 /* 426:676 / 426:678 — 7 x 7, and the drift the hero's pair take. */
