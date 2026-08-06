@@ -2423,7 +2423,7 @@
    * never stops and never turns round. This is the share of the section that
    * movement takes, from the first character lighting to the last going out.
    */
-  var FAQ_WORD_SPAN = 0.24;
+  var FAQ_WORD_SPAN = 0.16;
   /*
    * ...and the distance between those two edges, in characters. The tunnel
    * holds 26 across sentences of about seventy, so its window is never wide
@@ -2443,7 +2443,15 @@
    * eating its way along the title, and the two read as one another's
    * wreckage. This is FAQ_WORD_SPAN and a hair.
    */
-  var FAQ_RUN_FROM = 0.25;
+  var FAQ_RUN_FROM = 0.17;
+  /*
+   * ...and where it gives it up again. The drum takes one step more than
+   * there are questions, so the last of them is carried away exactly as the
+   * four before it were rather than simply stopping at the front. What is
+   * left of the section after that is the field's own: it stops looping and
+   * the scroll runs it from its first frame to its last.
+   */
+  var FAQ_RUN_BY = 0.76;
   var FAQ_TURN = 0.62; // the share of a step that is the turn; the rest holds
   var FAQ_RADIUS = 260; // px — the radius every line stands on
   var FAQ_STEP = 42; // degrees between one line and the next on it
@@ -2473,6 +2481,7 @@
     var answers = scene.querySelectorAll('[data-faq-answer]');
     var skip = scene.querySelector('[data-faq-skip]');
     var ghost = scene.querySelector('[data-faq-ghost]');
+    var field = scene.querySelector('[data-faq-field]');
     var menu = document.querySelector('[data-site-menu]');
     if (!frame || !titles.length) return;
 
@@ -2508,6 +2517,29 @@
      * only one is ever wanted, and splitting before the fonts land would cut
      * the copy where the fallback wrapped it.
      */
+    /*
+     * The field has two lives. Behind the questions it simply loops, on its
+     * own clock, as a background does; once the last question has gone the
+     * scroll takes it and runs it from its first frame to its last. The
+     * hand-over is a cut to frame 0 — the clip loops cleanly, its last frame
+     * within 2.6 of its first against 3.2 for two adjacent ones, so the cut
+     * is invisible if the loop happens to be near its end and a jump if it
+     * is not. That is what was asked for: the run starts at the first frame.
+     */
+    var seekField = field ? seeker(field) : null;
+    var looping = null; // what the field is doing, so it is only ever told once
+
+    function loopField(on) {
+      if (!field || on === looping) return;
+      looping = on;
+      field.loop = on;
+      if (on) {
+        field.play().catch(function () {});
+      } else {
+        field.pause();
+      }
+    }
+
     var shown = -1; // whose foot is up
     var went = null; // ...and where the drum stood last, which gives its way
     var kept = [];
@@ -2660,7 +2692,6 @@
         inked = v;
         frame.style.setProperty('--faq-ink', 'rgb(' + v + ',' + v + ',' + v + ')');
         if (paper) paper.style.opacity = (1 - ink).toFixed(3);
-        if (skip) skip.style.opacity = ink.toFixed(3);
       }
 
       /*
@@ -2683,8 +2714,9 @@
        * and running from one to the next over the first FAQ_TURN of each
        * step, so every question is held still to be read before it goes.
        */
-      var run = clamp01((p - FAQ_RUN_FROM) / (1 - FAQ_RUN_FROM));
-      var steps = titles.length - 1;
+      var run = clamp01((p - FAQ_RUN_FROM) / (FAQ_RUN_BY - FAQ_RUN_FROM));
+      /* one step per question, and one more to carry the last of them off */
+      var steps = titles.length;
       var seg = run * steps;
       var at = Math.min(steps - 1, Math.floor(seg));
       var k = clamp01((seg - at) / FAQ_TURN);
@@ -2756,6 +2788,25 @@
        * label and its answer back exactly as going down to it put them there.
        */
       /*
+       * The field, and the button that stands on it. Both belong to the
+       * questions: the button arrives with the ground and goes with the last
+       * of them, and the field loops until then and is scrubbed after.
+       */
+      var over = clamp01((p - FAQ_RUN_BY) / (1 - FAQ_RUN_BY));
+      if (skip) {
+        var lit = (ink * (1 - clamp01((pos - steps + 1) * 2))).toFixed(3);
+        if (skip.style.opacity !== lit) skip.style.opacity = lit;
+      }
+      if (field) {
+        if (p < FAQ_RUN_BY) {
+          loopField(true);
+        } else {
+          loopField(false);
+          if (field.duration) seekField(over * field.duration);
+        }
+      }
+
+      /*
        * Which way the drum is turning, taken from where it stood last rather
        * than from which question was last arrived at: a scroll that jumps
        * clean over a question never arrives at it, and a record of arrivals
@@ -2765,7 +2816,12 @@
       went = pos;
 
       var near = Math.round(pos);
-      if (near >= 1 && Math.abs(pos - near) <= FAQ_FOOT_NEAR && near !== shown) {
+      if (
+        near >= 1 &&
+        near <= labels.length &&
+        Math.abs(pos - near) <= FAQ_FOOT_NEAR &&
+        near !== shown
+      ) {
         shown = near;
         showFoot(near - 1);
         /*

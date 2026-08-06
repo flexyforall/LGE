@@ -189,12 +189,14 @@
   /*
    * Six pieces of copy turned past the window: the word, then five
    * questions. Five turns and five holds, and the word's own arrival before
-   * any of them. Long, because a turn that is over in half a window's worth
-   * of scroll reads as a jump rather than a turn: this gives the word its own
-   * 259vh to be swept through, clear of the questions entirely, and each of
-   * the five turns after it about 100vh to be made in.
+   * any of them, and the field's own run after all of them. Long, because a
+   * turn that is over in half a window's worth of scroll reads as a jump
+   * rather than a turn: this gives the word 262vh to be swept through, clear
+   * of the questions entirely, each of the six turns after it about 100vh to
+   * be made in — six, because the last question is carried off as the others
+   * were — and the field 394vh to be run through, about 39vh a second.
    */
-  --scene-length-faq: 1180vh;
+  --scene-length-faq: 1740vh;
 }
 
 
@@ -2417,45 +2419,19 @@ html.is-held [data-scene='hero'] button {
 }
 
 /*
- * The field turns. Its box is a large centred square rather than the frame,
- * because a rectangle only covers a turning frame while its short side
- * clears the frame's diagonal — and its rim is faded even so, since whether
- * a square covers depends on the frame's proportions and under
- * --frame-scale the frame can be a good deal taller than the window it is
- * drawn in. A rim that fades has nothing to show whatever the shape.
+ * The field. It fills the frame exactly and is never moved or turned, so it
+ * has no edge that can come into the window — the movement in it is the
+ * clip's own. js/scene.js runs it: looping behind the questions, and then
+ * scrubbed forward by the scroll once the last of them has gone.
  */
-.faq__glowSheet {
+.faq__field {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  display: block;
-  width: 170vmax;
-  height: 170vmax;
-  background: url('../assets/images/faq-bg.jpg') center / cover no-repeat;
-  -webkit-mask-image: radial-gradient(closest-side, #000 80%, rgba(0, 0, 0, 0) 100%);
-  mask-image: radial-gradient(closest-side, #000 80%, rgba(0, 0, 0, 0) 100%);
-  transform: translate(-50%, -50%);
-  will-change: transform;
-  animation: faq-glow-turn 140s linear infinite;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/*
- * The stars do not. Their box is the frame exactly, and what moves is the
- * pattern inside it — a tile carried by precisely one of itself in each
- * direction, so the loop closes on a field that has no edge anywhere in it.
- *
- * This is the part that had a seam in it. Carrying the box instead of the
- * pattern takes the box's own edge into the window from the side it is
- * moving away from; turning the box would answer that, but a box big enough
- * to turn is three times the frame's area, and all of it is dodged every
- * frame. Pinned to the frame there is no edge to bring in and the least
- * possible area to blend: measured at 57/49 fps against 53/39 for the
- * turning box, on the same scroll.
- *
- * Tiled well under its own size rather than covering, as the use-cases
- * section's are: at full size the stars come out several times the dots the
- * frame draws.
- */
 .faq__stars {
   position: absolute;
   inset: 0;
@@ -2469,15 +2445,6 @@ html.is-held [data-scene='hero'] button {
   /* dodge over a field with this much blue in it runs out to cyan; held back */
   opacity: 0.5;
   animation: faq-stars-drift 150s linear infinite;
-}
-
-@keyframes faq-glow-turn {
-  from {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
 }
 
 /* one tile across and one down — 4320 x 2430 at 38 of vmax is 38 x 21.375 */
@@ -2819,7 +2786,6 @@ html.is-held [data-scene='hero'] button {
     will-change: auto;
   }
 
-  .faq__glowSheet,
   .faq__stars {
     animation: none;
   }

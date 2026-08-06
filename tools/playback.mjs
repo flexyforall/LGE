@@ -47,6 +47,20 @@ const SCENES = [
     video: '[data-flight-orbit]',
     restsOnTarget: true,
   },
+  /*
+   * The FAQ's field loops behind the questions and is only taken by the
+   * scroll for the last quarter of the section, so ramping the whole of it
+   * crosses a loop's worth of wraps before the scrub begins. Those wraps are
+   * the clip doing its job; what has to hold is that once the scroll has it,
+   * it only ever goes forward and comes to rest on its last frame.
+   */
+  {
+    name: 'faq',
+    label: 'field',
+    video: '[data-faq-field]',
+    restsOnTarget: true,
+    loops: true,
+  },
 ];
 
 const browser = await chromium.launch({
@@ -200,7 +214,16 @@ for (const scene of SCENES) {
              * the camera rests.
              */
             landed = true;
-            window.scrollTo(0, Math.round(top + travel));
+            /*
+             * ...and the section's own top is read again rather than reused.
+             * A section below others that are still settling — the FAQ sits
+             * under a newsroom that pulls itself up as its cards open — moves
+             * by the best part of a window between the first reading and
+             * this one, and finishing on the stale number stops the ramp
+             * short of the end by exactly that much.
+             */
+            const end = section.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo(0, Math.round(end + section.offsetHeight - window.innerHeight));
           }
           out.push([Math.round(elapsed), el.currentTime]);
           if (elapsed < 3200) requestAnimationFrame(tick);
@@ -211,7 +234,14 @@ for (const scene of SCENES) {
   );
 
   const label = scene.label || scene.name;
-  const drop = worstDrop(run.samples, !scene.restsOnTarget);
+  /*
+   * `loops` and `restsOnTarget` are separate questions, and the FAQ's field
+   * is the first camera to answer yes to both. It loops behind the questions
+   * and is cut back to its first frame when the scroll takes it, so drops to
+   * zero are the clip doing its job; that it then runs forward to its last
+   * frame and stays there is what has to hold.
+   */
+  const drop = worstDrop(run.samples, scene.loops || !scene.restsOnTarget);
   const atScrollEnd = run.samples.find((s) => s[0] >= 2000)[1];
   const settled = run.samples[run.samples.length - 1][1];
   const offTarget = Math.abs(settled - run.end);
