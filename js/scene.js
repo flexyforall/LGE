@@ -58,13 +58,15 @@
    * whole, so none of it stretches with the shot.
    */
   /*
-   * How much faster than life the transition is played. A quarter again over
-   * a clip shot at 24 is 30 frames a second, which is every other refresh of
-   * a 60Hz screen and so lands evenly. Half again would want 36, and no whole
-   * number of refreshes fits that: the frames would fall two, two, one, and
-   * read as a stutter whether or not any of them were dropped.
+   * How much faster than life the transition is played. The clip is asked for
+   * every frame it has at this rate and gives them: the browser reports 169
+   * decoded and none dropped at anything up to two and a half times, so the
+   * ceiling here is taste rather than the machine. Three quarters again over
+   * a clip shot at 24 is 42 frames a second — not a whole share of a 60Hz
+   * screen, so their spacing wobbles by a few milliseconds, no worse than the
+   * three-two that ordinary 24fps playback lands in everywhere else.
    */
-  var HERO_RATE = 1.25;
+  var HERO_RATE = 1.75;
   var HERO_TAIL_MS = 256; // the beat after the clip has landed on its last frame
   var HERO_COPY_MS = 1240; // how long the copy takes to clear
   var HERO_FLASH_MS = 448; // ...and the sheet, to close whatever white was left
