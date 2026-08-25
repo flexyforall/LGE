@@ -45,15 +45,27 @@
    * clicked, and the click runs the whole move on one clock: the copy
    * clears, the clip carries on to its last frame, and the white lands.
    *
-   * The clip is played at its own speed rather than dragged across a span of
-   * its own, so how long the run takes is however long the clip has left when
+   * The clip is played rather than dragged through frame by frame. Asking for
+   * a new time every frame means asking for one four times as often as the
+   * clip has frames to give, and a seek already in flight swallows the next
+   * ask — a fifth of the frames came out on the time before, which is what
+   * made it judder. Played, it is the browser's own business and it is even.
+   *
+   * How long the run takes is therefore however long the clip has left when
    * it starts — a second or so more or less, depending on where the idle loop
-   * had got to. Everything else on the clock is held to its own length in
-   * milliseconds instead of to a share of the whole, so none of it stretches
-   * with the shot.
+   * had got to — over the rate it is played at. Everything else on the clock
+   * is held to its own length in milliseconds instead of to a share of the
+   * whole, so none of it stretches with the shot.
    */
-  var HERO_LEAD_MS = 64; // the beat before the clip comes off its loop...
-  var HERO_TAIL_MS = 256; // ...and the one after it has landed on its last frame
+  /*
+   * How much faster than life the transition is played. A quarter again over
+   * a clip shot at 24 is 30 frames a second, which is every other refresh of
+   * a 60Hz screen and so lands evenly. Half again would want 36, and no whole
+   * number of refreshes fits that: the frames would fall two, two, one, and
+   * read as a stutter whether or not any of them were dropped.
+   */
+  var HERO_RATE = 1.25;
+  var HERO_TAIL_MS = 256; // the beat after the clip has landed on its last frame
   var HERO_COPY_MS = 1240; // how long the copy takes to clear
   var HERO_FLASH_MS = 448; // ...and the sheet, to close whatever white was left
   var HERO_LAND_MS = 900; // ...and how long the white takes to lift off the tunnel
@@ -575,7 +587,7 @@
    * then it only has to be at least as long as the beats keyed to its end,
    * so that nothing on the clock reads as already under way.
    */
-  var heroRunMs = HERO_LEAD_MS + HERO_FLASH_MS + HERO_TAIL_MS;
+  var heroRunMs = HERO_FLASH_MS + HERO_TAIL_MS;
 
   /** Milliseconds into the run, which is what everything on it is keyed to. */
   function heroMs() {
@@ -839,20 +851,20 @@
       /*
        * Straight to the transition, unless the loop is already past it: it is
        * one shot either side of the join, so what is skipped is more of the
-       * same. Taken here rather than in the painter because the run's length
-       * is the clip's own remaining seconds, which needs knowing before the
-       * clock starts.
+       * same. This is the run's only seek — from here the clip is let go at
+       * the rate and simply plays out.
        */
       running = true;
       anchor = Math.max(video.currentTime, HERO_TRANSITION_FROM);
-      video.pause();
+      if (video.currentTime < anchor) video.currentTime = anchor;
+      video.playbackRate = HERO_RATE;
+      video.play().catch(function () {});
       /*
-       * Without a duration there is no length to run to — the seek below does
-       * nothing in that case, and the rest of the move keeps the length it
-       * had when the run was a fixed span.
+       * Without a duration there is no length to work the run out from; the
+       * fixed span it used to have stands in.
        */
-      var left = video.duration ? Math.max(0, video.duration - anchor) : 3.2;
-      heroRunMs = HERO_LEAD_MS + left * 1000 + HERO_TAIL_MS;
+      var left = video.duration ? Math.max(0, video.duration - anchor) : 4.8;
+      heroRunMs = (left * 1000) / HERO_RATE + HERO_TAIL_MS;
 
       var t0 = null;
       requestAnimationFrame(function step(now) {
@@ -861,6 +873,15 @@
         heroP = k;
         paint();
         if (k < 1) return void requestAnimationFrame(step);
+
+        /*
+         * The clock and the clip are two rates that agree rather than one
+         * driving the other, so the last frame is arrived at rather than
+         * landed on. It is put on the mark here — under a sheet that is
+         * already white, and forwards, the clip having no way to overshoot.
+         */
+        video.pause();
+        if (video.duration) seek(video.duration);
 
         var role = document.querySelector('[data-scene="role"]');
         document.documentElement.classList.remove('is-held');
@@ -952,21 +973,14 @@
       var ms = heroMs();
 
       /*
-       * Off the loop, the run drives the clip on from exactly the frame the
-       * loop was showing — not from a fixed mark — and a second of the run is
-       * a second of the clip, so it plays at the speed it was shot at rather
-       * than being rushed to fit. It is driven frame by frame rather than
-       * simply played, because the run has to come to rest on the last frame
-       * exactly and playback drifts. The anchor is dropped when the hero is
-       * put back, and the loop picks up again from wherever it was left.
+       * The clip is the run's while the run is on and its own otherwise; all
+       * this has to do is hand it back when the hero is put away, at the speed
+       * the idle loop wants it. The loop picks up from wherever it was left.
        */
-      if (!running) {
-        if (anchor !== null) {
-          anchor = null;
-          video.play().catch(function () {});
-        }
-      } else if (ms >= HERO_LEAD_MS && anchor !== null && video.duration) {
-        seek(Math.min(video.duration, anchor + (ms - HERO_LEAD_MS) / 1000));
+      if (!running && anchor !== null) {
+        anchor = null;
+        video.playbackRate = 1;
+        video.play().catch(function () {});
       }
 
       /*
