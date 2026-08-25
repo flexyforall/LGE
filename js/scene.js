@@ -23,7 +23,6 @@
 (function () {
   'use strict';
 
-  var COPY_FADE = 0.3; // fraction of the hero scroll the copy fades over
   var COPY_RISE = 48; // px the copy drifts up as it goes
   /*
    * The hero clip is one continuous shot — the flight, and the transition that
@@ -41,15 +40,22 @@
    * this, it carries on from where it is: never backwards.
    */
   var HERO_TRANSITION_FROM = 12;
-  var HERO_SCRUB_FROM = 0.02; // where the run takes the clip off its loop...
-  var HERO_SCRUB_BY = 0.92; // ...and has carried it to the last frame by here
-  var FLASH_IN_FROM = 0.86; // the sheet closes whatever white the clip left short
   /*
    * The hero is not scrolled through — it holds the window until it is
-   * clicked. This is how long the click's run takes: the copy clears, the
-   * clip carries on to its last frame, and the white lands.
+   * clicked, and the click runs the whole move on one clock: the copy
+   * clears, the clip carries on to its last frame, and the white lands.
+   *
+   * The clip is played at its own speed rather than dragged across a span of
+   * its own, so how long the run takes is however long the clip has left when
+   * it starts — a second or so more or less, depending on where the idle loop
+   * had got to. Everything else on the clock is held to its own length in
+   * milliseconds instead of to a share of the whole, so none of it stretches
+   * with the shot.
    */
-  var HERO_RUN_MS = 3200;
+  var HERO_LEAD_MS = 64; // the beat before the clip comes off its loop...
+  var HERO_TAIL_MS = 256; // ...and the one after it has landed on its last frame
+  var HERO_COPY_MS = 1240; // how long the copy takes to clear
+  var HERO_FLASH_MS = 448; // ...and the sheet, to close whatever white was left
   var HERO_LAND_MS = 900; // ...and how long the white takes to lift off the tunnel
   /*
    * A scroll opens the same door as a click, and runs the same one-shot move —
@@ -558,8 +564,31 @@
    * The hero's own progress. Where every other section reads its position off
    * the scroll, this one is written by the click's clock — the hero holds the
    * window and never scrolls, so there is no scroll to read.
+   *
+   * It runs level rather than eased, because the clip is on it and the clip is
+   * meant to play at its own speed. The moves that ease do their own easing,
+   * off the elapsed milliseconds this and the run's length give them.
    */
   var heroP = 0;
+  /*
+   * The run's length, worked out from the clip when the click lands. Until
+   * then it only has to be at least as long as the beats keyed to its end,
+   * so that nothing on the clock reads as already under way.
+   */
+  var heroRunMs = HERO_LEAD_MS + HERO_FLASH_MS + HERO_TAIL_MS;
+
+  /** Milliseconds into the run, which is what everything on it is keyed to. */
+  function heroMs() {
+    return heroP * heroRunMs;
+  }
+
+  /**
+   * How far the last white is in: nothing until the sheet's own beat at the
+   * end of the run, and total on the final frame of it.
+   */
+  function heroFlash() {
+    return clamp01((heroMs() - (heroRunMs - HERO_FLASH_MS)) / HERO_FLASH_MS);
+  }
 
   /* Slow at both ends, so the run gathers and then settles rather than snaps. */
   function easeInOut(k) {
@@ -704,6 +733,13 @@
      * with an ordinary pointer.
      */
     var spent = false;
+    /*
+     * Whether the click's run is under way. The clip is the run's to drive
+     * while it is, and its own to loop while it is not — asked as a state
+     * rather than read off the progress, whose first frame is a legitimate
+     * zero and would look exactly like standing still.
+     */
+    var running = false;
     var dropCursor = setUpCursor(scene, function () {
       return !spent;
     });
@@ -800,11 +836,29 @@
       /* The reveal lets go of the lines so the exit can take them over. */
       for (var r = 0; r < revealSets.length; r++) revealSets[r].cancelled = true;
 
+      /*
+       * Straight to the transition, unless the loop is already past it: it is
+       * one shot either side of the join, so what is skipped is more of the
+       * same. Taken here rather than in the painter because the run's length
+       * is the clip's own remaining seconds, which needs knowing before the
+       * clock starts.
+       */
+      running = true;
+      anchor = Math.max(video.currentTime, HERO_TRANSITION_FROM);
+      video.pause();
+      /*
+       * Without a duration there is no length to run to — the seek below does
+       * nothing in that case, and the rest of the move keeps the length it
+       * had when the run was a fixed span.
+       */
+      var left = video.duration ? Math.max(0, video.duration - anchor) : 3.2;
+      heroRunMs = HERO_LEAD_MS + left * 1000 + HERO_TAIL_MS;
+
       var t0 = null;
       requestAnimationFrame(function step(now) {
         if (t0 === null) t0 = now;
-        var k = clamp01((now - t0) / HERO_RUN_MS);
-        heroP = easeInOut(k);
+        var k = clamp01((now - t0) / heroRunMs);
+        heroP = k;
         paint();
         if (k < 1) return void requestAnimationFrame(step);
 
@@ -822,6 +876,7 @@
            * hero idling under its clip, not standing on the white frame it
            * was left on.
            */
+          running = false;
           heroP = 0;
           paint();
         });
@@ -894,29 +949,24 @@
     });
 
     register(function () {
-      var p = heroP;
+      var ms = heroMs();
 
       /*
        * Off the loop, the run drives the clip on from exactly the frame the
-       * loop was showing — not from a fixed mark — so there is nothing to jump
-       * over. The anchor is dropped when the hero is put back, and the loop
-       * picks up again from wherever it was left.
+       * loop was showing — not from a fixed mark — and a second of the run is
+       * a second of the clip, so it plays at the speed it was shot at rather
+       * than being rushed to fit. It is driven frame by frame rather than
+       * simply played, because the run has to come to rest on the last frame
+       * exactly and playback drifts. The anchor is dropped when the hero is
+       * put back, and the loop picks up again from wherever it was left.
        */
-      if (p < HERO_SCRUB_FROM) {
+      if (!running) {
         if (anchor !== null) {
           anchor = null;
           video.play().catch(function () {});
         }
-      } else {
-        if (anchor === null) {
-          /* Straight to the transition, unless the loop is already past it. */
-          anchor = Math.max(video.currentTime, HERO_TRANSITION_FROM);
-          video.pause();
-        }
-        if (video.duration) {
-          var t = clamp01((p - HERO_SCRUB_FROM) / (HERO_SCRUB_BY - HERO_SCRUB_FROM));
-          seek(anchor + t * (video.duration - anchor));
-        }
+      } else if (ms >= HERO_LEAD_MS && anchor !== null && video.duration) {
+        seek(Math.min(video.duration, anchor + (ms - HERO_LEAD_MS) / 1000));
       }
 
       /*
@@ -931,7 +981,12 @@
        * would have overruled the sheet's resting value from the first frame.
        * The sheet multiplies its own by this instead.
        */
-      var fade = Math.min(1, p / COPY_FADE);
+      /*
+       * Eased here rather than on the run, which now runs level for the
+       * clip's sake. This is the copy's own beat at the head of the run and
+       * it keeps its length whatever the clip's turns out to be.
+       */
+      var fade = easeInOut(clamp01(ms / HERO_COPY_MS));
       for (var f = 0; f < fades.length; f++)
         fades[f].style.setProperty('--fade', (1 - fade).toFixed(3));
       wipeOut(wipeLines, fade);
@@ -939,8 +994,7 @@
       copy.style.visibility = fade === 1 ? 'hidden' : '';
 
       /* The white-out that hands over to the section below. */
-      var flashIn = clamp01((p - FLASH_IN_FROM) / (1 - FLASH_IN_FROM));
-      if (flash) flash.style.opacity = String(flashIn);
+      if (flash) flash.style.opacity = String(heroFlash());
     });
   }
 
@@ -3082,7 +3136,7 @@
       if (rp > 0) {
         o = clamp01(rp / FLASH_FADE);
       } else {
-        o = 1 - clamp01((heroP - FLASH_IN_FROM) / (1 - FLASH_IN_FROM));
+        o = 1 - heroFlash();
       }
       menu.style.opacity = String(o);
       menu.style.visibility = o === 0 ? 'hidden' : '';

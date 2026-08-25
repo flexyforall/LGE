@@ -142,8 +142,9 @@ if (heroDrop.wraps === 0) failures.push('the hero loop never cycles');
  * 2. The hero's run. It is not scrolled through — a click sets it going and a
  *    clock carries it — so it is driven by clicking the section and sampled
  *    until it has landed. It picks the clip up from whatever frame the loop
- *    was on, so where it starts is not fixed; where it comes to rest is, and
- *    it must get there without ever stepping back.
+ *    was on and plays it at its own speed, so neither where it starts nor how
+ *    long it takes is fixed; where it comes to rest is, and it must get there
+ *    without ever stepping back.
  */
 const heroRun = await page.evaluate(
   () =>
@@ -156,7 +157,7 @@ const heroRun = await page.evaluate(
       (function tick() {
         const elapsed = performance.now() - t0;
         out.push([Math.round(elapsed), video.currentTime]);
-        if (elapsed < 4600) requestAnimationFrame(tick);
+        if (elapsed < 12000) requestAnimationFrame(tick);
         else resolve({ samples: out, end: video.duration || 0 });
       })();
     })
@@ -169,7 +170,11 @@ const heroRun = await page.evaluate(
    * is a deliberate rewind — so the run is judged up to where it lands, not
    * past it.
    */
-  const landed = heroRun.samples.filter((s) => s[0] <= 3200);
+  let far = 0;
+  for (let i = 1; i < heroRun.samples.length; i++) {
+    if (heroRun.samples[i][1] > heroRun.samples[far][1]) far = i;
+  }
+  const landed = heroRun.samples.slice(0, far + 1);
   const settled = landed[landed.length - 1][1];
   const offTarget = Math.abs(settled - heroRun.end);
   const dropUpToLanding = worstDrop(landed, false);
