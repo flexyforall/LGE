@@ -13,6 +13,7 @@ approximations.
 ```
 index.html          the page
 css/lge.css         all of its styles
+js/lge.js           the fit, the menu and the card run
 assets/fonts/       SF Pro Display and SF Pro, as woff2
 *.png, *.svg        the exported artwork, in the repository root
 ```
@@ -26,9 +27,13 @@ frame gives it, so the CSS reads as a list of measurements — `left: 873.5px`,
 `top: 558.24px`, `letter-spacing: -2.88px` — and the numbers are the point.
 Rounding them is what breaks the match, so they are left as they are.
 
-Below 1440 the whole canvas is scaled as a single piece rather than reflowed.
-Nothing inside it moves relative to anything else, so the proportions hold at
-every width; at 1440 and above the scale is 1 and the page is the frame.
+The canvas is scaled to the window as a single piece rather than reflowed —
+up as readily as down — so it always reaches both edges and nothing is ever cut
+off the side. Nothing inside it moves relative to anything else, so the
+proportions hold at every width; at exactly 1440 the scale is 1 and the page is
+the frame. It is anchored top-left rather than centred, because below 1440 an
+auto margin resolves to zero and a centred origin would push the scaled frame
+off to one side.
 
 ### The pieces
 
@@ -57,6 +62,49 @@ where the frame puts it, which is why they are not round numbers.
 **Ellipse 13** — a 1440px dashed circle whose 24px stroke is centre-aligned, so
 the artwork box is 1464 and sits at (-12, 548). Only its top arc is on screen.
 
+### What moves
+
+Everything is written so that its finished state is no transform at all. That
+is what lets the page be the frame the moment it stops moving — and
+`index.html?motion=off`, or asking your system for less movement, stops it
+before it starts. `tools/lge-measure.mjs` checks against that state.
+
+One easing curve does most of the work: a hard expo out,
+`cubic-bezier(0.16, 1, 0.3, 1)`. Things cover most of their distance
+immediately and then settle, which is what makes a set of separate animations
+read as a single movement rather than a list of them.
+
+**The intro.** The strip drops in, the bar follows it, then the two headline
+lines are uncovered from below a beat apart, each riding up out of a mask. The
+divider draws down from its top, the lede and the button come up behind it, and
+the cards land — the middle one first, the two flanking it a beat later.
+
+**The strip.** Four runs of the same six notices, translating left by exactly
+one run: 1373px, being three marks, three notices and their 48px gaps. That
+puts every item back where its twin was, so the loop has no seam. One pass
+takes 34 seconds.
+
+**The bar.** Clicking it grows the bar downwards into a panel rather than
+dropping a separate sheet over the page, and the equals mark folds into a
+cross — the two bars move to a shared centre line and turn a quarter of the way
+round in opposite directions. The five links come up out of their own masks,
+each a beat after the one above it. Escape or a click outside closes it. The
+frame stacks the bar underneath everything else, which is right at 64px tall
+and wrong once it is grown, so it is lifted for as long as it is open.
+
+The nav labels are placeholders — the Figma file has no menu frame yet. They
+are five list items at the top of `index.html`.
+
+**The cards.** Six cards over six slots: the three the frame draws, and three
+more parked off the page. Every 3.5 seconds each card moves one slot to the
+left, morphing between the outer shape (390 x 284, turned 18 degrees, at 70%)
+and the middle one (487.5 x 354, square, opaque) as it passes through. The card
+that runs off the left end is put back on the right with its transition
+switched off, which is invisible because both ends are off screen. Six slots
+against three pictures means the run repeats every third step, so the frame's
+own arrangement comes back around. It pauses while the tab is in the
+background.
+
 ### Fonts
 
 The frame uses SF Pro Display Medium and Regular, and SF Pro Regular for the
@@ -73,8 +121,10 @@ The OTF and TTF originals stay in `src` behind the woff2 as a fallback.
 
 ### Checking it against the frame
 
-`tools/lge-measure.mjs` opens the page in a headless browser and diffs every box
-against the numbers read off the Figma frame, then writes a 2x screenshot.
+`tools/lge-measure.mjs` opens the page with `motion=off`, diffs every box
+against the numbers read off the Figma frame, checks that the strip's runs are
+exactly one run apart, and writes a 2x screenshot. It exits non-zero on
+anything more than half a pixel out.
 
 ```bash
 cd tools

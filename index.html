@@ -12,17 +12,33 @@
 <div class="hero" id="hero">
 
   <!-- Menu — 222:2866 -->
-  <nav class="menu">
-    <div class="menu__left">
-      <span class="menu__equals"><img src="Menu%20Icon.svg" alt="" width="42" height="38"></span>
-      <p class="menu__label">Menu</p>
-    </div>
+  <nav class="menu" id="menu">
+    <button class="menu__left" type="button" id="menuToggle" aria-expanded="false" aria-controls="menuPanel">
+      <span class="menu__equals">
+        <svg width="42" height="38" viewBox="0 0 42 38" fill="none" aria-hidden="true">
+          <path class="menu__bar menu__bar--low" d="M29.75 21.75C29.75 21.9489 29.671 22.1397 29.5303 22.2803C29.3897 22.421 29.1989 22.5 29 22.5H12.5C12.3011 22.5 12.1103 22.421 11.9697 22.2803C11.829 22.1397 11.75 21.9489 11.75 21.75C11.75 21.5511 11.829 21.3603 11.9697 21.2197C12.1103 21.079 12.3011 21 12.5 21H29C29.1989 21 29.3897 21.079 29.5303 21.2197C29.671 21.3603 29.75 21.5511 29.75 21.75Z" fill="white"/>
+          <path class="menu__bar menu__bar--top" d="M12.5 16.5H29C29.1989 16.5 29.3897 16.421 29.5303 16.2803C29.671 16.1397 29.75 15.9489 29.75 15.75C29.75 15.5511 29.671 15.3603 29.5303 15.2197C29.3897 15.079 29.1989 15 29 15H12.5C12.3011 15 12.1103 15.079 11.9697 15.2197C11.829 15.3603 11.75 15.5511 11.75 15.75C11.75 15.9489 11.829 16.1397 11.9697 16.2803C12.1103 16.421 12.3011 16.5 12.5 16.5Z" fill="white"/>
+          <path class="menu__brackets" d="M7.75 0.75H0.75V36.75H7.75M34.25 0.75H40.75V36.75H34.25" stroke="white" stroke-opacity="0.2" stroke-width="1.5"/>
+        </svg>
+      </span>
+      <span class="menu__label">Menu</span>
+    </button>
 
     <img class="menu__logo" src="LGE%20Logo.png" alt="LGE" width="54" height="24">
 
     <div class="menu__right">
       <span class="menu__moon"><img src="Icon%20Moon.svg" alt="" width="24" height="24"></span>
       <a class="menu__cta" href="#"><span>Book a Demo</span></a>
+    </div>
+
+    <div class="menu__panel" id="menuPanel" inert>
+      <ul class="menu__nav">
+          <li style="--i:0"><a href="#"><span>Services</span></a></li>
+          <li style="--i:1"><a href="#"><span>Our Work</span></a></li>
+          <li style="--i:2"><a href="#"><span>About</span></a></li>
+          <li style="--i:3"><a href="#"><span>Insights</span></a></li>
+          <li style="--i:4"><a href="#"><span>Contact</span></a></li>
+      </ul>
     </div>
   </nav>
 
@@ -32,23 +48,37 @@
   <!-- Header Image — 222:2826 -->
   <div class="ticker">
     <div class="ticker__row">
-      <img src="Icon%20Star.svg" alt="" width="16" height="16">
-      <span class="t-report">New — LGE’s 2026 Building Materials Search Report is live →</span>
-      <img src="Icon%20Star.svg" alt="" width="16" height="16">
-      <span class="t-since">Exclusively serving the built environment since 2013</span>
-      <img src="Icon%20Star.svg" alt="" width="16" height="16">
-      <span class="t-partner">Google Partner agency · Manufacturers · Distributors · Retailers</span>
-      <img src="Icon%20Star.svg" alt="" width="16" height="16">
-      <span class="t-report">New — LGE’s 2026 Building Materials Search Report is live →</span>
-      <img src="Icon%20Star.svg" alt="" width="16" height="16">
-      <span class="t-since">Exclusively serving the built environment since 2013</span>
-      <img src="Icon%20Star.svg" alt="" width="16" height="16">
-      <span class="t-partner">Google Partner agency · Manufacturers · Distributors · Retailers</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-report">New — LGE’s 2026 Building Materials Search Report is live →</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-since">Exclusively serving the built environment since 2013</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-partner">Google Partner agency · Manufacturers · Distributors · Retailers</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-report">New — LGE’s 2026 Building Materials Search Report is live →</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-since">Exclusively serving the built environment since 2013</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-partner">Google Partner agency · Manufacturers · Distributors · Retailers</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-report">New — LGE’s 2026 Building Materials Search Report is live →</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-since">Exclusively serving the built environment since 2013</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-partner">Google Partner agency · Manufacturers · Distributors · Retailers</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-report">New — LGE’s 2026 Building Materials Search Report is live →</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-since">Exclusively serving the built environment since 2013</span>
+        <img src="Icon%20Star.svg" alt="" width="16" height="16">
+        <span class="t-partner">Google Partner agency · Manufacturers · Distributors · Retailers</span>
     </div>
   </div>
 
   <!-- Head — 223:3795 -->
-  <h1 class="headline">Organic &amp; Paid Search<br>for <em>Building Brands</em></h1>
+  <h1 class="headline">
+    <span class="line"><span class="line__in">Organic &amp; Paid Search</span></span><span class="line"><span class="line__in">for <em>Building Brands</em></span></span>
+  </h1>
 
   <div class="divider"></div>
 
@@ -61,40 +91,47 @@
 
   <!-- Images — 228:2291 -->
   <div class="images">
-    <figure class="card card--side card--left">
-      <img src="Image%203.png" alt="" width="382" height="232">
-      <figcaption>Concept &amp; Construct Process</figcaption>
-    </figure>
-
-    <figure class="card card--mid">
-      <img src="Image%201.png" alt="" width="479" height="290">
-      <figcaption>Between Space &amp; Context</figcaption>
-    </figure>
-
-    <figure class="card card--side card--right">
-      <img src="Image%202.png" alt="" width="382" height="232">
-      <figcaption>Architectural Workflow</figcaption>
-    </figure>
+      <div class="card-wrap">
+        <figure class="card" data-slot="0">
+          <img src="Image%201.png" alt="">
+          <figcaption>Between Space &amp; Context</figcaption>
+        </figure>
+      </div>
+      <div class="card-wrap">
+        <figure class="card" data-slot="1">
+          <img src="Image%202.png" alt="">
+          <figcaption>Architectural Workflow</figcaption>
+        </figure>
+      </div>
+      <div class="card-wrap">
+        <figure class="card" data-slot="2">
+          <img src="Image%203.png" alt="">
+          <figcaption>Concept &amp; Construct Process</figcaption>
+        </figure>
+      </div>
+      <div class="card-wrap">
+        <figure class="card" data-slot="3">
+          <img src="Image%201.png" alt="">
+          <figcaption>Between Space &amp; Context</figcaption>
+        </figure>
+      </div>
+      <div class="card-wrap">
+        <figure class="card" data-slot="4">
+          <img src="Image%202.png" alt="">
+          <figcaption>Architectural Workflow</figcaption>
+        </figure>
+      </div>
+      <div class="card-wrap">
+        <figure class="card" data-slot="5">
+          <img src="Image%203.png" alt="">
+          <figcaption>Concept &amp; Construct Process</figcaption>
+        </figure>
+      </div>
   </div>
 
 </div>
 </div>
 
-<script>
-// The frame is drawn at 1440. Narrower windows scale the whole canvas as one
-// piece so nothing inside it shifts relative to anything else.
-(function () {
-  var hero = document.getElementById('hero');
-  var stage = hero.parentNode;
-  function fit() {
-    var s = Math.min(1, document.documentElement.clientWidth / 1440);
-    hero.style.setProperty('--scale', s);
-    stage.style.height = (859 * s) + 'px';
-  }
-  fit();
-  addEventListener('resize', fit);
-})();
-</script>
-
+<script src="js/lge.js"></script>
 </body>
 </html>

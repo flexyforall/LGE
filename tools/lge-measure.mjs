@@ -40,7 +40,8 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
 const failed = [];
 page.on('response', r => { if (r.status() >= 400) failed.push(r.status() + ' ' + r.url()); });
-await page.goto(base + '/index.html', { waitUntil: 'networkidle' });
+// `motion=off` holds the page in its rest state — the frame, standing still.
+await page.goto(base + '/index.html?motion=off', { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
 
 const got = await page.evaluate(() => {
@@ -71,7 +72,7 @@ const got = await page.evaluate(() => {
       headline: box('.headline'), divider: box('.divider'), lede: box('.lede'),
       button: box('.cta'), 'button arrow': box('.cta img'),
       ellipse: box('.ellipse'), images: box('.images'),
-      'card left': box('.card--left'), 'card middle': box('.card--mid'), 'card right': box('.card--right'),
+      'card left': box('.card[data-slot="2"]'), 'card middle': box('.card[data-slot="3"]'), 'card right': box('.card[data-slot="4"]'),
     },
     tickerItems: [...document.querySelectorAll('.ticker__row > *')]
       .map(el => +(el.getBoundingClientRect().left - frame.left).toFixed(2)),
@@ -127,11 +128,20 @@ for (const [name, figma] of Object.entries(FIGMA_BOXES)) {
     figma.map(n => pad(n, 8)).join(''), dom.map(n => pad(n, 8)).join(''), d.map(n => pad(n, 7)).join(''));
 }
 
-console.log('\n--- ticker item origins ---');
-got.tickerItems.forEach((x, i) => {
-  const d = +(x - FIGMA_TICKER[i]).toFixed(2);
-  report(Math.abs(d) <= 0.5, 'item ' + i, pad(FIGMA_TICKER[i], 8), pad(x, 8), pad(d, 7));
+console.log('\n--- ticker item origins (the frame draws the first twelve) ---');
+FIGMA_TICKER.forEach((figma, i) => {
+  const d = +(got.tickerItems[i] - figma).toFixed(2);
+  report(Math.abs(d) <= 0.5, 'item ' + i, pad(figma, 8), pad(got.tickerItems[i], 8), pad(d, 7));
 });
+
+// The strip loops by travelling exactly one run of six items. If the runs are
+// not that far apart the loop shows a seam.
+console.log('\n--- ticker loop, one run = 1373px ---');
+for (let run = 1; run * 6 < got.tickerItems.length; run++) {
+  const gap = +(got.tickerItems[run * 6] - got.tickerItems[0]).toFixed(2);
+  const d = +(gap - run * 1373).toFixed(2);
+  report(Math.abs(d) <= 0.01, 'run ' + run, pad(run * 1373, 8), pad(gap, 8), pad(d, 7));
+}
 
 console.log('\n--- text advances ---');
 for (const [name, dom] of Object.entries(got.advances)) {
