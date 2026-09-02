@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core Space — The Enabling Technology Behind Orbital Data Centers</title>
+<meta name="description" content="Plasma power and propulsion, connected by high-bandwidth laser links.">
+<link rel="icon" href="assets/logos/logo.svg">
+<link rel="stylesheet" href="css/style.css">
+<script>
+/*
+ * The design is drawn on 1440x810 frames. A frame stretches to fill the window
+ * — video and nav go edge to edge, and the copy keeps its designed insets —
+ * down to MIN_WIDTH. Below that there is no room left to stretch into, so the
+ * whole frame is scaled down instead of re-laid out, which holds every padding
+ * and margin at its designed ratio.
+ *
+ * Runs before first paint so nothing jumps.
+ */
+(function () {
+  var MIN_WIDTH = 980; // must match --frame-min-width in css/style.css
+  var set = function () {
+    document.documentElement.style.setProperty(
+      '--frame-scale',
+      Math.min(1, window.innerWidth / MIN_WIDTH)
+    );
+  };
+  set();
+  addEventListener('resize', set);
+})();
+
+/*
+ * Nothing that js/scene.js owns is drawn until it owns it.
+ *
+ * The hero's copy arrives on a wipe, and the newsroom's travelling line is
+ * assembled a character at a time — until their script runs, both are plain
+ * visible text. That script is at the end of the body, and the browser is
+ * free to paint before it has been fetched and run. What that paint showed
+ * was the hero's headline whole and, lying right across it, the newsroom's
+ * line: it is a fixed overlay, so it is over the window wherever the page
+ * happens to be. Two headlines on top of each other, for one frame.
+ *
+ * This runs before first paint, and scene.js drops it once it has the page
+ * AND the fonts are in — neither piece can be built before its text can be
+ * measured, so an earlier hand-over just moves the flash later.
+ *
+ * The timer is the floor under all of that: if the script never arrives, or
+ * a font never does, the page still ends up readable rather than blank. It
+ * is long enough not to fire ahead of a slow but working load, which would
+ * put the flash straight back.
+ */
+(function () {
+  var root = document.documentElement;
+  root.classList.add('is-booting');
+  setTimeout(function () {
+    root.classList.remove('is-booting');
+  }, 8000);
+})();
+</script>
+</head>
+<body>
+
+<!-- =====================================================================
+     Figma: "Hero" (356:1231) — 1440 x 810.
+
+     The clip is the same one, cropped the way the frame crops it (356:1233:
+     blown up to 2616 x 1472 and pulled 100 left, 10 up, so the window sits
+     on the upper-left of the shot).
+
+     The copy goes back to the left margin: label, 72px title, lead line and
+     the primary button, all stacked on x 56 and centred on the frame. A row
+     of partner logos runs along the bottom edge — the design has it static
+     and overflowing, so here it is a marquee, looping.
+
+     The section holds the window until it is clicked or scrolled: that fades
+     the copy and whites the frame out — the hand-off into the section below.
+     The tag line rotates through the five points on its own clock.
+     See js/scene.js.
+     ===================================================================== -->
+
+<!-- =====================================================================
+     Figma: 356:1237 — 1400 x 64, inset 20/20, padding 20/13. One bar for the
+     whole site, fixed to the window: it fades into the hero's white-out,
+     lifts back with the role's flash, and simply holds from there — never
+     repeated, never rebuilt per section. js/scene.js owns its opacity.
+     ===================================================================== -->
+<header class="menu" data-site-menu data-node-id="356:1237">
+  <div class="menu__leading" data-node-id="356:1238">
+    <a class="menu__logo" href="/" aria-label="Core Space — home" data-node-id="356:1240">
+      <img src="assets/logos/logo.svg" alt="" width="34" height="34">
+    </a>
+  </div>
+
+  <div class="menu__trailing" data-node-id="356:1244">
+    <nav class="tabs" data-node-id="356:1245">
+      <a class="tab" href="#technology" data-node-id="356:1246">Technology</a>
+      <a class="tab" href="#company" data-node-id="356:1248">Company</a>
+      <a class="tab" href="#investors" data-node-id="356:1250">For investors</a>
+      <a class="tab" href="#contact" data-node-id="356:1252">Contact</a>
+    </nav>
+
+    <!-- 356:1254 — the light button; assets/images/buttonBody.svg is the
+         plate, at its own 180 x 40. -->
+    <a class="button button--light" href="#partner" data-node-id="356:1254">
+      <img class="button__plate" src="assets/images/buttonBody.svg"
+           alt="" width="180" height="40" aria-hidden="true">
+      <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+      <span class="button__label">Become a partner</span>
+      <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+    </a>
+  </div>
+</header>
+
+<!-- =====================================================================
+     Figma: 378:2086 — the hero's cursor. The pointer is hidden while the hero
+     holds the screen and this stands in for it: a 7px square, the invitation,
+     and a second square, 20 apart. It follows the pointer with a little lag
+     so it trails rather than sticks, and steps aside over anything clickable
+     in its own right. js/scene.js owns it.
+     ===================================================================== -->
+<div class="cursor" data-hero-cursor aria-hidden="true" data-node-id="378:2086">
+  <span class="cursor__square" data-node-id="378:2087"></span>
+  <span class="cursor__label" data-node-id="378:2085">Click or scroll to explore</span>
+  <span class="cursor__square" data-node-id="378:2084"></span>
+</div>
+
+<div class="scene" data-scene="hero">
+  <div class="scene__stage">
+    <div class="frame" data-node-id="356:1231" data-design-frame>
+
+      <!--
+        356:1233 — one continuous shot: the hero clip and the transition that
+        follows it, joined into a single file. The second begins on exactly the
+        frame the first ends on, so there is no cut in it anywhere.
+
+        It idles on a loop that runs a couple of seconds into the transition,
+        and the scroll then carries it forward from wherever the loop happens
+        to be — never a jump to a different frame. See js/scene.js.
+      -->
+      <div class="frame__bg" aria-hidden="true">
+        <video class="frame__video" data-hero-video muted playsinline
+               preload="auto" poster="assets/videos/video-hero-poster.jpg">
+          <source src="assets/videos/video-hero.mp4" type="video/mp4">
+          <source src="assets/videos/video-hero.webm" type="video/webm">
+        </video>
+      </div>
+
+
+      <!-- Everything clears out together as the scroll leaves the hero. -->
+      <div data-scene-copy>
+
+        <!-- Figma: 356:1255 — x 56, centred on the frame, 40 above the button -->
+        <div class="hero__content" data-node-id="356:1255">
+          <div class="hero__title" data-node-id="356:1257">
+            <div class="hero__titleLabel" data-node-id="356:1258">
+
+              <div class="hero__tag" data-node-id="356:1259">
+                <span class="hero__tagSquare" data-node-id="356:1260"></span>
+                <span class="hero__tagText" data-hero-tag>
+                  <span class="hero__tagLine">WELCOME TO CORE SPACE</span>
+                </span>
+                <span class="hero__tagSquare" data-node-id="356:1263"></span>
+              </div>
+
+            <h1 class="hero__headline" data-node-id="356:1264">The enabling technology<br>behind orbital data centers.</h1>
+            </div>
+
+            <p class="hero__lead" data-node-id="356:1265">Plasma power and propulsion, connected by high-bandwidth laser links.</p>
+          </div>
+
+          <!-- 356:1266 — the primary button. Its plate is the transparent
+               base: a lit ring, no fill, with its glow already on it, drawn
+               inside its own canvas so it hangs off the button on every
+               side. -->
+          <a class="button button--dark" href="#partner" data-node-id="356:1266">
+            <img class="button__plate" src="assets/images/buttonPrimary.svg"
+                 alt="" width="314" height="163" aria-hidden="true">
+            <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
+            <span class="button__label">Become partner</span>
+            <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
+          </a>
+        </div>
+
+        <!-- Figma: 356:1234 — 80% across, y 659; the rule runs to the edge -->
+        <div class="verify" data-node-id="356:1234">
+          <span class="verify__text" data-node-id="356:1235">Progress you can verify</span>
+          <span class="verify__rule" data-node-id="356:1236"></span>
+        </div>
+
+        <!--
+          Figma: 356:1267 — the partner row, on the bottom edge at 50%. The
+          frame draws it as one static line wider than the window; on request
+          it runs instead. The list is repeated once and the track slides by
+          exactly one copy, so the loop has no seam.
+        -->
+        <div class="logos" data-node-id="356:1267" aria-hidden="true">
+          <div class="logos__track" data-logo-track>
+            <img class="logos__item" src="assets/logos/Layer_2.png" alt="" width="168" height="32">
+            <img class="logos__item" src="assets/logos/MeijerLogo-Primary-FullColor.png" alt="" width="82.4" height="32">
+            <img class="logos__item" src="assets/logos/svg52656.png" alt="" width="90.4" height="28.8">
+            <img class="logos__item" src="assets/logos/Frame-3.png" alt="" width="160" height="25.6">
+            <img class="logos__item" src="assets/logos/Frame-2.png" alt="" width="111.2" height="24">
+            <img class="logos__item" src="assets/logos/Frame-1.png" alt="" width="69.6" height="33.6">
+            <img class="logos__item" src="assets/logos/Group.png" alt="" width="110.4" height="41.6">
+
+            <img class="logos__item" src="assets/logos/Layer_2.png" alt="" width="168" height="32">
+            <img class="logos__item" src="assets/logos/MeijerLogo-Primary-FullColor.png" alt="" width="82.4" height="32">
+            <img class="logos__item" src="assets/logos/svg52656.png" alt="" width="90.4" height="28.8">
+            <img class="logos__item" src="assets/logos/Frame-3.png" alt="" width="160" height="25.6">
+            <img class="logos__item" src="assets/logos/Frame-2.png" alt="" width="111.2" height="24">
+            <img class="logos__item" src="assets/logos/Frame-1.png" alt="" width="69.6" height="33.6">
+            <img class="logos__item" src="assets/logos/Group.png" alt="" width="110.4" height="41.6">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="hero__flash" data-hero-flash aria-hidden="true"></div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================================
+     Figma: "section 2" (238:2674) into "section 2.1" (242:2673) — 1440 x 810.
+
+     Same frame twice: the statement starts mostly dimmed and fills in reading
+     order as the section is scrolled, ending on the 2.1 state. Video 3 runs off
+     the same scroll.
+     ===================================================================== -->
+<div class="scene" data-scene="role">
+  <div class="scene__stage">
+    <div class="frame" data-node-id="238:2674">
+
+      <!-- The shot holds the full frame for the whole section. -->
+      <div class="frame__bg" aria-hidden="true">
+        <!-- 238:2673 — video 3, driven by the scroll from its first frame -->
+        <video class="frame__video" data-role-video muted playsinline preload="auto"
+               poster="assets/videos/video-3-poster.jpg">
+          <source src="assets/videos/video-3.mp4" type="video/mp4">
+          <source src="assets/videos/video-3.webm" type="video/webm">
+        </video>
+      </div>
+
+      <!--
+        Two passages, one after the other on the same spot. Each writes itself
+        on and rubs itself out over its own stretch of the scroll, so the first
+        is gone before the second starts — see js/scene.js.
+      -->
+      <p class="role__statement" data-role-text data-node-id="330:497">We don’t build orbital data centers. We enable the companies that do.</p>
+      <p class="role__statement" data-role-text>Keep scrolling to learn more about how we revolutionize the space.</p>
+
+
+      <div class="role__flash" data-role-flash aria-hidden="true"></div>
+
+      <!-- Leaving the section: the shot goes dark under the one riding up
+           over it, so the incoming edge never crosses a lit frame. -->
+      <div class="role__dark" data-role-dark aria-hidden="true"></div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================================
+     Figma: "Cards" (339:343) — 1440 wide, on #030303.
+
+     Not a pinned scene: it scrolls past normally. The heading fills in
+     reading order as it comes up the window — the frame draws it half read,
+     which is the state this animates through — and the cards rise into place
+     behind it. See js/scene.js.
+     ===================================================================== -->
+<section class="cards" data-cards data-node-id="339:343">
+
+  <!-- 342:576 — the wash behind everything, dodged over the page -->
+  <div class="cards__wash" data-node-id="342:576" aria-hidden="true"></div>
+
+
+  <!-- 339:486 — label and heading, 24 apart -->
+  <div class="cards__head" data-node-id="339:486">
+    <div class="cards__label" data-node-id="339:481">
+      <span class="cards__square" data-node-id="339:482"></span>
+      <span class="cards__labelText" data-node-id="339:484">Our role</span>
+      <span class="cards__square" data-node-id="339:485"></span>
+    </div>
+
+    <p class="cards__headline" data-cards-text data-node-id="339:374">Core Space works alongside operators and platform builders, providing the critical systems they need to deploy, scale and operate in orbit.</p>
+  </div>
+
+  <!-- 339:353 — 600 tall, 8 between the two -->
+  <div class="cards__row" data-card-row data-node-id="339:353">
+
+    <!-- 339:354 — the wide one: a media band across the top, the copy read
+         out of a gradient at the foot -->
+    <article class="card card--wide" data-card data-node-id="339:354">
+      <!-- The same move, carried on. The cupola clip runs out partway through
+           the section below and this one picks it up on the very next frame of
+           the same orbit around the satellite. It sits *under* the first,
+           already decoded and holding its opening frame, so the hand-over is a
+           cut between two frames of one continuous shot rather than a change
+           of picture — see js/scene.js. -->
+      <video class="card__media card__media--orbit" data-flight-orbit muted playsinline preload="auto"
+             poster="assets/videos/video-orbit-poster.jpg">
+        <source src="assets/videos/video-orbit.mp4" type="video/mp4">
+        <source src="assets/videos/video-orbit.webm" type="video/webm">
+      </video>
+
+      <!-- 339:355 — the media band. It is the cupola clip's first frame, held
+           still: the card opens out into it and only then does it play. -->
+      <video class="card__media" data-flight-video muted playsinline preload="auto"
+             poster="assets/videos/video-cupola-poster.jpg" data-node-id="339:355">
+        <source src="assets/videos/video-cupola.mp4" type="video/mp4">
+        <source src="assets/videos/video-cupola.webm" type="video/webm">
+      </video>
+      <span class="card__tick card__tick--tl" data-node-id="339:356"></span>
+      <span class="card__tick card__tick--tr" data-node-id="339:357"></span>
+      <span class="card__tick card__tick--bl" data-node-id="339:363"></span>
+      <span class="card__tick card__tick--br" data-node-id="339:364"></span>
+      <p class="card__overline" data-node-id="339:360">Partner, not competitor</p>
+      <div class="card__foot" data-node-id="339:361">
+        <p class="card__body" data-node-id="339:362">We strengthen the platforms our partners build and operate, without entering their markets or competing with them.</p>
+      </div>
+    </article>
+
+    <!-- 339:365 — the narrow one: a square of media on the middle line -->
+    <article class="card card--narrow" data-card data-node-id="339:365">
+      <div class="card__figure" data-node-id="339:372" aria-hidden="true"></div>
+      <span class="card__tick card__tick--tl" data-node-id="339:368"></span>
+      <span class="card__tick card__tick--tr" data-node-id="339:369"></span>
+      <span class="card__tick card__tick--bl" data-node-id="339:370"></span>
+      <span class="card__tick card__tick--br" data-node-id="339:371"></span>
+      <p class="card__overline card__overline--dim" data-node-id="339:366">Designed to integrate and scale</p>
+      <p class="card__body card__body--plain" data-node-id="339:367">Modular systems designed for existing and next-generation platforms, from deployment to long-term operations.</p>
+    </article>
+
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     Figma: "Shot 2 - Outside Spacecraft - Intro" (342:1556) into
+     "Shot 3 - Outside Spacecraft - Device" (342:1597).
+
+     The wide card above opens out until it fills the window — its own copy
+     fading as it goes — and only once it has does the clip inside it start
+     to run, flying out through the illuminator to the satellite. The intro
+     copy writes itself on the way the tunnel's does; the device copy arrives
+     in the bottom-left once the satellite is all that is left.
+
+     That clip runs out partway through the section and a second one carries
+     the same orbit on from its very next frame, scrubbed by the same scroll.
+     Three points are read off it as it turns — Power, Connect, Sustain — so
+     the whole section is one move around one satellite rather than two shots
+     with a join in the middle.
+     ===================================================================== -->
+<div class="scene" data-scene="flight">
+  <div class="scene__stage">
+    <div class="frame" data-node-id="342:1557">
+
+
+      <div class="flight__copy" data-flight-intro data-node-id="342:1559">
+        <div class="flight__label" data-node-id="342:1560">
+          <span class="flight__square" data-node-id="342:1561"></span>
+          <span class="flight__labelText" data-node-id="342:1563">How it works</span>
+          <span class="flight__square" data-node-id="342:1564"></span>
+        </div>
+        <p class="flight__headline" data-flight-text data-node-id="342:1565">One connected system, from orbit to ground.</p>
+      </div>
+
+      <!-- Three points, one after another in the same corner. The copy is
+           rewritten and wiped on again as the orbit brings each one round;
+           the first is the one the frame draws. -->
+      <div class="flight__device" data-flight-device data-node-id="342:1600">
+        <p class="flight__deviceTitle" data-flight-point-title data-node-id="342:1601">Power.</p>
+        <p class="flight__deviceBody" data-flight-point-body data-node-id="342:1602">Generate and transfer power through plasma-based systems.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================================
+     Figma: "Use Cases" (402:2207) — the page's last section.
+
+     The line assembles itself out of scattered characters, each arriving in
+     the accent and settling to white the way the tunnel's copy does. Once it
+     is whole it dims right back, and the cards run: each rises from below the
+     fold, stands a while on its own place across the frame — they are not
+     stacked in one column — and carries on up and out as the next comes. The
+     name, the paragraph and the button at the foot change with whichever card
+     is standing. See js/scene.js.
+     ===================================================================== -->
+<div class="scene" data-scene="use">
+  <div class="use__pin" data-use-pin>
+    <div class="scene__stage">
+      <div class="frame frame--use" data-node-id="402:2207">
+
+        <!-- The ground the cards arrive on. The section opens on black — the
+             line assembles against nothing — and this comes up under it as the
+             first card is about to rise into the frame. It turns very slowly,
+             which is what makes the light in it read as moving. js/scene.js
+             brings it in; the turn is CSS. -->
+        <div class="use__glow" data-use-glow aria-hidden="true">
+          <span class="use__glowSheet">
+            <!-- 406:2416 draws the stars over the gradient in colour dodge,
+                 so they only light where there is already light to lift —
+                 bright across the top, and gone into the black corner. -->
+            <span class="use__stars"></span>
+          </span>
+        </div>
+
+        <!-- 402:2215 — headline/H1 at 110/120, dead centre; 402:2208 takes it
+             to a fifth once the cards have the frame -->
+        <h2 class="use__headline" data-use-headline data-node-id="402:2215"><span class="use__line">Built for missions that</span><span class="use__line">demand more from orbit.</span></h2>
+
+        <!-- 402:2333 — 550 x 354, its own centre on the frame's -->
+        <div class="use__deck" data-use-deck aria-hidden="true">
+          <figure class="use__card" data-use-card data-node-id="402:2333">
+            <span class="use__shot" data-use-shot>
+              <img src="assets/images/use-1.jpg" alt="" width="1100" height="708">
+            </span>
+            <!-- 407:2639..2642 — 8px marks, their outer corners 20 off the
+                 picture's. They are outside what is scaled, so they hold
+                 their 8 whatever size the picture is at. -->
+            <span class="use__marks" data-use-marks>
+              <i></i><i></i><i></i><i></i>
+            </span>
+          </figure>
+          <figure class="use__card" data-use-card>
+            <span class="use__shot" data-use-shot>
+              <img src="assets/images/use-2.jpg" alt="" width="1100" height="708">
+            </span>
+            <!-- 407:2639..2642 — 8px marks, their outer corners 20 off the
+                 picture's. They are outside what is scaled, so they hold
+                 their 8 whatever size the picture is at. -->
+            <span class="use__marks" data-use-marks>
+              <i></i><i></i><i></i><i></i>
+            </span>
+          </figure>
+          <figure class="use__card" data-use-card>
+            <span class="use__shot" data-use-shot>
+              <img src="assets/images/use-3.jpg" alt="" width="1100" height="708">
+            </span>
+            <!-- 407:2639..2642 — 8px marks, their outer corners 20 off the
+                 picture's. They are outside what is scaled, so they hold
+                 their 8 whatever size the picture is at. -->
+            <span class="use__marks" data-use-marks>
+              <i></i><i></i><i></i><i></i>
+            </span>
+          </figure>
+        </div>
+
+        <!-- 402:2327 — headline/H4, centred on 202.5 -->
+        <p class="use__name" data-use-name data-node-id="402:2327">Orbital data centers</p>
+
+        <!-- 402:2302 — paragraph/M at 60% over the button, 24 apart -->
+        <div class="use__aside" data-use-aside data-node-id="402:2302">
+          <p class="use__body" data-use-body data-node-id="402:2303">Support scalable computing infrastructure beyond the limits of terrestrial data centers.</p>
+          <a class="button button--light button--wide" href="#technology" data-node-id="402:2304">
+            <img class="button__plate" src="assets/images/newbtn.svg"
+                 alt="" width="199" height="40" aria-hidden="true">
+            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+            <span class="button__label">Explore technology</span>
+            <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+          </a>
+        </div>
+
+        <!-- The ground the second line is set on. The section runs on black
+             the whole way through the cards, and turns over to the white the
+             newsroom below is set on as that line arrives — so the two meet
+             on the same paper rather than cutting from black to white. -->
+        <div class="use__paper" data-use-paper aria-hidden="true"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- The line that becomes the newsroom's head. It is kept out of the frame
+     and over everything: the newsroom rises over that frame while this is
+     still travelling, and inside it the line would go behind it. -->
+<div class="use__over" data-use-over aria-hidden="true">
+  <!-- The second line, which takes the frame once the foot has been
+       rubbed out. It assembles out of scattered characters exactly as
+       the first one did, and the frame turns white under it as it does
+       — so it is set in the ink the newsroom below it is set in, and
+       the two sections meet on the same ground. -->
+  <h2 class="use__headline use__headline--two" data-use-headline2><span class="use__line">Progress, partnerships</span><span class="use__line">and perspective.</span></h2>
+
+</div>
+
+<!-- =====================================================================
+     Figma: "Use Cases" (423:3160) — the newsroom, and the page's one light
+     section.
+
+     The line above it is not written again here: the section before this one
+     shrinks its own big line down and carries it to exactly this head's
+     place, and the two stand on the same white, so the head simply takes it
+     over as this section reaches the top of the window.
+
+     The cards are a two-column grid, and each opens rather than fades: the
+     picture's frame grows from a band in the middle out to its full 455
+     while the picture inside it holds still and settles back from a little
+     over size — so it reads as a shutter opening on it. See js/scene.js.
+     ===================================================================== -->
+<section class="wire" data-scene-wire data-node-id="423:3160">
+
+  <div class="wire__head" data-node-id="423:3161">
+    <div class="wire__intro" data-node-id="423:3162">
+      <div class="wire__label" data-wire-label data-node-id="423:3163">
+        <span class="wire__square" data-node-id="423:3164"></span>
+        <span class="wire__labelText" data-node-id="423:3166">Newsroom</span>
+        <span class="wire__square" data-node-id="423:3167"></span>
+      </div>
+      <h2 class="wire__headline" data-wire-headline data-node-id="423:3168">Progress, partnerships<br>and perspective.</h2>
+    </div>
+
+    <div class="wire__aside" data-wire-aside data-node-id="423:3169">
+      <p class="wire__lead" data-node-id="423:3170">Research notes, engineering updates and mission news from the team.</p>
+      <a class="button button--plate button--plate-dark" href="#newsroom" data-node-id="423:3171">
+        <span class="button__face" aria-hidden="true"></span>
+        <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+        <span class="button__label">Read more</span>
+        <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+      </a>
+    </div>
+  </div>
+
+  <div class="wire__grid" data-node-id="424:3362">
+      <article class="wire__card" data-wire-card data-node-id="423:3336">
+        <span class="wire__shot" data-wire-shot data-node-id="423:3299">
+          <img src="assets/images/wire-1.jpg" alt="" width="1310" height="910">
+          <span class="wire__mark wire__mark--tr" data-node-id="426:667"></span>
+          <span class="wire__mark wire__mark--bl" data-node-id="426:665"></span>
+        </span>
+        <p class="wire__tag">[TECHNOLOGY UPDATE]</p>
+        <p class="wire__title">A New Path for Power in Orbit</p>
+      </article>
+
+      <article class="wire__card" data-wire-card data-node-id="423:3339">
+        <span class="wire__shot" data-wire-shot data-node-id="423:3340">
+          <img src="assets/images/wire-2.jpg" alt="" width="1310" height="910">
+          <span class="wire__mark wire__mark--tr" data-node-id="426:667"></span>
+          <span class="wire__mark wire__mark--bl" data-node-id="426:665"></span>
+        </span>
+        <p class="wire__tag">[INDUSTRY INSIGHT]</p>
+        <p class="wire__title">Why VLEO Could Become the Missing Data Layer</p>
+      </article>
+
+      <article class="wire__card" data-wire-card data-node-id="424:3350">
+        <span class="wire__shot" data-wire-shot data-node-id="424:3351">
+          <img src="assets/images/wire-3.jpg" alt="" width="1310" height="910">
+          <span class="wire__mark wire__mark--tr" data-node-id="426:667"></span>
+          <span class="wire__mark wire__mark--bl" data-node-id="426:665"></span>
+        </span>
+        <p class="wire__tag">[ENGINEERING]</p>
+        <p class="wire__title">Rethinking Cooling for Orbital Compute</p>
+      </article>
+
+      <article class="wire__card" data-wire-card data-node-id="424:3356">
+        <span class="wire__shot" data-wire-shot data-node-id="424:3357">
+          <img src="assets/images/wire-4.jpg" alt="" width="1310" height="910">
+          <span class="wire__mark wire__mark--tr" data-node-id="426:667"></span>
+          <span class="wire__mark wire__mark--bl" data-node-id="426:665"></span>
+        </span>
+        <p class="wire__tag">[OPERATIONS]</p>
+        <p class="wire__title">Designing for Weekly Launch Cadence</p>
+      </article>
+
+      <article class="wire__card" data-wire-card data-node-id="424:3364">
+        <span class="wire__shot" data-wire-shot data-node-id="424:3365">
+          <img src="assets/images/wire-5.jpg" alt="" width="1310" height="910">
+          <span class="wire__mark wire__mark--tr" data-node-id="426:667"></span>
+          <span class="wire__mark wire__mark--bl" data-node-id="426:665"></span>
+        </span>
+        <p class="wire__tag">[RESEARCH]</p>
+        <p class="wire__title">Station-Keeping at Very Low Altitude</p>
+      </article>
+
+      <article class="wire__card" data-wire-card data-node-id="424:3370">
+        <span class="wire__shot" data-wire-shot data-node-id="424:3371">
+          <img src="assets/images/wire-6.jpg" alt="" width="1310" height="910">
+          <span class="wire__mark wire__mark--tr" data-node-id="426:667"></span>
+          <span class="wire__mark wire__mark--bl" data-node-id="426:665"></span>
+        </span>
+        <p class="wire__tag">[MISSION]</p>
+        <p class="wire__title">Carrying Power Beyond Low Earth Orbit</p>
+      </article>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     Figma: 438:443 — the FAQ, 1440 x 810.
+
+     One pinned scene that holds the window while six pieces of copy are
+     turned past it. The first is the word FAQ, which arrives the way the
+     use-cases headline does — scattered characters landing in the accent and
+     settling — on the white the newsroom above leaves behind. The page then
+     goes to black, and from there each question is turned away on a drum and
+     the next brought up from under it: madewithgsap 102, a depth radius, the
+     outgoing line arcing up and back while the incoming one rises.
+
+     The label and the answer do not ride the drum. They are wiped on by the
+     same rectangle the rest of the page uses, once their question has landed,
+     and wiped off again as it starts to leave. See js/scene.js.
+     ===================================================================== -->
+<section class="scene" data-scene="faq">
+  <div class="scene__stage">
+    <div class="frame faq" data-faq data-node-id="438:655">
+
+      <!--
+        438:716 / 438:720 — the ground the questions stand on: the field,
+        turning slowly, and the stars dodged over it. Both are under the
+        paper, so they are uncovered as the newsroom's white lifts.
+      -->
+      <div class="faq__glow" aria-hidden="true">
+        <video class="faq__field" data-faq-field muted playsinline loop preload="auto"
+               poster="assets/videos/faq-field-poster.jpg" data-node-id="438:716">
+          <source src="assets/videos/faq-field.mp4" type="video/mp4">
+          <source src="assets/videos/faq-field.webm" type="video/webm">
+        </video>
+        <!--
+          450:1036 — the clip the field hands over to, cut in on the frame it
+          ends on. It is held on its own first frame until the scroll reaches
+          it, so nothing of it is seen before its turn.
+        -->
+        <video class="faq__field faq__field--coin" data-faq-coin muted playsinline preload="auto">
+          <source src="assets/videos/faq-coin.mp4" type="video/mp4">
+          <source src="assets/videos/faq-coin.webm" type="video/webm">
+        </video>
+        <span class="faq__stars" data-node-id="438:720"></span>
+      </div>
+
+      <!--
+        450:1034 — what the coin arrives at. The overlay carries the lower
+        half of the clip down into the copy (450:1038), and the copy comes on
+        once the clip has reached its last frame: the headline written on a
+        character at a time as the tunnel's are, the label, the line under it
+        and the button wiped on by the rectangle as the hero's are.
+      -->
+      <div class="faq__cta" data-faq-cta data-node-id="450:1041">
+        <div class="faq__ctaWash" aria-hidden="true" data-node-id="450:1038"></div>
+
+        <div class="faq__ctaLabel" data-faq-cta-label data-node-id="450:1043">
+          <span class="faq__square"></span>
+          <span class="faq__labelText" data-node-id="450:1046">Work with us</span>
+          <span class="faq__square"></span>
+        </div>
+
+        <h2 class="faq__ctaTitle" data-faq-cta-title data-node-id="450:1050">Let’s build what’s next in orbit.</h2>
+
+        <p class="faq__ctaLead" data-faq-cta-lead data-node-id="450:1051">Talk with our team about integrating Core Space technologies into your next platform or mission.</p>
+
+        <a class="button button--dark faq__ctaButton" href="#partner" data-faq-cta-button data-node-id="450:1053">
+          <img class="button__plate" src="assets/images/buttonPrimary.svg"
+               alt="" width="314" height="163" aria-hidden="true">
+          <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
+          <span class="button__label">Become partner</span>
+          <img class="button__icon" src="assets/icons/plus.svg" alt="" width="20" height="20">
+        </a>
+      </div>
+
+      <!-- the white the newsroom leaves, lifted as the questions begin -->
+      <div class="faq__paper" data-faq-paper aria-hidden="true"></div>
+
+      <!--
+        438:656 — the label over its line, 16 apart. The pair is centred in
+        what is left between the bar and the foot, so the air above it and
+        the air below it are equal.
+      -->
+      <div class="faq__mid">
+
+        <!-- 438:657 — one label per question, all on the same mark -->
+        <div class="faq__labels" data-faq-labels>
+          <div class="faq__label" data-faq-label data-node-id="438:657">
+            <span class="faq__square"></span>
+            <span class="faq__labelText" data-node-id="438:660">Question 1</span>
+            <span class="faq__square"></span>
+          </div>
+          <div class="faq__label" data-faq-label>
+            <span class="faq__square"></span>
+            <span class="faq__labelText">Question 2</span>
+            <span class="faq__square"></span>
+          </div>
+          <div class="faq__label" data-faq-label>
+            <span class="faq__square"></span>
+            <span class="faq__labelText">Question 3</span>
+            <span class="faq__square"></span>
+          </div>
+          <div class="faq__label" data-faq-label>
+            <span class="faq__square"></span>
+            <span class="faq__labelText">Question 4</span>
+            <span class="faq__square"></span>
+          </div>
+          <div class="faq__label" data-faq-label>
+            <span class="faq__square"></span>
+            <span class="faq__labelText">Question 5</span>
+            <span class="faq__square"></span>
+          </div>
+        </div>
+
+        <!-- 438:663 — the drum. Six lines on one radius; only the one at the
+             front is square to the window. -->
+        <div class="faq__drum" data-faq-drum data-node-id="438:662">
+          <p class="faq__ghost" data-faq-ghost aria-hidden="true"></p>
+          <p class="faq__title faq__title--word" data-faq-word><span class="faq__wordLine">Frequently asked</span><span class="faq__wordLine">questions.</span></p>
+          <p class="faq__title" data-node-id="438:664">What does Core Space build?</p>
+          <p class="faq__title">Does Core Space build orbital data centers?</p>
+          <p class="faq__title">How does Core Space work with partners?</p>
+          <p class="faq__title">What stage are Core Space’s technologies at?</p>
+          <p class="faq__title">Where can investors find company information?</p>
+        </div>
+      </div>
+
+      <!-- 438:665 — the answers and the way out under them, both carried on
+           the frame's bottom margin rather than on its middle -->
+      <div class="faq__foot" data-node-id="438:665">
+        <div class="faq__answers" data-faq-answers>
+          <p class="faq__answer" data-faq-answer data-node-id="438:666">Core Space develops enabling systems for orbital infrastructure, including distributed power, high-bandwidth laser connectivity, VLEO propulsion and advanced thermal-management concepts.</p>
+          <p class="faq__answer" data-faq-answer>No. Core Space develops the critical technologies that orbital-data-center operators and platform builders can integrate into the infrastructure they own and operate.</p>
+          <p class="faq__answer" data-faq-answer>Core Space works with partners to define mission requirements, identify technical interfaces and configure the relevant systems around their platform architecture and operating environment.</p>
+          <p class="faq__answer" data-faq-answer>Core Space’s portfolio includes technology concepts, system architectures and performance modelling across several research areas. Specific development and validation milestones will be published as they are confirmed.</p>
+          <p class="faq__answer" data-faq-answer>Verified company announcements, development updates and relevant corporate information are published through Core Space’s Newsroom and Investor Relations channels.</p>
+        </div>
+
+        <!-- 438:667 — the outlined button; assets/btn_stroke.png is its
+             stroke, at its own 121 x 40. -->
+        <a class="button faq__skip" href="#contact" data-faq-skip data-node-id="438:667">
+          <img class="button__plate" src="assets/btn_stroke.png"
+               alt="" width="121" height="40" aria-hidden="true" data-node-id="438:673">
+          <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+          <span class="button__label">Skip FAQ</span>
+          <img class="button__icon button__icon--sm" src="assets/icons/plus.svg" alt="" width="16" height="16">
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 426:674 — what the pointer becomes over a card: the button the card is,
+     said out loud. Fixed to the window and outside the section, so it is
+     never clipped by anything it crosses. js/scene.js follows the pointer
+     with it and drifts its two squares. -->
+<div class="lens" data-wire-lens aria-hidden="true" data-node-id="426:674">
+  <span class="lens__square" data-node-id="426:678"></span>
+  <span class="lens__label" data-node-id="426:672"><span class="lens__line">Read article</span></span>
+  <span class="lens__square" data-node-id="426:676"></span>
+</div>
+
+<script src="js/smooth.js"></script>
+<script src="js/scene.js"></script>
+
+</body>
+</html>

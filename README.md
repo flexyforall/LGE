@@ -1,4 +1,90 @@
-# CoreSpace
+# LGE
+
+Two sites live in this repository. `index.html` is the Lead Generation Experts
+page; `corespace.html` is the earlier CoreSpace site, untouched, with all of its
+own documentation further down this file.
+
+## Lead Generation Experts
+
+`index.html` — the **Hero Section + Menu** frame from the Lead Generation
+Experts Figma file, built to the frame's own numbers rather than to eyeballed
+approximations.
+
+```
+index.html          the page
+css/lge.css         all of its styles
+assets/fonts/       SF Pro Display and SF Pro, as woff2
+*.png, *.svg        the exported artwork, in the repository root
+```
+
+Open `index.html`. There is no build step and nothing to install.
+
+### How it is put together
+
+The frame is 1440 x 859. Every box in the page is placed at the coordinate the
+frame gives it, so the CSS reads as a list of measurements — `left: 873.5px`,
+`top: 558.24px`, `letter-spacing: -2.88px` — and the numbers are the point.
+Rounding them is what breaks the match, so they are left as they are.
+
+Below 1440 the whole canvas is scaled as a single piece rather than reflowed.
+Nothing inside it moves relative to anything else, so the proportions hold at
+every width; at 1440 and above the scale is 1 and the page is the frame.
+
+### The pieces
+
+**Ticker** — a 1440 x 48 strip over `Header Image.png`, its row of six
+notices centred so it starts at x -629 and runs off both edges. Each notice is
+pinned to the width the frame measured for it (361 / 304 / 372), so the run
+keeps its rhythm even if a glyph advance drifts. Two of the separators are EN
+SPACE (U+2002) rather than ordinary spaces — that is what the frame uses, and it
+is the reason the first `·` in the Google Partner line sits wider than the rest.
+
+**Menu** — 568 x 64 on `#020108`, three groups 80px apart. The bracket-and-
+equals mark overflows its 40 x 24 box on both axes, which is why it is placed at
+`-0.752px / -6.75px` instead of being contained. The logo is a 54 x 24 white
+mark; the moon sits in a 40px circle with a 1.5px inside stroke.
+
+**Head** — the headline at 72px SF Pro Display Medium, tracking -4% (-2.88px),
+with `Building Brands` in `#7f7f82`. A 1px divider at x 873.5 runs from y 122 to
+y 458. The lede is 20px SF Pro Regular at 60% black, 400px wide, and breaks into
+exactly three lines.
+
+**Images** — three cards. The middle one is 487.5 x 354 and square to the page;
+the outer two are 390 x 284 turned 18 degrees and dropped to 70% opacity. Their
+`left` / `top` values are computed so that the *rotated* bounding box lands
+where the frame puts it, which is why they are not round numbers.
+
+**Ellipse 13** — a 1440px dashed circle whose 24px stroke is centre-aligned, so
+the artwork box is 1464 and sits at (-12, 548). Only its top arc is on screen.
+
+### Fonts
+
+The frame uses SF Pro Display Medium and Regular, and SF Pro Regular for the
+lede. The originals in `assets/fonts/` are a 335KB OTF pair and a 23MB variable
+TTF, so the page loads woff2 builds instead:
+
+- `SFProDisplay-Regular.woff2` / `SFProDisplay-Medium.woff2` — straight repacks
+  of the OTFs. Nothing is subsetted, so every glyph and metric survives.
+- `SF-Pro-subset.woff2` — the variable font pinned to the `Regular` instance the
+  frame uses (`wdth` 100, `opsz` 28, `wght` 400) and cut down to Latin-1 plus the
+  punctuation the copy needs. 23MB becomes 30KB, with identical metrics.
+
+The OTF and TTF originals stay in `src` behind the woff2 as a fallback.
+
+### Checking it against the frame
+
+`tools/lge-measure.mjs` opens the page in a headless browser and diffs every box
+against the numbers read off the Figma frame, then writes a 2x screenshot.
+
+```bash
+cd tools
+npm install
+npm run lge
+```
+
+---
+
+# CoreSpace (`corespace.html`)
 
 Website built from the CoreSpace Figma design. Plain HTML, CSS and one script —
 no build step, no dependencies, no install.

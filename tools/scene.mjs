@@ -22,7 +22,7 @@ const browser = await chromium.launch({
   args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'],
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 810 } });
-await page.goto(pathToFileURL(path.join(root, 'index.html')).href, {
+await page.goto(pathToFileURL(path.join(root, 'corespace.html')).href, {
   waitUntil: 'load',
 });
 await page.evaluate(() => document.fonts.ready);

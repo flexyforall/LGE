@@ -1,0 +1,400 @@
+/* Lead Generation Experts — Hero Section + Menu
+   Figma: ZYsev0ryrBYAfE2RHfC384 / node 221:2799 (1440 x 859)
+   Every number below is read straight off the frame. Do not round them. */
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../assets/fonts/SFProDisplay-Regular.woff2") format("woff2"),
+       url("../assets/fonts/SFPRODISPLAYREGULAR.OTF") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../assets/fonts/SFProDisplay-Medium.woff2") format("woff2"),
+       url("../assets/fonts/SFPRODISPLAYMEDIUM.OTF") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: "SF Pro";
+  /* Pinned to the "Regular" instance the frame uses: wdth 100, opsz 28,
+     wght 400. Latin-1 plus the punctuation the copy needs. */
+  src: url("../assets/fonts/SF-Pro-subset.woff2") format("woff2"),
+       url("../assets/fonts/SF-Pro.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+/* The frame is a fixed 1440 x 859 canvas. Below 1440 the whole thing is
+   scaled as one piece, so every proportion inside stays exactly as drawn. */
+.stage {
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero {
+  position: relative;
+  width: 1440px;
+  height: 859px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #ffffff;
+  transform-origin: top center;
+  transform: scale(var(--scale, 1));
+}
+
+.hero img { display: block; border: 0; }
+
+/* ---------------------------------------------------------------- Menu --
+   222:2866 — x436 y68, 568x64, #020108, r4, pad 12, gap 80 */
+.menu {
+  position: absolute;
+  left: 436px;
+  top: 68px;
+  width: 568px;
+  height: 64px;
+  background: #020108;
+  border-radius: 4px;
+}
+
+/* 222:3498 — x12 y20, 165x24 */
+.menu__left {
+  position: absolute;
+  left: 12px;
+  top: 20px;
+  width: 165px;
+  height: 24px;
+}
+
+/* 222:3508 — 40x24; the bracket + equals artwork overflows it on both axes */
+.menu__equals {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 24px;
+}
+.menu__equals img {
+  position: absolute;
+  left: -0.752px;
+  top: -6.75px;
+  width: 42px;
+  height: 38px;
+}
+
+/* 222:3496 — "Menu", x52 y2, SF Pro Display Medium 14 / 140% */
+.menu__label {
+  position: absolute;
+  left: 52px;
+  top: 2px;
+  margin: 0;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 19.6px;
+  letter-spacing: 0;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* 223:3785 — mask group, x257 y20, 54x24 */
+.menu__logo {
+  position: absolute;
+  left: 257px;
+  top: 20px;
+  width: 54px;
+  height: 24px;
+}
+
+/* 222:3518 — x391 y12, 165x40 */
+.menu__right {
+  position: absolute;
+  left: 391px;
+  top: 12px;
+  width: 165px;
+  height: 40px;
+}
+
+/* 222:3513 — 40x40 circle, 1.5px inside stroke at 20% white */
+.menu__moon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1000px;
+}
+.menu__moon img {
+  position: absolute;
+  left: 6.5px;
+  top: 6.5px;
+  width: 24px;
+  height: 24px;
+}
+
+/* 222:2888 — x52, 113x40, #ff5e00, r2 */
+.menu__cta {
+  position: absolute;
+  left: 52px;
+  top: 0;
+  width: 113px;
+  height: 40px;
+  background: #ff5e00;
+  border-radius: 2px;
+}
+.menu__cta span {
+  position: absolute;
+  left: 16px;
+  top: 10px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 19.6px;
+  letter-spacing: 0;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------- Ellipse --
+   226:507 — 1440x1440 circle at (0, 560), 24px dashed stroke at 8% #020108.
+   The stroke is centre-aligned, so the artwork box is 1464 at (-12, 548). */
+.ellipse {
+  position: absolute;
+  left: -12px;
+  top: 548px;
+  width: 1464px;
+  height: 1464px;
+}
+
+/* -------------------------------------------------------------- Ticker --
+   222:2826 — 1440x48, image fill, 14px vertical padding, clipped */
+.ticker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 48px;
+  overflow: hidden;
+  background-image: url("../Header%20Image.png");
+  background-size: 1440px 48px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
+
+/* 222:2807 — 20px tall row, gap 48, centred so it starts at x -629 */
+.ticker__row {
+  position: absolute;
+  left: -629px;
+  top: 14px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+.ticker__row img {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+.ticker__row span {
+  flex: 0 0 auto;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 19.6px;
+  letter-spacing: 0;
+  color: #ffffff;
+  white-space: nowrap;
+}
+/* Widths measured on the frame, so the run keeps its exact rhythm */
+.ticker__row .t-report { width: 361px; }
+.ticker__row .t-since  { width: 304px; }
+.ticker__row .t-partner{ width: 372px; }
+
+/* ---------------------------------------------------------------- Head --
+   223:3795 — y132, 1440x326, 80px side padding, 54px gap */
+
+/* 223:3797 — x80 y226, 648 wide, SF Pro Display Medium 72 / 120%, -4% */
+.headline {
+  position: absolute;
+  left: 80px;
+  top: 226px;
+  width: 648px;
+  margin: 0;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 72px;
+  line-height: 86.4px;
+  letter-spacing: -2.88px;
+  color: #020108;
+}
+.headline em {
+  font-style: normal;
+  color: #7f7f82;
+}
+
+/* 223:3798 — 1px centre-aligned stroke at x874, y122 -> y458, #020108 @ 10% */
+.divider {
+  position: absolute;
+  left: 873.5px;
+  top: 122px;
+  width: 1px;
+  height: 336px;
+  background: rgba(2, 1, 8, 0.1);
+}
+
+/* 223:3800 — x944 y238, 400x84, SF Pro Regular 20 / 140%, -1% */
+.lede {
+  position: absolute;
+  left: 944px;
+  top: 238px;
+  width: 400px;
+  margin: 0;
+  font-family: "SF Pro", sans-serif;
+  font-optical-sizing: none;
+  font-variation-settings: "wdth" 100, "opsz" 28, "wght" 400;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+  color: rgba(2, 1, 8, 0.6);
+}
+
+/* 223:3801 — x944 y346, 190x52, #020108, r4 */
+.cta {
+  position: absolute;
+  left: 944px;
+  top: 346px;
+  width: 190px;
+  height: 52px;
+  background: #020108;
+  border-radius: 4px;
+}
+.cta img {
+  position: absolute;
+  left: 20px;
+  top: 14px;
+  width: 24px;
+  height: 24px;
+}
+.cta span {
+  position: absolute;
+  left: 52px;
+  top: 15px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 21.6px;
+  letter-spacing: -0.18px;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- Images --
+   228:2291 — y458, 1440x401, unclipped: the outer frame does the clipping */
+.images {
+  position: absolute;
+  left: 0;
+  top: 458px;
+  width: 1440px;
+  height: 401px;
+}
+
+.card {
+  position: absolute;
+  margin: 0;
+  background: #020108;
+  overflow: hidden;
+}
+.card img {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  object-fit: cover;
+}
+.card figcaption {
+  position: absolute;
+  margin: 0;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 28.8px;
+  letter-spacing: -0.24px;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* The two outer cards are 390x284 turned 18 degrees; the offsets below put
+   their rotated bounding boxes exactly where the frame has them. */
+.card--side {
+  width: 390px;
+  height: 284px;
+  border-radius: 6px;
+  opacity: 0.7;
+}
+.card--side img {
+  width: 382px;
+  height: 232px;
+  border-radius: 4px;
+}
+
+/* 228:2292 — bounding box at (-45.479, 100.24) */
+.card--left {
+  left: -11.1425px;
+  top: 153.5485px;
+  transform: rotate(-18deg);
+}
+.card--left figcaption {
+  left: 26.163px;
+  top: 245.343px;
+}
+
+/* 228:2296 — bounding box at (1026.471, 90) */
+.card--right {
+  left: 1060.8075px;
+  top: 143.3085px;
+  transform: rotate(18deg);
+}
+.card--right figcaption {
+  left: 22.146px;
+  top: 246.294px;
+}
+
+/* 228:2294 — x476 y0, 487.5x354, r10 */
+.card--mid {
+  left: 476px;
+  top: 0;
+  width: 487.5px;
+  height: 354px;
+  border-radius: 10px;
+}
+.card--mid img {
+  width: 479.5px;
+  height: 290px;
+  border-radius: 6px;
+}
+.card--mid figcaption {
+  left: 24px;
+  top: 310px;
+}

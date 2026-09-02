@@ -1,7 +1,7 @@
 /**
  * Diffs the rendered hero against the Figma frame.
  *
- * Elements in index.html carry a `data-node-id` matching their Figma node, so
+ * Elements in corespace.html carry a `data-node-id` matching their Figma node, so
  * every box can be looked up and compared with the numbers read off the design.
  *
  *   cd tools && npm install && npm run check
@@ -14,7 +14,7 @@ import { chromium } from 'playwright';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target =
-  process.argv[2] ?? pathToFileURL(path.join(root, 'index.html')).href;
+  process.argv[2] ?? pathToFileURL(path.join(root, 'corespace.html')).href;
 
 /** Boxes in frame coordinates: [nodeId, x, y, w, h, label]. */
 const BOXES = [

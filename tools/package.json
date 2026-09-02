@@ -6,7 +6,8 @@
   "scripts": {
     "check": "node measure.mjs",
     "scene": "node scene.mjs",
-    "playback": "node playback.mjs"
+    "playback": "node playback.mjs",
+    "lge": "node lge-measure.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"
