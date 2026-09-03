@@ -214,10 +214,11 @@ the second row slides in underneath, and the figure, the rule and the copy all
 go white. The icons are flat fills in the shape of the glyph for the same
 reason the logos are — so their colour can travel with the row.
 
-**The ring.** Every fourteen seconds a highlight crosses the dashed circle's
-visible arc: each tick deepens from the frame's 8% to about a quarter black as
-it is reached, and goes straight back as it is passed. Nothing accumulates —
-the ring after a pass is pixel-for-pixel the ring before it.
+**The ring.** A highlight crosses the dashed circle's visible arc about every
+twenty seconds, taking some eight of them to do it: each tick deepens from the
+frame's 8% to about a quarter black as it is reached, and goes straight back as
+it is passed. Nothing accumulates — the ring after a pass is pixel-for-pixel
+the ring before it.
 
 It is a second copy of the ring in the deeper grey, sitting exactly on the
 first, shown only through a narrow wedge. The wedge is a *conic* gradient
@@ -227,9 +228,11 @@ wrapper while the artwork inside turns back by the same angle: the mask
 travels, the ticks never move. Both halves share a duration and a timing
 function, so they cancel at every instant and not merely at the ends.
 
-The wedge rests at 180 degrees — pointing down, off the bottom of the frame —
-which is what makes the jump back at the end of each cycle invisible, and what
-leaves nothing showing at all where masks are not supported. The whole layer is
+The wedge turns through a full circle at a constant 18 degrees a second rather
+than darting across and waiting, so there is no held phase and nothing to jump
+back from: 360 degrees is where it started and the loop closes on itself. It
+rests pointing down, off the bottom of the frame, which is what leaves nothing
+showing at all where masks are not supported. The whole layer is
 held at zero opacity outside a `@supports` test for exactly that reason: an
 unmasked second ring would be worse than no animation.
 

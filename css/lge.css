@@ -547,7 +547,6 @@ body {
      starting only once the width is under way rather than alongside it. */
   --ease-menu-x: cubic-bezier(0.2, 0.9, 0.25, 1);
   --ease-menu-y: cubic-bezier(0.55, 0, 0.1, 1);
-  --ease-ring: cubic-bezier(0.45, 0, 0.55, 1);
   --ease-step: cubic-bezier(0.76, 0, 0.24, 1);
   --step: 0.95s;          /* one carousel move */
   --ticker-period: 34s;   /* one full run of the strip */
@@ -1244,7 +1243,9 @@ body {
    instant and not merely at the ends.
 
    The wedge sits at 180 degrees — pointing down, off the bottom of the frame —
-   so at rest, and wherever the mask is not supported, none of it shows. */
+   so at rest, and wherever the mask is not supported, none of it shows. It
+   turns through a full circle at a constant rate rather than darting across
+   and waiting, so the loop closes on itself with nothing to jump back from. */
 .ellipse-lit {
   position: absolute;
   left: -12px;
@@ -1270,37 +1271,36 @@ body {
 @supports (mask-image: conic-gradient(#000, #fff)) or (-webkit-mask-image: conic-gradient(#000, #fff)) {
   .ellipse-lit {
     opacity: 1;
+    /* A wider, softer wedge than before: at this pace it takes about two
+       seconds to cross a single tick, so the tick blooms and fades rather
+       than blinking. */
     --wedge: conic-gradient(from 0deg at 50% 50%,
-      transparent 0deg 168deg,
-      rgba(0, 0, 0, 0.5) 176deg,
-      #000 179deg 181deg,
-      rgba(0, 0, 0, 0.5) 184deg,
-      transparent 192deg 360deg);
+      transparent 0deg 164deg,
+      rgba(0, 0, 0, 0.35) 172deg,
+      #000 178deg 182deg,
+      rgba(0, 0, 0, 0.35) 188deg,
+      transparent 196deg 360deg);
     -webkit-mask-image: var(--wedge);
     mask-image: var(--wedge);
-    animation: lge-ring-sweep var(--ring-period, 14s) var(--ease-ring) infinite;
+    animation: lge-ring-sweep var(--ring-period, 20s) linear infinite;
     will-change: transform;
   }
   .ellipse-lit__art {
-    animation: lge-ring-sweep-back var(--ring-period, 14s) var(--ease-ring) infinite;
+    animation: lge-ring-sweep-back var(--ring-period, 20s) linear infinite;
     will-change: transform;
   }
 }
 
-/* 105deg puts the wedge past the left end of the visible arc and 255deg past
-   the right, so it enters and leaves out of sight and the jump back at the end
-   of the cycle is never seen. The sweep takes a fifth of the period; the rest
-   of it the ring simply sits there. */
-@keyframes lge-ring-sweep {
-  0%   { transform: rotate(105deg); }
-  20%  { transform: rotate(255deg); }
-  100% { transform: rotate(255deg); }
-}
-@keyframes lge-ring-sweep-back {
-  0%   { transform: rotate(-105deg); }
-  20%  { transform: rotate(-255deg); }
-  100% { transform: rotate(-255deg); }
-}
+/* One turn, at a constant rate, forever. There is no held phase and no jump
+   back: 360 degrees is where it started, so the loop closes on itself.
+
+   The wedge rests pointing down, so at 18 degrees a second it spends about
+   eight seconds crossing the arc that is on screen and the rest of the turn
+   out of sight below the frame — a slow pass roughly every twenty seconds.
+   Linear on both halves, which is what keeps the rate even and lets the
+   counter-turn cancel the turn exactly. */
+@keyframes lge-ring-sweep      { to { transform: rotate(360deg); } }
+@keyframes lge-ring-sweep-back { to { transform: rotate(-360deg); } }
 
 /* --------------------------------------------------------- theme button --
    222:3513. It answers with movement first — the moon turns — and the ring
