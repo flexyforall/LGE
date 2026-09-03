@@ -1064,11 +1064,13 @@ body {
 }
 
 /* 231:2621 and friends — 819 x 156, 48 top and bottom, 40 in and 80 out */
+/* The run creeps upwards at a constant rate — one row every eight seconds,
+   measured off the reference, which moves linearly with no step and no
+   easing. The rows are in it twice over so the column is never short. */
+.stat-run { will-change: transform; }
+
 .stat {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1077,11 +1079,12 @@ body {
   /* Transparent, so the 155px content box the frame gives the row survives;
      the line itself is drawn below, where it can be drawn *on*. */
   border-bottom: 1px solid transparent;
-  transform: translateY(calc(var(--slot) * 156px));
-  transition: transform 0.95s var(--ease-step);
+  /* The frame puts the opacity on the row, so its rule fades with it. Having
+     it on the contents left every hairline at full strength while the figures
+     above them faded, which is not what the file draws. */
+  opacity: var(--rest, 1);
+  transition: opacity 0.35s var(--ease-out);
 }
-/* A row jumping from one end of the column to the other must not travel. */
-.stat.is-jumping { transition: none !important; }
 .stat::after {
   content: "";
   position: absolute;
@@ -1114,8 +1117,6 @@ body {
   align-items: var(--align, center);
   gap: 8px;
   height: 59px;
-  opacity: var(--rest, 1);
-  transition: opacity 0.45s var(--ease-out);
 }
 .stat__num {
   display: block;
@@ -1155,14 +1156,12 @@ body {
   line-height: 28px;
   letter-spacing: -0.2px;
   color: rgba(2, 1, 8, 0.6);
-  opacity: var(--rest, 1);
-  transition: opacity 0.45s var(--ease-out), color 0.45s var(--ease-out);
+  transition: color 0.45s var(--ease-out);
 }
 
 /* Hovered: the row comes forward, the picture behind it, everything white. */
+.stat:hover { --rest: 1; }
 .stat:hover .stat__bg { opacity: 1; }
-.stat:hover .stat__value,
-.stat:hover .stat__desc { opacity: 1; }
 .stat:hover .stat__num,
 .stat:hover .stat__desc { color: #ffffff; }
 .stat:hover .stat__icon { color: #ffffff; }

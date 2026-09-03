@@ -321,53 +321,76 @@
     requestAnimationFrame(frame);
   }
 
-  // The column rolls: every row moves up one slot, the four the frame draws
-  // dimming as they climb, and the one that leaves the top is put back at the
-  // bottom while it is out of the clip. It stops under the pointer, which is
-  // what makes the row hover usable.
-  var ROLL_SLOTS = 8;
-  var ROLL_STEP_MS = 950;
-  var ROLL_HOLD_MS = 2600;
-  var ROLL_OPACITY = [1, 1, 0.7, 0.2];   // by visible slot, read off the frame
+  // The column creeps upward at a constant rate — one row every eight
+  // seconds, which is what the reference does: linear, no step, no easing.
+  // The rows are in the run twice over so it is never short, and the fade is
+  // by position rather than by which row it is, so a row brightens as it
+  // climbs. At rest the run sits at nothing and the four the frame draws are
+  // at 1, 1, 0.7 and 0.2 — the file's own numbers.
+  //
+  // One clock drives both the travel and the fade. A CSS animation would move
+  // the run more cheaply, but the fade has to be read off the same position,
+  // and two clocks drifting apart is worse than the frame of work this costs.
+  var ROW_H = 156;
+  var ROLL_ROWS = 4;              // before the run repeats
+  var ROLL_ROW_MS = 8000;         // one row, off the reference
+  var ROLL_RAMP = [1, 1, 0.7, 0.2, 0];   // opacity by slot, from the frame
 
   var proof = document.getElementById('proof');
   var stats = document.getElementById('proofStats');
-  var statRows = stats ? [].slice.call(stats.querySelectorAll('.stat')) : [];
-  var rollTimer = null;
+  var run = document.getElementById('statRun');
+  var statRows = run ? [].slice.call(run.querySelectorAll('.stat')) : [];
+  var rollFrom = null;            // when the current stretch of travel began
+  var rolled = 0;                 // rows travelled before it
+  var rollRaf = null;
+  var hovered = null;
 
-  function slotOpacity(slot) {
-    return slot >= 0 && slot < ROLL_OPACITY.length ? ROLL_OPACITY[slot] : 0;
+  function ramp(slot) {
+    if (slot <= 0) return ROLL_RAMP[0];
+    if (slot >= ROLL_RAMP.length - 1) return 0;
+    var i = slot | 0;
+    var f = slot - i;
+    return ROLL_RAMP[i] + (ROLL_RAMP[i + 1] - ROLL_RAMP[i]) * f;
   }
 
-  function rollStep() {
-    statRows.forEach(function (row) {
-      var slot = Number(row.style.getPropertyValue('--slot')) - 1;
-      row.style.setProperty('--slot', slot);
-      row.style.setProperty('--rest', slotOpacity(slot));
-      if (slot !== -1) return;
-      // Above the clip now, so it can be put back at the bottom unseen.
-      setTimeout(function () {
-        row.classList.add('is-jumping');
-        row.style.setProperty('--slot', ROLL_SLOTS - 1);
-        void row.offsetWidth;
-        row.classList.remove('is-jumping');
-      }, ROLL_STEP_MS + 40);
-    });
+  function paint(travelled) {
+    var wrapped = travelled % ROLL_ROWS;
+    run.style.transform = 'translate3d(0,' + -wrapped * ROW_H + 'px,0)';
+    for (var i = 0; i < statRows.length; i++) {
+      var row = statRows[i];
+      row.style.setProperty('--rest', row === hovered ? 1 : ramp(i - wrapped));
+    }
+  }
+
+  function rollFrame(now) {
+    if (rollFrom === null) rollFrom = now;
+    paint(rolled + (now - rollFrom) / ROLL_ROW_MS);
+    rollRaf = requestAnimationFrame(rollFrame);
   }
 
   function rollPlay() {
-    if (rollTimer || !statRows.length) return;
-    rollTimer = setInterval(rollStep, ROLL_HOLD_MS + ROLL_STEP_MS);
+    if (rollRaf || !statRows.length) return;
+    rollFrom = null;
+    rollRaf = requestAnimationFrame(rollFrame);
   }
   function rollPause() {
-    clearInterval(rollTimer);
-    rollTimer = null;
+    if (!rollRaf) return;
+    // Bank the distance covered so it picks up where it stopped.
+    rolled = (rolled + (performance.now() - rollFrom) / ROLL_ROW_MS) % ROLL_ROWS;
+    cancelAnimationFrame(rollRaf);
+    rollRaf = null;
+    paint(rolled);
   }
 
   if (stats) {
+    // It stops under the pointer, which is what makes the row hover usable.
     stats.addEventListener('pointerenter', rollPause);
     stats.addEventListener('pointerleave', function () {
+      hovered = null;
       if (proof.classList.contains('is-in') && !document.hidden) rollPlay();
+    });
+    statRows.forEach(function (row) {
+      row.addEventListener('pointerenter', function () { hovered = row; paint(rolled); });
     });
   }
 

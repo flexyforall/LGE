@@ -188,11 +188,22 @@ gives them and are set in tabular figures, so nothing shifts while the digits
 turn over. The entrance delays live on a class of their own and are taken off
 once the band is in, or the hover would inherit them and answer late.
 
-**The column.** It rolls: every row moves up one slot on a beat, the four the
-frame draws dimming as they climb (1, 1, 0.7, 0.2), and the one that leaves the
-top is put back at the bottom while it is out of the clip. The rows are in the
-run twice over so there is never a gap. It stops under the pointer, which is
-what makes the row hover usable.
+**The column.** It creeps upward at a constant rate — one row every eight
+seconds, measured off the reference, which moves linearly with no step and no
+easing. The rows are in the run twice over so the column is never short.
+
+The fade is by position rather than by which row it is, so a row brightens as
+it climbs. At rest the run sits at nothing and the four the frame draws are at
+1, 1, 0.7 and 0.2 — the file's own numbers — and the ramp interpolates between
+them as the run moves. The opacity is on the row, where the frame puts it, so
+each rule fades with the row it belongs to; carrying it on the contents instead
+left every hairline at full strength while the figures above them faded.
+
+One clock drives both the travel and the fade. A CSS animation would move the
+run more cheaply, but the fade has to be read off the same position, and two
+clocks drifting apart is worse than the frame of work this costs. It stops
+under the pointer, which is what makes the row hover usable, and picks up from
+where it stopped.
 
 Because the column clips, the last row's own rule falls outside it — which is
 why the frame's last row is 155 and unruled while every row in the run here is
