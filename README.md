@@ -203,12 +203,23 @@ the second row slides in underneath, and the figure, the rule and the copy all
 go white. The icons are flat fills in the shape of the glyph for the same
 reason the logos are — so their colour can travel with the row.
 
-**The buttons.** A fill rises through the button from its bottom edge while the
-label swaps: the label sits in a mask with a copy of itself waiting underneath,
-and the two travel together — the visible one leaving upwards as its twin
-arrives. The arrow on *See Our Works* does the same thing sideways. A colour
-change on its own reads as a state; a fill arriving from an edge reads as the
-button answering.
+**The buttons.** Every control does one thing under the pointer: its label is
+enciphered and then deciphers itself. Nothing else moves and nothing changes
+colour — the reference recording keeps the button exactly as it was and lets
+the text do all the work.
+
+Timings read off that recording: the label empties at about 70ms, characters
+then arrive from the left roughly every 23ms as random glyphs, and from 400ms
+they lock to their real values in the same order and at the same pace. About
+640ms end to end for a ten-character label; a character is faint for its first
+couple of frames and then firms up.
+
+The reference is set in a monospace face, so its glyphs can be swapped freely.
+Ours is proportional, and a random glyph is rarely the width of the one it
+stands in for — so each character is given its own cell at the position
+measured off the real text, the same Range measuring the headings use. That is
+what keeps the line from jittering and the arrow beside it from being nudged
+about.
 
 ### The card pictures
 

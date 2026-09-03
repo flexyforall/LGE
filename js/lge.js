@@ -79,7 +79,8 @@
             text: text.slice(i, end),
             colour: colour,
             x: (r.left - base.left) / s,
-            y: (r.top - base.top) / s
+            y: (r.top - base.top) / s,
+            w: r.width / s
           });
         }
         i = end;
@@ -122,6 +123,89 @@
     }, total + 60);
     return total;
   }
+
+  // ------------------------------------------------------------ cipher --
+  // Every control's label is enciphered under the pointer and then deciphers
+  // itself, left to right. Read off the reference recording: the label empties
+  // at about 70ms, characters arrive from the left roughly every 23ms as
+  // random glyphs, and from 400ms they lock to their real values in the same
+  // order and at the same pace.
+  //
+  // The label is set in a proportional face, so a random glyph is rarely the
+  // width of the one it stands in for. Each character is therefore given its
+  // own cell at the position measured off the real text — the same Range
+  // measuring the headings use — which is what keeps the line from jittering
+  // and the arrow beside it from being nudged about.
+  var CIPHER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ<>[]{}/=+-_$%^&*#@?~;:,.';
+  var CIPHER_APPEAR = 70;    // before the first character shows
+  var CIPHER_STEP = 23;      // between one character and the next, both ways
+  var CIPHER_LOCK = 400;     // before the first character settles
+  var CIPHER_TICK = 33;      // between one set of random glyphs and the next
+
+  function glyph() {
+    return CIPHER.charAt((Math.random() * CIPHER.length) | 0);
+  }
+
+  function cipher(el) {
+    if (el.dataset.ciphering === '1') return;
+    var parts = measure(el, 'chars');
+    if (!parts.length) return;
+
+    el.dataset.ciphering = '1';
+    var layer = document.createElement('span');
+    layer.className = 'sc-layer';
+    layer.setAttribute('aria-hidden', 'true');
+
+    var cells = parts.map(function (part) {
+      var cell = document.createElement('span');
+      cell.className = 'sc';
+      cell.style.left = part.x + 'px';
+      cell.style.top = part.y + 'px';
+      cell.style.width = part.w + 'px';
+      cell.style.color = part.colour;
+      layer.appendChild(cell);
+      return cell;
+    });
+
+    el.classList.add('is-ciphering');
+    // Inline, so it beats the rule that gave the label its colour without an
+    // !important that would also silence the cells.
+    el.style.color = 'transparent';
+    el.appendChild(layer);
+
+    var t0 = performance.now();
+    var painted = -1;
+    var done = CIPHER_LOCK + parts.length * CIPHER_STEP;
+
+    function frame(now) {
+      var t = now - t0;
+      var tick = (t / CIPHER_TICK) | 0;
+      if (tick !== painted) {
+        painted = tick;
+        for (var i = 0; i < cells.length; i++) {
+          var shown = t >= CIPHER_APPEAR + i * CIPHER_STEP;
+          var locked = t >= CIPHER_LOCK + i * CIPHER_STEP;
+          if (!shown) { cells[i].textContent = ''; continue; }
+          cells[i].textContent = locked ? parts[i].text : glyph();
+          // A character that has only just arrived is still faint.
+          cells[i].style.opacity =
+            locked || t >= CIPHER_APPEAR + i * CIPHER_STEP + CIPHER_TICK * 2 ? 1 : 0.45;
+        }
+      }
+      if (t < done) return requestAnimationFrame(frame);
+      layer.remove();
+      el.classList.remove('is-ciphering');
+      el.style.color = '';
+      delete el.dataset.ciphering;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  [].forEach.call(document.querySelectorAll('.btn-label'), function (label) {
+    var control = label.closest('a, button') || label;
+    control.addEventListener('pointerenter', function () { cipher(label); });
+    control.addEventListener('focus', function () { cipher(label); });
+  });
 
   // -------------------------------------------------------------- menu --
   var menu = document.getElementById('menu');

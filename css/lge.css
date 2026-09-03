@@ -253,7 +253,7 @@ body {
   background: #ff5e00;
   border-radius: 2px;
 }
-.menu__cta > .swap {
+.menu__cta > .btn-label {
   position: absolute;
   left: 16px;
   top: 10px;
@@ -395,7 +395,7 @@ body {
   background: #020108;
   border-radius: 4px;
 }
-.cta > .swap {
+.cta > .btn-label {
   position: absolute;
   left: 52px;
   top: 15px;
@@ -635,11 +635,8 @@ body {
   letter-spacing: -0.6px;
   color: #ffffff;
   text-decoration: none;
-  /* The row slides over as the label swaps — the two together are what make
-     the hover read as one movement rather than two effects. */
-  transition: padding-left 0.5s var(--ease-out), color 0.4s var(--ease-out);
 }
-.mm__list a:hover { padding-left: 12px; color: #ff5e00; }
+
 
 .mm__badge {
   font-style: normal;
@@ -670,9 +667,7 @@ body {
   line-height: 1.4;
   color: rgba(255, 255, 255, 0.55);
   text-decoration: none;
-  transition: color 0.35s var(--ease-out);
 }
-.mm__foot a:hover { color: #ffffff; }
 
 .mm__social {
   display: flex;
@@ -689,11 +684,9 @@ body {
   border-radius: 1000px;
   background: #1e1d23;
   color: #ffffff;
-  transition:
-    background-color 0.4s var(--ease-out),
-    transform 0.4s var(--ease-out);
+  transition: transform 0.4s var(--ease-out);
 }
-.mm__social a:hover { background: #ff5e00; transform: translateY(-3px); }
+.mm__social a:hover { transform: translateY(-3px); }
 .mm__social svg { width: 20px; height: 20px; }
 
 /* The panel's contents come up out of their own masks once the bar has room
@@ -818,87 +811,53 @@ body {
 
 
 /* ================================================================ hover ==
-   One idea, used on every button: the label is in a mask with a copy of
-   itself waiting underneath. On hover the two travel together — the visible
-   one leaves upwards as its twin arrives — and the control it sits in moves
-   at the same time, so the whole thing reads as a single gesture rather than
-   a text effect bolted onto a colour change. */
-.swap {
-  position: relative;
-  display: block;
-  overflow: hidden;
-}
-.swap__in {
-  display: block;
-  white-space: nowrap;
-  transition: transform 0.55s var(--ease-out);
-}
-.swap__dup {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  transform: translateY(112%);
-}
-a:hover > .swap > .swap__in,
-a:hover .swap > .swap__in,
-button:hover .swap > .swap__in { transform: translateY(-112%); }
-a:hover > .swap > .swap__dup,
-a:hover .swap > .swap__dup,
-button:hover .swap > .swap__dup { transform: translateY(0); }
-/* The copy sets off a hair after the original so they read as one strip of
-   text moving, not two words trading places. */
-.swap__dup { transition-delay: 0.02s; }
+   Every control does one thing under the pointer: its label is enciphered and
+   then deciphers itself. Nothing else moves and nothing changes colour — the
+   reference recording keeps the button exactly as it was and lets the text do
+   all the work.
 
-/* The fill that rises through a button on hover, behind its label. A colour
-   change alone reads as a state; a fill arriving from the bottom edge reads
-   as the button answering. */
-.menu__cta,
-.cta {
-  overflow: hidden;
-  text-decoration: none;
-  transition: transform 0.45s var(--ease-out);
-}
-.menu__cta::before,
-.cta::before {
-  content: "";
+   Timings read off that recording: the label empties at about 70ms, then
+   characters arrive from the left roughly every 23ms as random glyphs, and
+   from 400ms they lock to their real values in the same order and at the same
+   pace. About 640ms end to end for a ten-character label.
+
+   The label is set in a proportional face, so a random glyph is rarely the
+   width of the one it stands in for. Each character therefore gets its own
+   cell, placed at the position measured off the real text — which is also
+   what keeps the arrow beside it from being nudged about. */
+.btn-label { display: block; white-space: nowrap; }
+.mm__list .btn-label,
+.mm__foot .btn-label { position: relative; }
+.sc-layer {
   position: absolute;
   inset: 0;
-  background: var(--wipe);
-  transform: translateY(101%);
-  transition: transform 0.55s var(--ease-out);
+  pointer-events: none;
+  visibility: visible;
 }
-.menu__cta:hover::before,
-.cta:hover::before { transform: translateY(0); }
-/* The label and the icon ride over the fill. */
-.menu__cta > *,
-.cta > * { position: relative; z-index: 1; }
+.sc {
+  position: absolute;
+  display: inline-block;
+  text-align: center;
+  white-space: pre;
+}
+/* The label's own text is a bare text node, so no selector can hide it — a
+   :not() rule reaches elements only. It is taken out by setting the colour
+   transparent on the element itself, from the script: a rule here would have
+   to out-specify whatever gave the label its colour in the first place, and
+   an !important would then take the cipher's own cells with it. */
+.is-ciphering > :not(.sc-layer) { visibility: hidden; }
 
-/* Book a Demo — 222:2888 */
-.menu__cta { --wipe: #020108; }
-.menu__cta:hover { transform: translateY(-2px); }
+/* 222:2888 / 223:3801 — the buttons keep the fill the frame gives them. */
+.menu__cta,
+.cta { text-decoration: none; }
 
-/* See Our Works — 223:3801. The arrow leaves to the right and its twin
-   arrives from the left, the horizontal answer to what the label does. */
-.cta { --wipe: #ff5e00; }
-.cta:hover { transform: translateY(-2px); }
 .cta__icon {
   position: absolute;
   left: 20px;
   top: 14px;
   width: 24px;
   height: 24px;
-  overflow: hidden;
 }
-.cta__icon img {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transition: transform 0.55s var(--ease-out);
-}
-.cta__icon-dup { transform: translateX(-135%); }
-.cta:hover .cta__icon img { transform: translateX(135%); }
-.cta:hover .cta__icon .cta__icon-dup { transform: translateX(0); }
 
 .menu__left:hover .menu__brackets { transform: scaleX(1.12); }
 .menu__moon {

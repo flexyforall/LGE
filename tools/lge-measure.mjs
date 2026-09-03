@@ -69,10 +69,10 @@ const got = await page.evaluate(() => {
     boxes: {
       menu: box('.menu'), 'menu logo': box('.menu__logo'), 'menu moon': box('.menu__moon'),
       'menu toggle': box('.menu__left'), 'menu word': box('.menu__label'),
-      'menu button': box('.menu__cta'), 'menu label': box('.menu__cta > .swap'),
+      'menu button': box('.menu__cta'), 'menu label': box('.menu__cta > .btn-label'),
       ticker: box('.ticker'),
       headline: box('.headline'), divider: box('.divider'), lede: box('.lede'),
-      button: box('.cta'), 'button label': box('.cta > .swap'), 'button arrow': box('.cta img'),
+      button: box('.cta'), 'button label': box('.cta > .btn-label'), 'button arrow': box('.cta img'),
       ellipse: box('.ellipse'), images: box('.images'),
       'card left': box('.card[data-slot="2"]'), 'card middle': box('.card[data-slot="3"]'), 'card right': box('.card[data-slot="4"]'),
 
