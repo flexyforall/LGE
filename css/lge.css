@@ -54,12 +54,11 @@ body {
   overflow: hidden;
 }
 
-.hero {
+/* Every section is drawn at 1440 and the whole column is scaled as one. */
+.page {
   position: relative;
   width: 1440px;
-  height: 859px;
   margin: 0;
-  overflow: hidden;
   background: #ffffff;
   /* Anchored top-left, not centred: below 1440 an auto margin resolves to 0
      and a centred origin would push the scaled frame off to one side. */
@@ -68,11 +67,20 @@ body {
 }
 @supports (width: calc(1px / 1px)) {
   /* Fills the width even before the script runs. */
-  .hero { --scale: calc(100vw / 1440px); }
-  .stage { height: calc(100vw * 859 / 1440); }
+  .page { --scale: calc(100vw / 1440px); }
+  .stage { height: calc(100vw * 1745 / 1440); }
 }
 
-.hero img { display: block; border: 0; }
+/* Hero Section + Menu — 221:2799 */
+.hero {
+  position: relative;
+  width: 1440px;
+  height: 859px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.page img { display: block; border: 0; }
 
 /* ---------------------------------------------------------------- Menu --
    222:2866 — x436 y68, 568x64, #020108, r4, pad 12, gap 80 */
@@ -540,7 +548,7 @@ body {
   pointer-events: none;
   transition: opacity 0.6s var(--ease-out);
 }
-.hero.menu-open .scrim {
+.page.menu-open .scrim {
   opacity: 1;
   pointer-events: auto;
 }
@@ -753,32 +761,32 @@ body {
 /* --------------------------------------------------------- motion off ----
    `?motion=off`, and anyone who has asked their system for less movement, get
    the frame standing still. The check in tools/lge-measure.mjs uses it. */
-.hero.no-motion *,
-.hero.no-motion *::before,
-.hero.no-motion *::after {
+.page.no-motion *,
+.page.no-motion *::before,
+.page.no-motion *::after {
   animation: none !important;
   transition: none !important;
 }
-.hero.no-motion .rv-layer { display: none; }
-.hero.no-motion .is-revealing > :not(.rv-layer) { visibility: visible; }
-.hero.no-motion .menu__panel > *,
-.hero.no-motion .mm__list li,
-.hero.no-motion .mm__foot a,
-.hero.no-motion .mm__social li { opacity: 1; transform: none; }
+.page.no-motion .rv-layer { display: none; }
+.page.no-motion .is-revealing > :not(.rv-layer) { visibility: visible; }
+.page.no-motion .menu__panel > *,
+.page.no-motion .mm__list li,
+.page.no-motion .mm__foot a,
+.page.no-motion .mm__social li { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero *,
-  .hero *::before,
-  .hero *::after {
+  .page *,
+  .page *::before,
+  .page *::after {
     animation: none !important;
     transition-duration: 0.01ms !important;
   }
-  .hero .rv-layer { display: none; }
-  .hero .is-revealing > :not(.rv-layer) { visibility: visible; }
-  .hero .menu__panel > *,
-  .hero .mm__list li,
-  .hero .mm__foot a,
-  .hero .mm__social li { opacity: 1; transform: none; }
+  .page .rv-layer { display: none; }
+  .page .is-revealing > :not(.rv-layer) { visibility: visible; }
+  .page .menu__panel > *,
+  .page .mm__list li,
+  .page .mm__foot a,
+  .page .mm__social li { opacity: 1; transform: none; }
 }
 
 
@@ -896,3 +904,322 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
 }
 /* The heading itself keeps its space and its layout — it is only invisible. */
 .is-revealing > :not(.rv-layer) { visibility: hidden; }
+
+
+/* =========================================================== Trusted By ==
+   231:2525 — 1440 x 262, hairline top and bottom, the marks running from
+   x 428 off the right edge with the page fading over both ends. */
+.trusted {
+  position: relative;
+  width: 1440px;
+  height: 262px;
+  background: #ffffff;
+  border-top: 1px solid rgba(2, 1, 8, 0.1);
+  border-bottom: 1px solid rgba(2, 1, 8, 0.1);
+}
+
+/* 231:2526 — x80 y63, 308 wide */
+.trusted__lede {
+  position: absolute;
+  left: 80px;
+  top: 62px;
+  width: 308px;
+  margin: 0;
+  font-family: "SF Pro", sans-serif;
+  font-optical-sizing: none;
+  font-variation-settings: "wdth" 100, "opsz" 28, "wght" 400;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+  color: #020108;
+}
+
+/* 231:2527 — the row starts at x428 and runs off the edge, so the track is
+   everything from there to the right of the frame. */
+.trusted__track {
+  position: absolute;
+  left: 428px;
+  top: 40px;
+  width: 1012px;
+  height: 100px;
+  overflow: hidden;
+}
+.trusted__run {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: max-content;
+  height: 100px;
+  animation: lge-logos var(--logos-period, 30s) linear infinite;
+  will-change: transform;
+}
+.trusted__track:hover .trusted__run { animation-play-state: paused; }
+
+/* One run is five marks and their gaps — 5 x 180 + 5 x 16. Travelling
+   exactly that puts every mark back where its twin was. */
+@keyframes lge-logos {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-980px, 0, 0); }
+}
+
+/* 231:2528 and friends — each mark is a flat fill in the shape of the logo,
+   the way the frame builds it, so its colour is a property that can move. */
+.logo {
+  flex: 0 0 auto;
+  width: 180px;
+  height: 100px;
+  border-radius: 4px;
+  background-color: #8c8c90;
+  -webkit-mask-image: var(--mark);
+  mask-image: var(--mark);
+  -webkit-mask-size: 180px 100px;
+  mask-size: 180px 100px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  transition: background-color 0.4s var(--ease-out);
+}
+.logo:hover { background-color: #020108; }
+.logo--1 { --mark: url("../Logo%201.png"); }
+.logo--2 { --mark: url("../Logo%202.png"); }
+.logo--3 { --mark: url("../Logo%203.png"); }
+.logo--4 { --mark: url("../Logo%204.png"); }
+.logo--5 { --mark: url("../Logo%205.png"); }
+
+/* 231:2549 / 231:2550 — the page closing over both ends of the run */
+.trusted__fade {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 220px;
+  pointer-events: none;
+}
+.trusted__fade--left {
+  left: 388px;
+  background-image: linear-gradient(90.16536926900778deg, rgb(255, 255, 255) 18.369%, rgba(255, 255, 255, 0) 125.05%);
+}
+.trusted__fade--right {
+  right: 0;
+  background-image: linear-gradient(269.78041978269682deg, rgb(255, 255, 255) 31.201%, rgba(255, 255, 255, 0) 94.173%);
+}
+
+
+/* =========================================================== Proof Band ==
+   231:2601 — 1440 x 624, the copy on the left and four figures stacked in a
+   ruled column on the right. */
+.proof {
+  position: relative;
+  width: 1440px;
+  height: 624px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(2, 1, 8, 0.1);
+  overflow: hidden;
+}
+
+/* 231:2603 — x80, 524 wide, 80 top and bottom, the two blocks pushed apart */
+.proof__intro {
+  position: absolute;
+  left: 80px;
+  top: 0;
+  width: 524px;
+  height: 623px;
+}
+
+/* 231:2604 — y80, SF Pro Display Medium 54 / 110%, -3% */
+.proof__title {
+  position: absolute;
+  left: 0;
+  top: 80px;
+  width: 524px;
+  margin: 0;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 54px;
+  line-height: 59.4px;
+  letter-spacing: -1.62px;
+  color: #191a1d;
+}
+.proof__title em {
+  font-style: normal;
+  color: #7f7f82;
+}
+
+/* 231:2610 — y459, 524 x 84 */
+.proof__lede {
+  position: absolute;
+  left: 0;
+  top: 459px;
+  width: 524px;
+  margin: 0;
+  font-family: "SF Pro", sans-serif;
+  font-optical-sizing: none;
+  font-variation-settings: "wdth" 100, "opsz" 28, "wght" 400;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+  color: rgba(2, 1, 8, 0.6);
+}
+
+/* 231:2612 — x620, 820 wide, ruled off from the copy */
+.proof__stats {
+  position: absolute;
+  left: 620px;
+  top: 0;
+  width: 820px;
+  height: 623px;
+  border-left: 1px solid rgba(2, 1, 8, 0.1);
+}
+
+/* 231:2621 and friends — 819 x 156, 48 top and bottom, 40 in and 80 out */
+.stat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 156px;
+  padding: 48px 80px 48px 40px;
+  /* Transparent, so the 155px content box the frame gives the row survives;
+     the line itself is drawn below, where it can be drawn *on*. */
+  border-bottom: 1px solid transparent;
+}
+.stat:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: rgba(2, 1, 8, 0.1);
+  transform-origin: 0 50%;
+  transition: transform 0.9s var(--ease-out);
+}
+.stat:last-child {
+  height: 155px;
+  border-bottom: 0;
+}
+
+/* The picture the frame puts behind the second row: here it is what every
+   row wears while the pointer is on it. */
+.stat__bg {
+  position: absolute;
+  inset: 0;
+  background-image: url("../Image%204.png");
+  background-size: 819px 156px;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.55s var(--ease-out);
+  pointer-events: none;
+}
+
+.stat__value {
+  position: relative;
+  display: flex;
+  align-items: var(--align, center);
+  gap: 8px;
+  height: 59px;
+  opacity: var(--rest, 1);
+  transition: opacity 0.45s var(--ease-out);
+}
+.stat__num {
+  display: block;
+  width: var(--num-width);
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 54px;
+  line-height: 59.4px;
+  letter-spacing: -1.62px;
+  font-variant-numeric: tabular-nums;
+  color: #191a1d;
+  white-space: nowrap;
+  transition: color 0.45s var(--ease-out);
+}
+/* The icons are flat fills in the shape of the glyph, for the same reason
+   the logos are: so their colour can travel with the row. */
+.stat__icon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  background-color: #7f7f82;
+  -webkit-mask-image: var(--mark);
+  mask-image: var(--mark);
+  -webkit-mask-size: 32px 32px;
+  mask-size: 32px 32px;
+  transition: background-color 0.45s var(--ease-out);
+}
+.stat__icon--plus     { --mark: url("../Icon%20Plus.svg"); }
+.stat__icon--diagonal { --mark: url("../Icon%20Diagonal.svg"); }
+.stat__desc {
+  position: relative;
+  width: 432px;
+  height: var(--desc-height);
+  margin: 0;
+  font-family: "SF Pro", sans-serif;
+  font-optical-sizing: none;
+  font-variation-settings: "wdth" 100, "opsz" 28, "wght" 400;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+  color: rgba(2, 1, 8, 0.6);
+  opacity: var(--rest, 1);
+  transition: opacity 0.45s var(--ease-out), color 0.45s var(--ease-out);
+}
+
+/* Hovered: the row comes forward, the picture behind it, everything white. */
+.stat:hover .stat__bg { opacity: 1; }
+.stat:hover .stat__value,
+.stat:hover .stat__desc { opacity: 1; }
+.stat:hover .stat__num,
+.stat:hover .stat__desc { color: #ffffff; }
+.stat:hover .stat__icon { background-color: #ffffff; }
+
+/* The band arrives when it is first scrolled to: every rule draws itself in
+   from the left and the figures come up behind them, a row at a time. The
+   delays live on a class of their own so that once the band is in they are
+   gone and the hover answers at once. */
+.proof:not(.is-in) .stat:not(:last-child)::after { transform: scaleX(0); }
+.proof:not(.is-in) .stat__value,
+.proof:not(.is-in) .stat__desc {
+  opacity: 0;
+  transform: translateY(20px);
+  filter: blur(8px);
+}
+.stat__value,
+.stat__desc {
+  transition:
+    opacity 0.5s var(--ease-out),
+    transform 0.9s var(--ease-out),
+    filter 0.6s var(--ease-out),
+    color 0.45s var(--ease-out);
+}
+.proof.is-entering .stat:nth-child(1)::after,
+.proof.is-entering .stat:nth-child(1) .stat__value,
+.proof.is-entering .stat:nth-child(1) .stat__desc { transition-delay: 0s; }
+.proof.is-entering .stat:nth-child(2)::after,
+.proof.is-entering .stat:nth-child(2) .stat__value,
+.proof.is-entering .stat:nth-child(2) .stat__desc { transition-delay: 0.12s; }
+.proof.is-entering .stat:nth-child(3)::after,
+.proof.is-entering .stat:nth-child(3) .stat__value,
+.proof.is-entering .stat:nth-child(3) .stat__desc { transition-delay: 0.24s; }
+.proof.is-entering .stat:nth-child(4)::after,
+.proof.is-entering .stat:nth-child(4) .stat__value,
+.proof.is-entering .stat:nth-child(4) .stat__desc { transition-delay: 0.36s; }
+
+/* The reveal overlay shows even while the heading it stands in for waits
+   hidden for its turn. */
+.rv-layer { visibility: visible; }
+
+/* Still: everything at rest, and the band already in. */
+.page.no-motion .trusted__run { animation: none; }
+.page.no-motion .proof .stat:not(:last-child)::after,
+.page.no-motion .proof .stat__value,
+.page.no-motion .proof .stat__desc { opacity: initial; transform: none; filter: none; }
+.page.no-motion .proof .stat__value,
+.page.no-motion .proof .stat__desc { opacity: var(--rest, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .page .proof .stat:not(:last-child)::after { transform: none; }
+  .page .proof .stat__value,
+  .page .proof .stat__desc { opacity: var(--rest, 1); transform: none; filter: none; }
+}

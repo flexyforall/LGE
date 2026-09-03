@@ -11,8 +11,10 @@
 (function () {
   'use strict';
 
+  var page = document.getElementById('page');
   var hero = document.getElementById('hero');
-  var stage = hero.parentNode;
+  var stage = page.parentNode;
+  var PAGE_H = 1745;
 
   var still =
     new URLSearchParams(location.search).get('motion') === 'off' ||
@@ -26,14 +28,14 @@
   }
   function fit() {
     var s = scale();
-    hero.style.setProperty('--scale', s);
-    stage.style.height = 859 * s + 'px';
+    page.style.setProperty('--scale', s);
+    stage.style.height = PAGE_H * s + 'px';
   }
   fit();
   addEventListener('resize', fit);
 
   if (still) {
-    hero.classList.add('no-motion');
+    page.classList.add('no-motion');
     return;
   }
 
@@ -116,6 +118,7 @@
     setTimeout(function () {
       layer.remove();
       el.classList.remove('is-revealing');
+      el.style.visibility = '';
     }, total + 60);
     return total;
   }
@@ -132,7 +135,7 @@
     if (open) menu.classList.remove('is-closing');
     else menu.classList.add('is-closing');
     menu.classList.toggle('is-open', open);
-    hero.classList.toggle('menu-open', open);
+    page.classList.toggle('menu-open', open);
     toggle.setAttribute('aria-expanded', String(open));
     if (open) panel.removeAttribute('inert');
     else panel.setAttribute('inert', '');
@@ -202,6 +205,64 @@
   function pause() {
     clearInterval(timer);
     timer = null;
+  }
+
+  // ------------------------------------------------------- on approach --
+  // Headings below the fold wait, hidden, until they are scrolled to. The
+  // measuring still works while they are hidden — visibility keeps the box.
+  var waiting = [].slice.call(document.querySelectorAll('[data-reveal]'))
+    .filter(function (el) { return !hero.contains(el); });
+  waiting.forEach(function (el) { el.style.visibility = 'hidden'; });
+
+  // The figures count up from nothing while their rows come in.
+  var COUNT_MS = 1700;
+  function countUp(el, delay) {
+    var to = Number(el.dataset.countTo);
+    if (!isFinite(to)) return;
+    var pre = el.dataset.prefix || '';
+    var suf = el.dataset.suffix || '';
+    el.textContent = pre + '0' + suf;
+    var t0 = null;
+    function frame(now) {
+      if (t0 === null) t0 = now;
+      var t = (now - t0 - delay) / COUNT_MS;
+      if (t < 0) return requestAnimationFrame(frame);
+      if (t >= 1) { el.textContent = pre + to + suf; return; }
+      // Same shape as the easing everything else uses: most of the distance
+      // early, then a long settle.
+      var eased = 1 - Math.pow(1 - t, 4);
+      el.textContent = pre + Math.round(to * eased) + suf;
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  var proof = document.getElementById('proof');
+  function enterProof() {
+    proof.classList.add('is-in', 'is-entering');
+    proof.querySelectorAll('[data-count-to]').forEach(function (el, i) {
+      countUp(el, i * 120);
+    });
+    // Once it is in, the delays have to go or the hover inherits them.
+    setTimeout(function () { proof.classList.remove('is-entering'); }, 1500);
+  }
+
+  if ('IntersectionObserver' in window) {
+    var seen = new WeakSet();
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting || seen.has(e.target)) return;
+        seen.add(e.target);
+        io.unobserve(e.target);
+        if (e.target === proof) enterProof();
+        else reveal(e.target, 0);
+      });
+    }, { threshold: 0.2 });
+    waiting.forEach(function (el) { io.observe(el); });
+    if (proof) io.observe(proof);
+  } else {
+    waiting.forEach(function (el) { el.style.visibility = ''; });
+    if (proof) enterProof();
   }
 
   // ------------------------------------------------------------- intro --

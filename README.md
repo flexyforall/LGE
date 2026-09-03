@@ -6,9 +6,16 @@ own documentation further down this file.
 
 ## Lead Generation Experts
 
-`index.html` — the **Hero Section + Menu** frame from the Lead Generation
-Experts Figma file, built to the frame's own numbers rather than to eyeballed
-approximations.
+`index.html` — three frames from the Lead Generation Experts Figma file, built
+to the frame's own numbers rather than to eyeballed approximations:
+
+| | frame | |
+|---|---|---|
+| Hero Section + Menu | `221:2799` | 1440 x 859 |
+| Trusted By | `231:2525` | 1440 x 262 |
+| Proof Band | `231:2601` | 1440 x 624 |
+
+They stack into one 1440 x 1745 column.
 
 ```
 index.html          the page
@@ -23,10 +30,10 @@ Open `index.html`. There is no build step and nothing to install.
 
 ### How it is put together
 
-The frame is 1440 x 859. Every box in the page is placed at the coordinate the
-frame gives it, so the CSS reads as a list of measurements — `left: 873.5px`,
-`top: 558.24px`, `letter-spacing: -2.88px` — and the numbers are the point.
-Rounding them is what breaks the match, so they are left as they are.
+Every box in the page is placed at the coordinate its frame gives it, so the
+CSS reads as a list of measurements — `left: 873.5px`, `top: 558.24px`,
+`letter-spacing: -2.88px` — and the numbers are the point. Rounding them is
+what breaks the match, so they are left as they are.
 
 The canvas is scaled to the window as a single piece rather than reflowed —
 up as readily as down — so it always reaches both edges and nothing is ever cut
@@ -63,6 +70,18 @@ where the frame puts it, which is why they are not round numbers.
 **Ellipse 13** — a 1440px dashed circle whose 24px stroke is centre-aligned, so
 the artwork box is 1464 and sits at (-12, 548). Only its top arc is on screen.
 
+**Trusted By** — the copy at x80 and five marks running from x428 off the right
+edge, with the page fading over both ends. Each mark is a flat fill in the
+shape of the logo, the way the frame builds it (a coloured rectangle behind the
+image's alpha) — which is what lets its colour travel from `#8c8c90` to
+`#020108` under the pointer instead of being two pictures.
+
+**Proof Band** — the copy on the left and four figures stacked in a ruled
+column at x620. The rows fade going down (1, 1, 0.7, 0.2) and each is 156 tall
+apart from the last, which is 155 and unruled. The frame draws the second row
+in its hovered state, so its resting opacity is the one number here that is not
+read off the file — it is set to 1, in a custom property on the row.
+
 ### What moves
 
 Everything is written so that its finished state is no transform at all. That
@@ -94,6 +113,9 @@ The settled headline is pixel-for-pixel the same as `?motion=off` renders it.
 or `lines` for a plain masked line reveal. There is no hard mask on the first
 two: a mask would cut the blur off at its own edge and each piece would look
 stamped rather than settling.
+
+Headings below the fold wait, hidden, until they are scrolled to. Measuring
+still works while they are hidden, because `visibility` keeps the box.
 
 **The strip.** Four runs of the same six notices, translating left by exactly
 one run: 1373px, being three marks, three notices and their 48px gaps. That
@@ -131,6 +153,24 @@ back around. It pauses while the tab is in the background.
 The middle card is the active one and wears its picture in colour; the two
 outside it wear the drawing. Each card holds both, stacked, and they cross over
 as it takes the middle slot.
+
+**The marks.** Four runs of the same five, translating left by exactly one
+run — 980px, five marks and their 16px gaps — so the loop has no seam. It
+stops while the pointer is over it, which is what makes the colour change
+under the pointer usable.
+
+**The band.** It waits until it is first scrolled to. Then every rule draws
+itself in from the left, the figures come up behind them a row at a time, and
+each figure counts from nothing to its value over 1.7 seconds on the same
+easing everything else uses. The figures sit in boxes of the width the frame
+gives them and are set in tabular figures, so nothing shifts while the digits
+turn over. The entrance delays live on a class of their own and are taken off
+once the band is in, or the hover would inherit them and answer late.
+
+**The rows.** Hovering one brings it forward: the picture the frame puts behind
+the second row slides in underneath, and the figure, the rule and the copy all
+go white. The icons are flat fills in the shape of the glyph for the same
+reason the logos are — so their colour can travel with the row.
 
 **The buttons.** One idea everywhere: the label sits in a mask with a copy of
 itself waiting underneath, and on hover the two travel together — the visible

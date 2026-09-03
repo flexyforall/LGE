@@ -74,6 +74,22 @@ const got = await page.evaluate(() => {
       button: box('.cta'), 'button label': box('.cta > .swap'), 'button arrow': box('.cta img'),
       ellipse: box('.ellipse'), images: box('.images'),
       'card left': box('.card[data-slot="2"]'), 'card middle': box('.card[data-slot="3"]'), 'card right': box('.card[data-slot="4"]'),
+
+      // Trusted By — 231:2525
+      trusted: box('.trusted'), 'trusted lede': box('.trusted__lede'),
+      'logo row': box('.trusted__track'), 'logo 1': box('.logo'),
+      'fade left': box('.trusted__fade--left'), 'fade right': box('.trusted__fade--right'),
+
+      // Proof Band — 231:2601
+      proof: box('.proof'), 'proof title': box('.proof__title'),
+      'proof lede': box('.proof__lede'), 'proof stats': box('.proof__stats'),
+      'stat row 1': box('.stat:nth-child(1)'), 'stat row 2': box('.stat:nth-child(2)'),
+      'stat row 3': box('.stat:nth-child(3)'), 'stat row 4': box('.stat:nth-child(4)'),
+      'stat value 1': box('.stat:nth-child(1) .stat__value'),
+      'stat icon 1': box('.stat:nth-child(1) .stat__icon'),
+      'stat desc 1': box('.stat:nth-child(1) .stat__desc'),
+      'stat value 3': box('.stat:nth-child(3) .stat__value'),
+      'stat desc 3': box('.stat:nth-child(3) .stat__desc'),
     },
     tickerItems: [...document.querySelectorAll('.ticker__row > *')]
       .map(el => +(el.getBoundingClientRect().left - frame.left).toFixed(2)),
@@ -82,6 +98,8 @@ const got = await page.evaluate(() => {
       range.selectNodeContents(document.querySelector('.lede'));
       return range.getClientRects().length;
     })(),
+    page: [+document.getElementById('page').getBoundingClientRect().width.toFixed(2),
+           +document.getElementById('page').getBoundingClientRect().height.toFixed(2)],
     advances: {
       'Menu': advance('Menu', display(14, 500, 0)),
       'Book a Demo': advance('Book a Demo', display(14, 500, 0)),
@@ -90,6 +108,9 @@ const got = await page.evaluate(() => {
       'card / left': advance('Concept & Construct Process', display(24, 500, -0.24)),
       'card / middle': advance('Between Space & Context', display(24, 500, -0.24)),
       'card / right': advance('Architectural Workflow', display(24, 500, -0.24)),
+      '$48M': advance('$48M', display(54, 500, -1.62)),
+      '218': advance('218', display(54, 500, -1.62)),
+      '16K': advance('16K', display(54, 500, -1.62)),
     },
   };
 });
@@ -105,23 +126,44 @@ const FIGMA_BOXES = {
   'card left': [-45.48, 558.24, 458.67, 390.62],
   'card middle': [476, 458, 487.5, 354],
   'card right': [1026.47, 548, 458.67, 390.62],
+
+  trusted: [0, 859, 1440, 262], 'trusted lede': [80, 922, 308, 56],
+  'logo row': [428, 900, 1012, 100], 'logo 1': [428, 900, 180, 100],
+  'fade left': [388, 859, 220, 262], 'fade right': [1220, 859, 220, 262],
+
+  proof: [0, 1121, 1440, 624], 'proof title': [80, 1201, 524, 118.8],
+  'proof lede': [80, 1580, 524, 84], 'proof stats': [620, 1121, 820, 623],
+  'stat row 1': [621, 1121, 819, 156], 'stat row 2': [621, 1277, 819, 156],
+  'stat row 3': [621, 1433, 819, 156], 'stat row 4': [621, 1589, 819, 155],
+  'stat value 1': [661, 1169, 182, 59],
+  'stat icon 1': [811, 1182.5, 32, 32],
+  'stat desc 1': [928, 1170.5, 432, 56],
+  'stat value 3': [661, 1481, 127, 59],
+  'stat desc 3': [928, 1496.5, 432, 28],
 };
 // Figma reports a text box rounded up to whole pixels, so these run about a
 // pixel over the true advance.
+// [figma box width, type size]. Figma rounds a text box up to whole pixels,
+// and the slack that leaves grows with the size, so the room allowed does too.
 const FIGMA_ADVANCES = {
-  'Menu': 35, 'Book a Demo': 81, 'See Our Works': 114, 'ticker / since': 304,
-  'card / left': 301, 'card / middle': 266, 'card / right': 231,
+  'Menu': [35, 14], 'Book a Demo': [81, 14], 'See Our Works': [114, 18],
+  'ticker / since': [304, 14],
+  'card / left': [301, 24], 'card / middle': [266, 24], 'card / right': [231, 24],
+  '$48M': [142, 54], '218': [87, 54], '16K': [89, 54],
 };
 const FIGMA_TICKER = [-629, -565, -156, -92, 260, 324, 744, 808, 1217, 1281, 1633, 1697];
 
 let bad = 0;
+
 const pad = (n, w) => String(n).padStart(w);
 const report = (ok, name, figma, dom, delta) => {
   if (!ok) bad++;
   console.log(`${ok ? 'ok   ' : 'DIFF '} ${name.padEnd(14)} figma[${figma} ]  dom[${dom} ]  d[${delta} ]`);
 };
 
-console.log(`frame  ${got.frame[0]} x ${got.frame[1]}  (figma: 1440 x 859)\n`);
+console.log(`frame  ${got.frame[0]} x ${got.frame[1]}  (figma: 1440 x 859)`);
+console.log(`page   ${got.page[0]} x ${got.page[1]}  (figma: 1440 x 1745)\n`);
+if (got.page[0] !== 1440 || Math.abs(got.page[1] - 1745) > 0.5) bad++;
 console.log('--- boxes: x, y, width, height, relative to the frame ---');
 for (const [name, figma] of Object.entries(FIGMA_BOXES)) {
   const dom = got.boxes[name];
@@ -148,9 +190,9 @@ for (let run = 1; run * 6 < got.tickerItems.length; run++) {
 
 console.log('\n--- text advances ---');
 for (const [name, dom] of Object.entries(got.advances)) {
-  const figma = FIGMA_ADVANCES[name];
+  const [figma, size] = FIGMA_ADVANCES[name];
   const d = +(dom - figma).toFixed(2);
-  report(d <= 0.1 && d > -2, name, pad(figma, 8), pad(dom, 8), pad(d, 7));
+  report(d <= 0.1 && d > -Math.max(2, size * 0.07), name, pad(figma, 8), pad(dom, 8), pad(d, 7));
 }
 
 console.log(`\nlede line count: ${got.ledeLines}  (figma: 3)`);
