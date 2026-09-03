@@ -67,25 +67,7 @@ const got = await page.evaluate(() => {
   return {
     frame: [+frame.width.toFixed(2), +frame.height.toFixed(2)],
     boxes: {
-      menu: (() => {
-        // The sheet is always the full panel; what the frame calls the bar is
-        // the rectangle the clip leaves showing, so that is what is measured.
-        // Chromium prints inset() in CSS shorthand — three values means the
-        // left was the same as the right — so the sides are expanded here.
-        const el = document.querySelector('.menu');
-        const b = el.getBoundingClientRect();
-        const raw = getComputedStyle(el).clipPath.split('round')[0];
-        const n = (raw.match(/-?[\d.]+px/g) || []).map(parseFloat);
-        if (!n.length) return [+(b.left - frame.left).toFixed(2), +(b.top - frame.top).toFixed(2), +b.width.toFixed(2), +b.height.toFixed(2)];
-        const [t, r, bo, l] = [
-          n[0],
-          n.length > 1 ? n[1] : n[0],
-          n.length > 2 ? n[2] : n[0],
-          n.length > 3 ? n[3] : (n.length > 1 ? n[1] : n[0]),
-        ];
-        return [+(b.left - frame.left + l).toFixed(2), +(b.top - frame.top + t).toFixed(2),
-                +(b.width - l - r).toFixed(2), +(b.height - t - bo).toFixed(2)];
-      })(), 'menu logo': box('.menu__logo'), 'menu moon': box('.menu__moon'),
+      menu: box('.menu'), 'menu logo': box('.menu__logo'), 'menu moon': box('.menu__moon'),
       'menu toggle': box('.menu__left'), 'menu word': box('.menu__label'),
       'menu button': box('.menu__cta'), 'menu label': box('.menu__cta > .swap'),
       ticker: box('.ticker'),

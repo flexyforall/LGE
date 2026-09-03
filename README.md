@@ -128,18 +128,30 @@ one run: 1373px, being three marks, three notices and their 48px gaps. That
 puts every item back where its twin was, so the loop has no seam. One pass
 takes 34 seconds.
 
-**The bar.** The panel is always the full sheet — the frame inset by 20 — and
-what changes is how much of it is shown. Closed, the clip is exactly the bar's
-rectangle at (436, 68, 568, 64); open, it is the whole sheet. Animating the
-clip, and the transforms of the three groups riding on it, keeps the whole
-opening off the layout, which is the only way it comes out smooth: growing
-width and height reflows the panel and everything in it on every frame.
+**The bar.** It opens across first, and only then down — two moves, not one.
+Measured frame by frame off the reference recording: the width runs about
+500ms from the click, and the height starts around 280ms in and runs about
+750ms behind it. Closing is the same two moves in the other order, the height
+collapsing first and the width following it about 300ms later.
+
+The top edge never moves, in the reference or here, which is why the panel is
+anchored at the bar's own top (68) rather than at the frame's inset — only the
+width, the height and the left edge are on the clock. The easings are fitted to
+the same recording: the width is an ease out, `cubic-bezier(0.2, 0.9, 0.25, 1)`,
+and the height an ease *in*-out, `cubic-bezier(0.55, 0, 0.1, 1)`. The in-out is
+what makes the height read as starting once the width is under way rather than
+alongside it; an ease out there was the thing that made the two moves look like
+one.
+
+Everything inside is absolutely positioned and the panel is a fixed size, so
+none of this reflows the panel's contents: the box changes, what is in it does
+not. Traced over a full open and close, the longest gap between frames is 17ms.
 
 The equals mark folds into a cross as it goes, the page dims behind, and the
-columns and then their rows come up out of their own masks. Escape or a click
-outside closes it. The frame stacks the bar underneath everything else, which
-is right at 64px tall and wrong once it is grown, so it is lifted for as long
-as it is open.
+columns and then their rows come up out of their own masks once the height is
+moving. Escape or a click outside closes it. The frame stacks the bar
+underneath everything else, which is right at 64px tall and wrong once it is
+grown, so it is lifted for as long as it is open.
 
 The panels are flat colours rather than white at low alpha. The cards behind
 are on their own compositing layers, and anything translucent blended over them
@@ -239,10 +251,7 @@ against the numbers read off the Figma frame, checks that the strip's runs are
 exactly one run apart, and writes a 2x screenshot. It exits non-zero on
 anything more than half a pixel out.
 
-The bar is a clip on the sheet rather than a box, so the check reads the clip
-and measures the rectangle it leaves showing. Chromium prints `inset()` in CSS
-shorthand — three values means the left matched the right — so the sides are
-expanded before they are used.
+
 
 ```bash
 cd tools

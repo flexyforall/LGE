@@ -84,25 +84,48 @@ body {
 
 /* ---------------------------------------------------------------- Menu --
    222:2866 — x436 y68, 568x64, #020108, r4, pad 12, gap 80 */
-/* The bar is the closed state of the mega panel. The panel is always the
-   full sheet — the frame inset by 20 — and what changes is how much of it is
-   shown: closed, the clip is exactly the bar's rectangle at (436, 68, 568,
-   64); open, it is the whole sheet. Animating the clip and the transforms of
-   the three groups keeps the whole opening off the layout, which is the only
-   way it comes out smooth — growing width and height reflows the panel and
-   everything in it on every frame. */
+/* The bar is the closed state of the mega panel, and it opens the way the
+   reference does: across first, and only then down. Measured off the
+   recording, the width runs about 500ms from the moment of the click and the
+   height starts around 280ms in and runs about 800ms behind it. Closing is
+   the same two moves in the other order — the height collapses first and the
+   width follows it about 300ms later.
+
+   The top edge never moves. That is why the sheet is anchored at the bar's
+   own top (68) rather than at the frame's inset, and why only the width, the
+   height and the left edge are on the clock.
+
+   Everything inside is absolutely positioned and the panel is a fixed size,
+   so none of this reflows the panel's contents — the box changes, what is in
+   it does not. */
 .menu {
   position: absolute;
-  left: 20px;
-  top: 20px;
-  width: 1400px;
-  height: 819px;
+  left: 436px;
+  top: 68px;
+  width: 568px;
+  height: 64px;
   background: #020108;
-  clip-path: inset(48px 416px 707px 416px round 4px);
-  transition: clip-path 0.85s var(--ease-out);
-  will-change: clip-path;
+  border-radius: 4px;
+  overflow: hidden;
+  /* Closing: the height collapses first, the width follows 300ms later. */
+  transition:
+    height 0.4s var(--ease-menu-y) 0s,
+    left 0.45s var(--ease-menu-x) 0.3s,
+    width 0.45s var(--ease-menu-x) 0.3s,
+    border-radius 0.45s var(--ease-menu-x) 0.3s;
 }
-.menu.is-open { clip-path: inset(0px 0px 0px 0px round 16px); }
+.menu.is-open {
+  left: 20px;
+  width: 1400px;
+  height: 771px;
+  border-radius: 16px;
+  /* Opening: the width goes first, the height starts 280ms in. */
+  transition:
+    left 0.5s var(--ease-menu-x) 0s,
+    width 0.5s var(--ease-menu-x) 0s,
+    border-radius 0.5s var(--ease-menu-x) 0s,
+    height 0.75s var(--ease-menu-y) 0.28s;
+}
 /* The frame stacks the bar underneath everything else, and at 64px tall that
    is right — it overlaps nothing. Grown, it would slide under the headline, so
    it is lifted for as long as it is open or on its way back down. */
@@ -114,8 +137,8 @@ body {
   position: absolute;
   left: 32px;
   top: 30px;
-  transform: translate(396px, 38px);
-  transition: transform 0.85s var(--ease-out);
+  transform: translate(-20px, -10px);
+  transition: transform 0.45s var(--ease-menu-x) 0.3s;
   width: 165px;
   height: 24px;
   padding: 0;
@@ -178,8 +201,8 @@ body {
   top: 30px;
   width: 54px;
   height: 24px;
-  transform: translate(0, 38px);
-  transition: transform 0.85s var(--ease-out);
+  transform: translate(-416px, -10px);
+  transition: transform 0.45s var(--ease-menu-x) 0.3s;
 }
 
 /* 222:3518 — x391 y12, 165x40 */
@@ -189,15 +212,18 @@ body {
   top: 22px;
   width: 165px;
   height: 40px;
-  transform: translate(-408px, 38px);
-  transition: transform 0.85s var(--ease-out);
+  transform: translate(-824px, -10px);
+  transition: transform 0.45s var(--ease-menu-x) 0.3s;
 }
 
 /* Open, the three groups spread across an 84px band: the toggle at the left
    margin, the mark in the middle of the sheet, the pair at the right. */
 .menu.is-open .menu__left,
 .menu.is-open .menu__logo,
-.menu.is-open .menu__right { transform: none; }
+.menu.is-open .menu__right {
+  transform: none;
+  transition-delay: 0s;
+}
 
 /* 222:3513 — 40x40 circle, 1.5px inside stroke at 20% white */
 .menu__moon {
@@ -516,6 +542,11 @@ body {
    makes a set of separate animations read as one movement. */
 :root {
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Fitted to the reference recording, frame by frame. The width is an ease
+     out; the height is an ease *in*-out, which is what makes it read as
+     starting only once the width is under way rather than alongside it. */
+  --ease-menu-x: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --ease-menu-y: cubic-bezier(0.55, 0, 0.1, 1);
   --ease-step: cubic-bezier(0.76, 0, 0.24, 1);
   --step: 0.95s;          /* one carousel move */
   --ticker-period: 34s;   /* one full run of the strip */
@@ -558,7 +589,7 @@ body {
   left: 20px;
   top: 84px;
   width: 1360px;
-  height: 715px;
+  height: 667px;
   display: grid;
   grid-template-columns: 500px 380px 440px;
   gap: 20px;
@@ -678,9 +709,9 @@ body {
   opacity: 1;
   transform: none;
 }
-.menu.is-open .menu__panel > :nth-child(1) { transition-delay: 0.22s; }
-.menu.is-open .menu__panel > :nth-child(2) { transition-delay: 0.29s; }
-.menu.is-open .menu__panel > :nth-child(3) { transition-delay: 0.36s; }
+.menu.is-open .menu__panel > :nth-child(1) { transition-delay: 0.44s; }
+.menu.is-open .menu__panel > :nth-child(2) { transition-delay: 0.51s; }
+.menu.is-open .menu__panel > :nth-child(3) { transition-delay: 0.58s; }
 
 .mm__list li,
 .mm__foot a,
@@ -696,7 +727,7 @@ body {
 .menu.is-open .mm__social li {
   opacity: 1;
   transform: none;
-  transition-delay: calc(0.3s + var(--i) * 0.05s);
+  transition-delay: calc(0.52s + var(--i) * 0.05s);
 }
 .mm__list li,
 .mm__foot a,
