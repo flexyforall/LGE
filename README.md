@@ -71,16 +71,22 @@ where the frame puts it, which is why they are not round numbers.
 the artwork box is 1464 and sits at (-12, 548). Only its top arc is on screen.
 
 **Trusted By** — the copy at x80 and five marks running from x428 off the right
-edge, with the page fading over both ends. Each mark is a flat fill in the
-shape of the logo, the way the frame builds it (a coloured rectangle behind the
-image's alpha) — which is what lets its colour travel from `#8c8c90` to
-`#020108` under the pointer instead of being two pictures.
+edge, with the page fading over both ends. The frame builds each mark as a
+coloured rectangle behind the image's alpha; the export already carries that
+colour, so the picture is the mark and the pointer only has to darken it.
+
+The fades sit inside the section's hairlines rather than over them. The frame
+draws its two Shadows 262 tall, covering the borders, but on a page that is
+one continuous rule along the top and bottom that reads as two holes in it.
 
 **Proof Band** — the copy on the left and four figures stacked in a ruled
 column at x620. The rows fade going down (1, 1, 0.7, 0.2) and each is 156 tall
 apart from the last, which is 155 and unruled. The frame draws the second row
 in its hovered state, so its resting opacity is the one number here that is not
 read off the file — it is set to 1, in a custom property on the row.
+
+The lede breaks after "the value we" rather than where 524px would break it,
+at the author's request.
 
 ### What moves
 
@@ -122,15 +128,18 @@ one run: 1373px, being three marks, three notices and their 48px gaps. That
 puts every item back where its twin was, so the loop has no seam. One pass
 takes 34 seconds.
 
-**The bar.** Clicking it grows the bar out into the whole frame — a mega panel
-of three columns — rather than dropping a separate sheet over the page. The
-equals mark folds into a cross as it goes: the two bars move to a shared centre
-line and turn a quarter of the way round in opposite directions. The toggle,
-the mark and the pair on the right travel to their new places in the same
-movement, the page dims behind, and the three columns and then their rows come
-up out of their own masks. Escape or a click outside closes it. The frame
-stacks the bar underneath everything else, which is right at 64px tall and
-wrong once it is grown, so it is lifted for as long as it is open.
+**The bar.** The panel is always the full sheet — the frame inset by 20 — and
+what changes is how much of it is shown. Closed, the clip is exactly the bar's
+rectangle at (436, 68, 568, 64); open, it is the whole sheet. Animating the
+clip, and the transforms of the three groups riding on it, keeps the whole
+opening off the layout, which is the only way it comes out smooth: growing
+width and height reflows the panel and everything in it on every frame.
+
+The equals mark folds into a cross as it goes, the page dims behind, and the
+columns and then their rows come up out of their own masks. Escape or a click
+outside closes it. The frame stacks the bar underneath everything else, which
+is right at 64px tall and wrong once it is grown, so it is lifted for as long
+as it is open.
 
 The panels are flat colours rather than white at low alpha. The cards behind
 are on their own compositing layers, and anything translucent blended over them
@@ -167,16 +176,27 @@ gives them and are set in tabular figures, so nothing shifts while the digits
 turn over. The entrance delays live on a class of their own and are taken off
 once the band is in, or the hover would inherit them and answer late.
 
+**The column.** It rolls: every row moves up one slot on a beat, the four the
+frame draws dimming as they climb (1, 1, 0.7, 0.2), and the one that leaves the
+top is put back at the bottom while it is out of the clip. The rows are in the
+run twice over so there is never a gap. It stops under the pointer, which is
+what makes the row hover usable.
+
+Because the column clips, the last row's own rule falls outside it — which is
+why the frame's last row is 155 and unruled while every row in the run here is
+156 with one, and reads the same.
+
 **The rows.** Hovering one brings it forward: the picture the frame puts behind
 the second row slides in underneath, and the figure, the rule and the copy all
 go white. The icons are flat fills in the shape of the glyph for the same
 reason the logos are — so their colour can travel with the row.
 
-**The buttons.** One idea everywhere: the label sits in a mask with a copy of
-itself waiting underneath, and on hover the two travel together — the visible
-one leaves upwards as its twin arrives. The control moves at the same time, so
-it reads as a single gesture rather than a text effect bolted onto a colour
-change. The arrow on *See Our Works* does the same thing sideways.
+**The buttons.** A fill rises through the button from its bottom edge while the
+label swaps: the label sits in a mask with a copy of itself waiting underneath,
+and the two travel together — the visible one leaving upwards as its twin
+arrives. The arrow on *See Our Works* does the same thing sideways. A colour
+change on its own reads as a state; a fill arriving from an edge reads as the
+button answering.
 
 ### The card pictures
 
@@ -218,6 +238,11 @@ The OTF and TTF originals stay in `src` behind the woff2 as a fallback.
 against the numbers read off the Figma frame, checks that the strip's runs are
 exactly one run apart, and writes a 2x screenshot. It exits non-zero on
 anything more than half a pixel out.
+
+The bar is a clip on the sheet rather than a box, so the check reads the clip
+and measures the rectangle it leaves showing. Chromium prints `inset()` in CSS
+shorthand — three values means the left matched the right — so the sides are
+expanded before they are used.
 
 ```bash
 cd tools

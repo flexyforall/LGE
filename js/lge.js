@@ -237,14 +237,67 @@
     requestAnimationFrame(frame);
   }
 
+  // The column rolls: every row moves up one slot, the four the frame draws
+  // dimming as they climb, and the one that leaves the top is put back at the
+  // bottom while it is out of the clip. It stops under the pointer, which is
+  // what makes the row hover usable.
+  var ROLL_SLOTS = 8;
+  var ROLL_STEP_MS = 950;
+  var ROLL_HOLD_MS = 2600;
+  var ROLL_OPACITY = [1, 1, 0.7, 0.2];   // by visible slot, read off the frame
+
   var proof = document.getElementById('proof');
+  var stats = document.getElementById('proofStats');
+  var statRows = stats ? [].slice.call(stats.querySelectorAll('.stat')) : [];
+  var rollTimer = null;
+
+  function slotOpacity(slot) {
+    return slot >= 0 && slot < ROLL_OPACITY.length ? ROLL_OPACITY[slot] : 0;
+  }
+
+  function rollStep() {
+    statRows.forEach(function (row) {
+      var slot = Number(row.style.getPropertyValue('--slot')) - 1;
+      row.style.setProperty('--slot', slot);
+      row.style.setProperty('--rest', slotOpacity(slot));
+      if (slot !== -1) return;
+      // Above the clip now, so it can be put back at the bottom unseen.
+      setTimeout(function () {
+        row.classList.add('is-jumping');
+        row.style.setProperty('--slot', ROLL_SLOTS - 1);
+        void row.offsetWidth;
+        row.classList.remove('is-jumping');
+      }, ROLL_STEP_MS + 40);
+    });
+  }
+
+  function rollPlay() {
+    if (rollTimer || !statRows.length) return;
+    rollTimer = setInterval(rollStep, ROLL_HOLD_MS + ROLL_STEP_MS);
+  }
+  function rollPause() {
+    clearInterval(rollTimer);
+    rollTimer = null;
+  }
+
+  if (stats) {
+    stats.addEventListener('pointerenter', rollPause);
+    stats.addEventListener('pointerleave', function () {
+      if (proof.classList.contains('is-in') && !document.hidden) rollPlay();
+    });
+  }
+
   function enterProof() {
     proof.classList.add('is-in', 'is-entering');
     proof.querySelectorAll('[data-count-to]').forEach(function (el, i) {
-      countUp(el, i * 120);
+      // The rows are there twice over, so a copy counts with its original.
+      countUp(el, (i % 4) * 120);
     });
     // Once it is in, the delays have to go or the hover inherits them.
-    setTimeout(function () { proof.classList.remove('is-entering'); }, 1500);
+    setTimeout(function () {
+      proof.classList.remove('is-entering');
+      rollPlay();
+    }, 1500);
   }
 
   if ('IntersectionObserver' in window) {
@@ -282,8 +335,9 @@
     setTimeout(function () { if (!document.hidden) play(); }, end + 600);
 
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden) pause();
-      else if (!hero.classList.contains('is-intro')) play();
+      if (document.hidden) { pause(); rollPause(); return; }
+      if (!hero.classList.contains('is-intro')) play();
+      if (proof && proof.classList.contains('is-in')) rollPlay();
     });
   }
 

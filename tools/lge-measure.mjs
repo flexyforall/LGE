@@ -67,7 +67,26 @@ const got = await page.evaluate(() => {
   return {
     frame: [+frame.width.toFixed(2), +frame.height.toFixed(2)],
     boxes: {
-      menu: box('.menu'), 'menu logo': box('.menu__logo'), 'menu moon': box('.menu__moon'),
+      menu: (() => {
+        // The sheet is always the full panel; what the frame calls the bar is
+        // the rectangle the clip leaves showing, so that is what is measured.
+        // Chromium prints inset() in CSS shorthand — three values means the
+        // left was the same as the right — so the sides are expanded here.
+        const el = document.querySelector('.menu');
+        const b = el.getBoundingClientRect();
+        const raw = getComputedStyle(el).clipPath.split('round')[0];
+        const n = (raw.match(/-?[\d.]+px/g) || []).map(parseFloat);
+        if (!n.length) return [+(b.left - frame.left).toFixed(2), +(b.top - frame.top).toFixed(2), +b.width.toFixed(2), +b.height.toFixed(2)];
+        const [t, r, bo, l] = [
+          n[0],
+          n.length > 1 ? n[1] : n[0],
+          n.length > 2 ? n[2] : n[0],
+          n.length > 3 ? n[3] : (n.length > 1 ? n[1] : n[0]),
+        ];
+        return [+(b.left - frame.left + l).toFixed(2), +(b.top - frame.top + t).toFixed(2),
+                +(b.width - l - r).toFixed(2), +(b.height - t - bo).toFixed(2)];
+      })(), 'menu logo': box('.menu__logo'), 'menu moon': box('.menu__moon'),
+      'menu toggle': box('.menu__left'), 'menu word': box('.menu__label'),
       'menu button': box('.menu__cta'), 'menu label': box('.menu__cta > .swap'),
       ticker: box('.ticker'),
       headline: box('.headline'), divider: box('.divider'), lede: box('.lede'),
@@ -117,6 +136,7 @@ const got = await page.evaluate(() => {
 
 const FIGMA_BOXES = {
   menu: [436, 68, 568, 64], 'menu logo': [693, 88, 54, 24], 'menu moon': [827, 80, 40, 40],
+  'menu toggle': [448, 88, 165, 24], 'menu word': [500, 90, 35, 19.6],
   'menu button': [879, 80, 113, 40], 'menu label': [895, 90, 81, 19.6],
   ticker: [0, 0, 1440, 48],
   headline: [80, 226, 648, 172.8], divider: [873.5, 122, 1, 336], lede: [944, 238, 400, 84],
@@ -129,12 +149,16 @@ const FIGMA_BOXES = {
 
   trusted: [0, 859, 1440, 262], 'trusted lede': [80, 922, 308, 56],
   'logo row': [428, 900, 1012, 100], 'logo 1': [428, 900, 180, 100],
-  'fade left': [388, 859, 220, 262], 'fade right': [1220, 859, 220, 262],
+  // 260, not the frame's 262: the fades sit inside the section's hairlines
+  // rather than over them, which is what was breaking the borders.
+  'fade left': [388, 860, 220, 260], 'fade right': [1220, 860, 220, 260],
 
   proof: [0, 1121, 1440, 624], 'proof title': [80, 1201, 524, 118.8],
   'proof lede': [80, 1580, 524, 84], 'proof stats': [620, 1121, 820, 623],
   'stat row 1': [621, 1121, 819, 156], 'stat row 2': [621, 1277, 819, 156],
-  'stat row 3': [621, 1433, 819, 156], 'stat row 4': [621, 1589, 819, 155],
+  'stat row 3': [621, 1433, 819, 156], // 156 like the rest: the column clips, so its rule falls outside and it
+  // reads as the frame's 155 and unruled.
+  'stat row 4': [621, 1589, 819, 156],
   'stat value 1': [661, 1169, 182, 59],
   'stat icon 1': [811, 1182.5, 32, 32],
   'stat desc 1': [928, 1170.5, 432, 56],

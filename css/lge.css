@@ -84,32 +84,25 @@ body {
 
 /* ---------------------------------------------------------------- Menu --
    222:2866 — x436 y68, 568x64, #020108, r4, pad 12, gap 80 */
+/* The bar is the closed state of the mega panel. The panel is always the
+   full sheet — the frame inset by 20 — and what changes is how much of it is
+   shown: closed, the clip is exactly the bar's rectangle at (436, 68, 568,
+   64); open, it is the whole sheet. Animating the clip and the transforms of
+   the three groups keeps the whole opening off the layout, which is the only
+   way it comes out smooth — growing width and height reflows the panel and
+   everything in it on every frame. */
 .menu {
   position: absolute;
-  left: 436px;
-  top: 68px;
-  width: 568px;
-  height: 64px;
-  background: #020108;
-  border-radius: 4px;
-  /* The bar is also the closed state of the mega panel: opening grows it out
-     to the full frame rather than dropping a separate sheet over the page. */
-  overflow: hidden;
-  transition:
-    left 0.78s var(--ease-out),
-    top 0.78s var(--ease-out),
-    width 0.78s var(--ease-out),
-    height 0.78s var(--ease-out),
-    border-radius 0.78s var(--ease-out);
-}
-/* Open: the frame inset by 20 on every side. */
-.menu.is-open {
   left: 20px;
   top: 20px;
   width: 1400px;
   height: 819px;
-  border-radius: 16px;
+  background: #020108;
+  clip-path: inset(48px 416px 707px 416px round 4px);
+  transition: clip-path 0.85s var(--ease-out);
+  will-change: clip-path;
 }
+.menu.is-open { clip-path: inset(0px 0px 0px 0px round 16px); }
 /* The frame stacks the bar underneath everything else, and at 64px tall that
    is right — it overlaps nothing. Grown, it would slide under the headline, so
    it is lifted for as long as it is open or on its way back down. */
@@ -119,9 +112,10 @@ body {
 /* 222:3498 — x12 y20, 165x24 */
 .menu__left {
   position: absolute;
-  left: 12px;
-  top: 20px;
-  transition: left 0.78s var(--ease-out), top 0.78s var(--ease-out);
+  left: 32px;
+  top: 30px;
+  transform: translate(396px, 38px);
+  transition: transform 0.85s var(--ease-out);
   width: 165px;
   height: 24px;
   padding: 0;
@@ -180,28 +174,30 @@ body {
 /* 223:3785 — mask group, x257 y20, 54x24 */
 .menu__logo {
   position: absolute;
-  left: 257px;
-  top: 20px;
+  left: 673px;
+  top: 30px;
   width: 54px;
   height: 24px;
-  transition: left 0.78s var(--ease-out), top 0.78s var(--ease-out);
+  transform: translate(0, 38px);
+  transition: transform 0.85s var(--ease-out);
 }
 
 /* 222:3518 — x391 y12, 165x40 */
 .menu__right {
   position: absolute;
-  left: 391px;
-  top: 12px;
+  left: 1215px;
+  top: 22px;
   width: 165px;
   height: 40px;
-  transition: left 0.78s var(--ease-out), top 0.78s var(--ease-out);
+  transform: translate(-408px, 38px);
+  transition: transform 0.85s var(--ease-out);
 }
 
 /* Open, the three groups spread across an 84px band: the toggle at the left
-   margin, the mark in the middle of the panel, the pair at the right. */
-.menu.is-open .menu__left  { left: 32px;   top: 30px; }
-.menu.is-open .menu__logo  { left: 673px;  top: 30px; }
-.menu.is-open .menu__right { left: 1215px; top: 22px; }
+   margin, the mark in the middle of the sheet, the pair at the right. */
+.menu.is-open .menu__left,
+.menu.is-open .menu__logo,
+.menu.is-open .menu__right { transform: none; }
 
 /* 222:3513 — 40x40 circle, 1.5px inside stroke at 20% white */
 .menu__moon {
@@ -823,30 +819,38 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
    text moving, not two words trading places. */
 .swap__dup { transition-delay: 0.02s; }
 
-/* Book a Demo — 222:2888 */
-.menu__cta {
+/* The fill that rises through a button on hover, behind its label. A colour
+   change alone reads as a state; a fill arriving from the bottom edge reads
+   as the button answering. */
+.menu__cta,
+.cta {
+  overflow: hidden;
   text-decoration: none;
-  transition:
-    transform 0.45s var(--ease-out),
-    background-color 0.4s var(--ease-out);
+  transition: transform 0.45s var(--ease-out);
 }
-.menu__cta:hover {
-  transform: translateY(-2px);
-  background: #ff7a26;
+.menu__cta::before,
+.cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--wipe);
+  transform: translateY(101%);
+  transition: transform 0.55s var(--ease-out);
 }
+.menu__cta:hover::before,
+.cta:hover::before { transform: translateY(0); }
+/* The label and the icon ride over the fill. */
+.menu__cta > *,
+.cta > * { position: relative; z-index: 1; }
+
+/* Book a Demo — 222:2888 */
+.menu__cta { --wipe: #020108; }
+.menu__cta:hover { transform: translateY(-2px); }
 
 /* See Our Works — 223:3801. The arrow leaves to the right and its twin
    arrives from the left, the horizontal answer to what the label does. */
-.cta {
-  text-decoration: none;
-  transition:
-    transform 0.45s var(--ease-out),
-    background-color 0.4s var(--ease-out);
-}
-.cta:hover {
-  transform: translateY(-2px);
-  background: #1b1a24;
-}
+.cta { --wipe: #ff5e00; }
+.cta:hover { transform: translateY(-2px); }
 .cta__icon {
   position: absolute;
   left: 20px;
@@ -963,34 +967,28 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
   to   { transform: translate3d(-980px, 0, 0); }
 }
 
-/* 231:2528 and friends — each mark is a flat fill in the shape of the logo,
-   the way the frame builds it, so its colour is a property that can move. */
+/* 231:2528 and friends. The frame builds each mark as a coloured rectangle
+   behind the image's alpha; the export already carries that colour, so the
+   picture is the mark and the pointer only has to darken it. A mask driven by
+   a custom property would have been closer to the frame's construction, but
+   it is not reliable outside Chromium — and when it fails the element renders
+   as nothing at all, which is exactly what went wrong here. */
 .logo {
   flex: 0 0 auto;
   width: 180px;
   height: 100px;
   border-radius: 4px;
-  background-color: #8c8c90;
-  -webkit-mask-image: var(--mark);
-  mask-image: var(--mark);
-  -webkit-mask-size: 180px 100px;
-  mask-size: 180px 100px;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  transition: background-color 0.4s var(--ease-out);
+  transition: filter 0.4s var(--ease-out);
 }
-.logo:hover { background-color: #020108; }
-.logo--1 { --mark: url("../Logo%201.png"); }
-.logo--2 { --mark: url("../Logo%202.png"); }
-.logo--3 { --mark: url("../Logo%203.png"); }
-.logo--4 { --mark: url("../Logo%204.png"); }
-.logo--5 { --mark: url("../Logo%205.png"); }
+.logo:hover { filter: brightness(0); }
 
 /* 231:2549 / 231:2550 — the page closing over both ends of the run */
+/* Inside the borders, not over them: at -1px these were painting the section's
+   own hairlines out wherever a fade sat. */
 .trusted__fade {
   position: absolute;
-  top: -1px;
-  bottom: -1px;
+  top: 0;
+  bottom: 0;
   width: 220px;
   pointer-events: none;
 }
@@ -1062,6 +1060,9 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
 }
 
 /* 231:2612 — x620, 820 wide, ruled off from the copy */
+/* 231:2612 — x620, 820 wide, ruled off from the copy. The column clips, so
+   the last row's own rule falls outside it: which is why the frame's last row
+   is 155 and unruled while every row in the run here is 156 with one. */
 .proof__stats {
   position: absolute;
   left: 620px;
@@ -1069,11 +1070,15 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
   width: 820px;
   height: 623px;
   border-left: 1px solid rgba(2, 1, 8, 0.1);
+  overflow: hidden;
 }
 
 /* 231:2621 and friends — 819 x 156, 48 top and bottom, 40 in and 80 out */
 .stat {
-  position: relative;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1082,8 +1087,12 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
   /* Transparent, so the 155px content box the frame gives the row survives;
      the line itself is drawn below, where it can be drawn *on*. */
   border-bottom: 1px solid transparent;
+  transform: translateY(calc(var(--slot) * 156px));
+  transition: transform 0.95s var(--ease-step);
 }
-.stat:not(:last-child)::after {
+/* A row jumping from one end of the column to the other must not travel. */
+.stat.is-jumping { transition: none !important; }
+.stat::after {
   content: "";
   position: absolute;
   left: 0;
@@ -1094,10 +1103,7 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
   transform-origin: 0 50%;
   transition: transform 0.9s var(--ease-out);
 }
-.stat:last-child {
-  height: 155px;
-  border-bottom: 0;
-}
+
 
 /* The picture the frame puts behind the second row: here it is what every
    row wears while the pointer is on it. */
@@ -1136,19 +1142,16 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
 }
 /* The icons are flat fills in the shape of the glyph, for the same reason
    the logos are: so their colour can travel with the row. */
+/* 231:2626 / 231:2659 — the Union fill, inline so its colour is a property
+   that can travel with the row. */
 .stat__icon {
   flex: 0 0 auto;
   width: 32px;
   height: 32px;
-  background-color: #7f7f82;
-  -webkit-mask-image: var(--mark);
-  mask-image: var(--mark);
-  -webkit-mask-size: 32px 32px;
-  mask-size: 32px 32px;
-  transition: background-color 0.45s var(--ease-out);
+  fill: currentColor;
+  color: #7f7f82;
+  transition: color 0.45s var(--ease-out);
 }
-.stat__icon--plus     { --mark: url("../Icon%20Plus.svg"); }
-.stat__icon--diagonal { --mark: url("../Icon%20Diagonal.svg"); }
 .stat__desc {
   position: relative;
   width: 432px;
@@ -1172,13 +1175,13 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
 .stat:hover .stat__desc { opacity: 1; }
 .stat:hover .stat__num,
 .stat:hover .stat__desc { color: #ffffff; }
-.stat:hover .stat__icon { background-color: #ffffff; }
+.stat:hover .stat__icon { color: #ffffff; }
 
 /* The band arrives when it is first scrolled to: every rule draws itself in
    from the left and the figures come up behind them, a row at a time. The
    delays live on a class of their own so that once the band is in they are
    gone and the hover answers at once. */
-.proof:not(.is-in) .stat:not(:last-child)::after { transform: scaleX(0); }
+.proof:not(.is-in) .stat::after { transform: scaleX(0); }
 .proof:not(.is-in) .stat__value,
 .proof:not(.is-in) .stat__desc {
   opacity: 0;
@@ -1212,14 +1215,14 @@ button:hover .swap > .swap__dup { transform: translateY(0); }
 
 /* Still: everything at rest, and the band already in. */
 .page.no-motion .trusted__run { animation: none; }
-.page.no-motion .proof .stat:not(:last-child)::after,
+.page.no-motion .proof .stat::after,
 .page.no-motion .proof .stat__value,
 .page.no-motion .proof .stat__desc { opacity: initial; transform: none; filter: none; }
 .page.no-motion .proof .stat__value,
 .page.no-motion .proof .stat__desc { opacity: var(--rest, 1); }
 
 @media (prefers-reduced-motion: reduce) {
-  .page .proof .stat:not(:last-child)::after { transform: none; }
+  .page .proof .stat::after { transform: none; }
   .page .proof .stat__value,
   .page .proof .stat__desc { opacity: var(--rest, 1); transform: none; filter: none; }
 }
