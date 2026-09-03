@@ -75,10 +75,25 @@ One easing curve does most of the work: a hard expo out,
 immediately and then settle, which is what makes a set of separate animations
 read as a single movement rather than a list of them.
 
-**The intro.** The strip drops in, the bar follows it, then the two headline
-lines are uncovered from below a beat apart, each riding up out of a mask. The
-divider draws down from its top, the lede and the button come up behind it, and
-the cards land — the middle one first, the two flanking it a beat later.
+**The intro.** The strip drops in, the bar follows it, then the headline
+arrives a character at a time (below). The divider draws down from its top, the
+lede and the button come up behind it, and the cards land — the middle one
+first, the two flanking it a beat later. Nothing starts until the faces are in:
+under `font-display: block` the heading has no glyphs to measure a moment
+earlier, and every piece would land in the wrong place.
+
+**The headings.** Each piece lifts a little way and clears out of a soft blur,
+left to right, 18ms apart. Splitting a heading into spans would break kerning
+across every boundary and the line would stop being the width the frame says it
+is — so the real text is never touched. Its pieces are *measured* with a Range
+while it is still whole, a copy is laid over the top to do the moving, and the
+copy is thrown away at the end; what is left standing is the untouched heading.
+The settled headline is pixel-for-pixel the same as `?motion=off` renders it.
+
+`data-reveal` on the heading picks the grain — `chars` (the default), `words`,
+or `lines` for a plain masked line reveal. There is no hard mask on the first
+two: a mask would cut the blur off at its own edge and each piece would look
+stamped rather than settling.
 
 **The strip.** Four runs of the same six notices, translating left by exactly
 one run: 1373px, being three marks, three notices and their 48px gaps. That
@@ -101,7 +116,8 @@ left a one-level ghost of their bounding boxes — invisible in use, but visible
 the moment the contrast is pushed.
 
 The menu's labels are placeholders — the Figma file has no menu frame yet.
-They are two lists and a feature card near the top of `index.html`.
+They are two lists near the top of `index.html`; the third column is left
+empty.
 
 **The cards.** Six cards over six slots: the three the frame draws, and three
 more parked off the page. Every 3.5 seconds each card moves one slot to the
