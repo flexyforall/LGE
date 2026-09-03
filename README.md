@@ -215,8 +215,7 @@ go white. The icons are flat fills in the shape of the glyph for the same
 reason the logos are — so their colour can travel with the row.
 
 **The buttons.** Every control does one thing under the pointer: its label is
-enciphered and then deciphers itself. Nothing else moves and nothing changes
-colour — the reference recording keeps the button exactly as it was and lets
+enciphered and then deciphers itself. Nothing changes colour — the reference recording keeps the button exactly as it was and lets
 the text do all the work.
 
 Timings read off that recording: the label empties at about 70ms, characters
@@ -229,8 +228,14 @@ The reference is set in a monospace face, so its glyphs can be swapped freely.
 Ours is proportional, and a random glyph is rarely the width of the one it
 stands in for — so each character is given its own cell at the position
 measured off the real text, the same Range measuring the headings use. That is
-what keeps the line from jittering and the arrow beside it from being nudged
-about.
+what keeps the line from jittering.
+
+Two controls sit outside that. *See Our Works* also sends its arrow travelling —
+it leaves to the right as its twin arrives from the left, the horizontal answer
+to what the label is doing. And the word on the menu toggle does not encipher
+at all: the toggle answers by widening its brackets instead, and it answers
+only for itself — it used to reach across with a sibling selector and light the
+theme button's ring as well, so one pointer lit two controls.
 
 ### The card pictures
 

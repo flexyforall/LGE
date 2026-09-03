@@ -851,20 +851,31 @@ body {
 .menu__cta,
 .cta { text-decoration: none; }
 
+/* 224:1912 — the arrow leaves to the right as its twin arrives from the
+   left, on the cipher's own clock. */
 .cta__icon {
   position: absolute;
   left: 20px;
   top: 14px;
   width: 24px;
   height: 24px;
+  overflow: hidden;
 }
+.cta__icon img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform 0.55s var(--ease-out);
+}
+.cta__icon-dup { transform: translateX(-140%); }
+.cta:hover .cta__icon img { transform: translateX(140%); }
+.cta:hover .cta__icon .cta__icon-dup { transform: translateX(0); }
 
 .menu__left:hover .menu__brackets { transform: scaleX(1.12); }
-.menu__moon {
-  transition: background-color 0.4s var(--ease-out), border-color 0.4s var(--ease-out);
-}
-.menu__left:hover ~ .menu__right .menu__moon,
-.menu__moon:hover { border-color: rgba(255, 255, 255, 0.45); }
+/* The toggle used to reach across to the theme button with a sibling
+   selector and light its ring — two controls answering one pointer. The
+   theme button now answers only for itself, and, like every other control,
+   without changing colour. */
 
 
 /* ============================================================== reveal ==
