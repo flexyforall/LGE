@@ -14,6 +14,7 @@ approximations.
 index.html          the page
 css/lge.css         all of its styles
 js/lge.js           the fit, the menu and the card run
+tools/colorize.py   builds the second state of each card picture
 assets/fonts/       SF Pro Display and SF Pro, as woff2
 *.png, *.svg        the exported artwork, in the repository root
 ```
@@ -84,26 +85,62 @@ one run: 1373px, being three marks, three notices and their 48px gaps. That
 puts every item back where its twin was, so the loop has no seam. One pass
 takes 34 seconds.
 
-**The bar.** Clicking it grows the bar downwards into a panel rather than
-dropping a separate sheet over the page, and the equals mark folds into a
-cross — the two bars move to a shared centre line and turn a quarter of the way
-round in opposite directions. The five links come up out of their own masks,
-each a beat after the one above it. Escape or a click outside closes it. The
-frame stacks the bar underneath everything else, which is right at 64px tall
-and wrong once it is grown, so it is lifted for as long as it is open.
+**The bar.** Clicking it grows the bar out into the whole frame — a mega panel
+of three columns — rather than dropping a separate sheet over the page. The
+equals mark folds into a cross as it goes: the two bars move to a shared centre
+line and turn a quarter of the way round in opposite directions. The toggle,
+the mark and the pair on the right travel to their new places in the same
+movement, the page dims behind, and the three columns and then their rows come
+up out of their own masks. Escape or a click outside closes it. The frame
+stacks the bar underneath everything else, which is right at 64px tall and
+wrong once it is grown, so it is lifted for as long as it is open.
 
-The nav labels are placeholders — the Figma file has no menu frame yet. They
-are five list items at the top of `index.html`.
+The panels are flat colours rather than white at low alpha. The cards behind
+are on their own compositing layers, and anything translucent blended over them
+left a one-level ghost of their bounding boxes — invisible in use, but visible
+the moment the contrast is pushed.
+
+The menu's labels are placeholders — the Figma file has no menu frame yet.
+They are two lists and a feature card near the top of `index.html`.
 
 **The cards.** Six cards over six slots: the three the frame draws, and three
 more parked off the page. Every 3.5 seconds each card moves one slot to the
-left, morphing between the outer shape (390 x 284, turned 18 degrees, at 70%)
-and the middle one (487.5 x 354, square, opaque) as it passes through. The card
-that runs off the left end is put back on the right with its transition
-switched off, which is invisible because both ends are off screen. Six slots
-against three pictures means the run repeats every third step, so the frame's
-own arrangement comes back around. It pauses while the tab is in the
-background.
+left, morphing between the outer shape (390 x 284, turned 18 degrees) and the
+middle one (487.5 x 354, square) as it passes through. The card that runs off
+the left end is put back on the right with its transition switched off, which
+is invisible because both ends are off screen. Six slots against three pictures
+means the run repeats every third step, so the frame's own arrangement comes
+back around. It pauses while the tab is in the background.
+
+The middle card is the active one and wears its picture in colour; the two
+outside it wear the drawing. Each card holds both, stacked, and they cross over
+as it takes the middle slot.
+
+**The buttons.** One idea everywhere: the label sits in a mask with a copy of
+itself waiting underneath, and on hover the two travel together — the visible
+one leaves upwards as its twin arrives. The control moves at the same time, so
+it reads as a single gesture rather than a text effect bolted onto a colour
+change. The arrow on *See Our Works* does the same thing sideways.
+
+### The card pictures
+
+The frame ships one picture per card, but the run needs two of each: the
+drawing the outer cards wear and the colour the middle one does. Two of the
+three arrive as the drawing and one as the colour, so `tools/colorize.py` fills
+in the other halves — needs Pillow, and is only run when a source picture
+changes:
+
+```bash
+pip install pillow && python3 tools/colorize.py
+```
+
+Colour is a multiply: a warm paper ground with a flat disc on it, and the
+drawing multiplied over the top. Ink stays ink, paper takes the ground, and the
+halftone reads as dots of the colour underneath. The one card that starts life
+as a photograph gets a desaturation for its inactive state instead.
+
+The outputs — `Image 2 Color.png`, `Image 3 Color.png`, `Image 1 BW.png` — are
+committed, so a hand-made replacement can simply be dropped over one of them.
 
 ### Fonts
 

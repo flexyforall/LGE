@@ -13,3 +13,4 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 tools/lge-render.png
+node_modules

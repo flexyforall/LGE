@@ -68,9 +68,10 @@ const got = await page.evaluate(() => {
     frame: [+frame.width.toFixed(2), +frame.height.toFixed(2)],
     boxes: {
       menu: box('.menu'), 'menu logo': box('.menu__logo'), 'menu moon': box('.menu__moon'),
-      'menu button': box('.menu__cta'), ticker: box('.ticker'),
+      'menu button': box('.menu__cta'), 'menu label': box('.menu__cta > .swap'),
+      ticker: box('.ticker'),
       headline: box('.headline'), divider: box('.divider'), lede: box('.lede'),
-      button: box('.cta'), 'button arrow': box('.cta img'),
+      button: box('.cta'), 'button label': box('.cta > .swap'), 'button arrow': box('.cta img'),
       ellipse: box('.ellipse'), images: box('.images'),
       'card left': box('.card[data-slot="2"]'), 'card middle': box('.card[data-slot="3"]'), 'card right': box('.card[data-slot="4"]'),
     },
@@ -95,9 +96,11 @@ const got = await page.evaluate(() => {
 
 const FIGMA_BOXES = {
   menu: [436, 68, 568, 64], 'menu logo': [693, 88, 54, 24], 'menu moon': [827, 80, 40, 40],
-  'menu button': [879, 80, 113, 40], ticker: [0, 0, 1440, 48],
+  'menu button': [879, 80, 113, 40], 'menu label': [895, 90, 81, 19.6],
+  ticker: [0, 0, 1440, 48],
   headline: [80, 226, 648, 172.8], divider: [873.5, 122, 1, 336], lede: [944, 238, 400, 84],
-  button: [944, 346, 190, 52], 'button arrow': [964, 360, 24, 24],
+  button: [944, 346, 190, 52], 'button label': [996, 361, 114, 21.6],
+  'button arrow': [964, 360, 24, 24],
   ellipse: [-12, 548, 1464, 1464], images: [0, 458, 1440, 401],
   'card left': [-45.48, 558.24, 458.67, 390.62],
   'card middle': [476, 458, 487.5, 354],

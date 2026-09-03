@@ -11,7 +11,9 @@
 <div class="stage">
 <div class="hero" id="hero">
 
-  <!-- Menu — 222:2866 -->
+  <div class="scrim" aria-hidden="true"></div>
+
+  <!-- Menu — 222:2866. Closed it is the frame's bar; open it is the mega panel. -->
   <nav class="menu" id="menu">
     <button class="menu__left" type="button" id="menuToggle" aria-expanded="false" aria-controls="menuPanel">
       <span class="menu__equals">
@@ -28,17 +30,45 @@
 
     <div class="menu__right">
       <span class="menu__moon"><img src="Icon%20Moon.svg" alt="" width="24" height="24"></span>
-      <a class="menu__cta" href="#"><span>Book a Demo</span></a>
+      <a class="menu__cta" href="#"><span class="swap"><span class="swap__in">Book a Demo</span><span class="swap__in swap__dup" aria-hidden="true">Book a Demo</span></span></a>
     </div>
 
     <div class="menu__panel" id="menuPanel" inert>
-      <ul class="menu__nav">
-          <li style="--i:0"><a href="#"><span>Services</span></a></li>
-          <li style="--i:1"><a href="#"><span>Our Work</span></a></li>
-          <li style="--i:2"><a href="#"><span>About</span></a></li>
-          <li style="--i:3"><a href="#"><span>Insights</span></a></li>
-          <li style="--i:4"><a href="#"><span>Contact</span></a></li>
-      </ul>
+      <div class="mm__col mm__col--card">
+        <p class="mm__label">Our services</p>
+        <ul class="mm__list">
+            <li><a href="#"><span class="swap"><span class="swap__in">Organic Search</span><span class="swap__in swap__dup" aria-hidden="true">Organic Search</span></span></a></li>
+            <li><a href="#"><span class="swap"><span class="swap__in">Paid Search</span><span class="swap__in swap__dup" aria-hidden="true">Paid Search</span></span></a></li>
+            <li><a href="#"><span class="swap"><span class="swap__in">Content Strategy</span><span class="swap__in swap__dup" aria-hidden="true">Content Strategy</span></span></a></li>
+            <li><a href="#"><span class="swap"><span class="swap__in">Analytics &amp; CRO</span><span class="swap__in swap__dup" aria-hidden="true">Analytics &amp; CRO</span></span></a></li>
+        </ul>
+        <div class="mm__foot">
+          <a href="#"><span class="swap"><span class="swap__in">Case Studies</span><span class="swap__in swap__dup" aria-hidden="true">Case Studies</span></span></a>
+          <a href="#"><span class="swap"><span class="swap__in">Resources</span><span class="swap__in swap__dup" aria-hidden="true">Resources</span></span><i class="mm__badge">NEW</i></a>
+        </div>
+      </div>
+
+      <div class="mm__col">
+        <p class="mm__label">Explore</p>
+        <ul class="mm__list">
+            <li><a href="#"><span class="swap"><span class="swap__in">Our Work</span><span class="swap__in swap__dup" aria-hidden="true">Our Work</span></span></a></li>
+            <li><a href="#"><span class="swap"><span class="swap__in">About</span><span class="swap__in swap__dup" aria-hidden="true">About</span></span></a></li>
+            <li><a href="#"><span class="swap"><span class="swap__in">Insights</span><span class="swap__in swap__dup" aria-hidden="true">Insights</span></span></a></li>
+            <li><a href="#"><span class="swap"><span class="swap__in">Pricing</span><span class="swap__in swap__dup" aria-hidden="true">Pricing</span></span></a></li>
+        </ul>
+        <ul class="mm__social">
+            <li><a href="#" aria-label="LinkedIn"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6.2 8.4H3.5V16.5h2.7V8.4Zm.2-2.5a1.55 1.55 0 1 0-3.1 0 1.55 1.55 0 0 0 3.1 0ZM16.5 12.2c0-2.4-1.3-3.9-3.3-3.9-1.1 0-1.9.5-2.3 1.2V8.4H8.2v8.1h2.7v-4.3c0-1 .5-1.6 1.4-1.6.9 0 1.5.6 1.5 1.6v4.3h2.7v-4.3Z"/></svg></a></li>
+            <li><a href="#" aria-label="Instagram"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><rect x="3.6" y="3.6" width="12.8" height="12.8" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="3.1" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="13.7" cy="6.3" r="1"/></svg></a></li>
+            <li><a href="#" aria-label="X"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4 4h3.2l3.3 4.5L14.2 4H16l-4.6 5.5L16.4 16h-3.2l-3.5-4.8L5.6 16H3.8l4.8-5.8L4 4Z"/></svg></a></li>
+        </ul>
+      </div>
+
+      <div class="mm__feature">
+        <p class="mm__eyebrow">Start <i>reading</i></p>
+        <h2 class="mm__title">2026 Building<br>Materials Search<br>Report</h2>
+        <span class="mm__shot"><img src="Image%201.png" alt="" width="480" height="290"></span>
+        <a class="mm__more" href="#"><span class="swap"><span class="swap__in">More info</span><span class="swap__in swap__dup" aria-hidden="true">More info</span></span></a>
+      </div>
     </div>
   </nav>
 
@@ -85,45 +115,63 @@
   <p class="lede">From the plant to the project — connecting building material brands with every buyer searching right now.</p>
 
   <a class="cta" href="#">
-    <img src="Icon%20Arrow.svg" alt="" width="24" height="24">
-    <span>See Our Works</span>
+    <span class="cta__icon"><img src="Icon%20Arrow.svg" alt="" width="24" height="24"><img class="cta__icon-dup" src="Icon%20Arrow.svg" alt="" width="24" height="24"></span>
+    <span class="swap"><span class="swap__in">See Our Works</span><span class="swap__in swap__dup" aria-hidden="true">See Our Works</span></span>
   </a>
 
   <!-- Images — 228:2291 -->
   <div class="images">
       <div class="card-wrap">
         <figure class="card" data-slot="0">
-          <img src="Image%201.png" alt="">
+          <span class="card__frame">
+            <img class="card__bw" src="Image%201%20BW.png" alt="">
+            <img class="card__colour" src="Image%201.png" alt="">
+          </span>
           <figcaption>Between Space &amp; Context</figcaption>
         </figure>
       </div>
       <div class="card-wrap">
         <figure class="card" data-slot="1">
-          <img src="Image%202.png" alt="">
+          <span class="card__frame">
+            <img class="card__bw" src="Image%202.png" alt="">
+            <img class="card__colour" src="Image%202%20Color.png" alt="">
+          </span>
           <figcaption>Architectural Workflow</figcaption>
         </figure>
       </div>
       <div class="card-wrap">
         <figure class="card" data-slot="2">
-          <img src="Image%203.png" alt="">
+          <span class="card__frame">
+            <img class="card__bw" src="Image%203.png" alt="">
+            <img class="card__colour" src="Image%203%20Color.png" alt="">
+          </span>
           <figcaption>Concept &amp; Construct Process</figcaption>
         </figure>
       </div>
       <div class="card-wrap">
         <figure class="card" data-slot="3">
-          <img src="Image%201.png" alt="">
+          <span class="card__frame">
+            <img class="card__bw" src="Image%201%20BW.png" alt="">
+            <img class="card__colour" src="Image%201.png" alt="">
+          </span>
           <figcaption>Between Space &amp; Context</figcaption>
         </figure>
       </div>
       <div class="card-wrap">
         <figure class="card" data-slot="4">
-          <img src="Image%202.png" alt="">
+          <span class="card__frame">
+            <img class="card__bw" src="Image%202.png" alt="">
+            <img class="card__colour" src="Image%202%20Color.png" alt="">
+          </span>
           <figcaption>Architectural Workflow</figcaption>
         </figure>
       </div>
       <div class="card-wrap">
         <figure class="card" data-slot="5">
-          <img src="Image%203.png" alt="">
+          <span class="card__frame">
+            <img class="card__bw" src="Image%203.png" alt="">
+            <img class="card__colour" src="Image%203%20Color.png" alt="">
+          </span>
           <figcaption>Concept &amp; Construct Process</figcaption>
         </figure>
       </div>

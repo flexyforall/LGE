@@ -45,25 +45,20 @@
   var toggle = document.getElementById('menuToggle');
   var panel = document.getElementById('menuPanel');
 
-  function measurePanel() {
-    menu.style.setProperty('--menu-open-height', 64 + panel.offsetHeight + 'px');
-  }
-  measurePanel();
-  addEventListener('resize', measurePanel);
-
   function setMenu(open) {
     // The bar has to stay above the headline until it has finished shrinking,
     // or the last of the panel is drawn behind it on the way down.
     if (open) menu.classList.remove('is-closing');
     else menu.classList.add('is-closing');
     menu.classList.toggle('is-open', open);
+    hero.classList.toggle('menu-open', open);
     toggle.setAttribute('aria-expanded', String(open));
     if (open) panel.removeAttribute('inert');
     else panel.setAttribute('inert', '');
   }
 
   menu.addEventListener('transitionend', function (e) {
-    if (e.target === menu && e.propertyName === 'height' && !menu.classList.contains('is-open')) {
+    if (e.target === menu && e.propertyName === 'width' && !menu.classList.contains('is-open')) {
       menu.classList.remove('is-closing');
     }
   });

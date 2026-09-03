@@ -84,12 +84,24 @@ body {
   height: 64px;
   background: #020108;
   border-radius: 4px;
-  /* The bar is also the closed state of the panel: opening grows it downwards
-     rather than dropping a separate sheet over the page. */
+  /* The bar is also the closed state of the mega panel: opening grows it out
+     to the full frame rather than dropping a separate sheet over the page. */
   overflow: hidden;
-  transition: height 0.72s var(--ease-out);
+  transition:
+    left 0.78s var(--ease-out),
+    top 0.78s var(--ease-out),
+    width 0.78s var(--ease-out),
+    height 0.78s var(--ease-out),
+    border-radius 0.78s var(--ease-out);
 }
-.menu.is-open { height: var(--menu-open-height, 340px); }
+/* Open: the frame inset by 20 on every side. */
+.menu.is-open {
+  left: 20px;
+  top: 20px;
+  width: 1400px;
+  height: 819px;
+  border-radius: 16px;
+}
 /* The frame stacks the bar underneath everything else, and at 64px tall that
    is right — it overlaps nothing. Grown, it would slide under the headline, so
    it is lifted for as long as it is open or on its way back down. */
@@ -101,6 +113,7 @@ body {
   position: absolute;
   left: 12px;
   top: 20px;
+  transition: left 0.78s var(--ease-out), top 0.78s var(--ease-out);
   width: 165px;
   height: 24px;
   padding: 0;
@@ -163,6 +176,7 @@ body {
   top: 20px;
   width: 54px;
   height: 24px;
+  transition: left 0.78s var(--ease-out), top 0.78s var(--ease-out);
 }
 
 /* 222:3518 — x391 y12, 165x40 */
@@ -172,7 +186,14 @@ body {
   top: 12px;
   width: 165px;
   height: 40px;
+  transition: left 0.78s var(--ease-out), top 0.78s var(--ease-out);
 }
+
+/* Open, the three groups spread across an 84px band: the toggle at the left
+   margin, the mark in the middle of the panel, the pair at the right. */
+.menu.is-open .menu__left  { left: 32px;   top: 30px; }
+.menu.is-open .menu__logo  { left: 673px;  top: 30px; }
+.menu.is-open .menu__right { left: 1215px; top: 22px; }
 
 /* 222:3513 — 40x40 circle, 1.5px inside stroke at 20% white */
 .menu__moon {
@@ -202,10 +223,12 @@ body {
   background: #ff5e00;
   border-radius: 2px;
 }
-.menu__cta span {
+.menu__cta > .swap {
   position: absolute;
   left: 16px;
   top: 10px;
+  width: 81px;
+  height: 19.6px;
   font-family: "SF Pro Display", sans-serif;
   font-weight: 500;
   font-size: 14px;
@@ -342,17 +365,12 @@ body {
   background: #020108;
   border-radius: 4px;
 }
-.cta img {
-  position: absolute;
-  left: 20px;
-  top: 14px;
-  width: 24px;
-  height: 24px;
-}
-.cta span {
+.cta > .swap {
   position: absolute;
   left: 52px;
   top: 15px;
+  width: 114px;
+  height: 21.6px;
   font-family: "SF Pro Display", sans-serif;
   font-weight: 500;
   font-size: 18px;
@@ -372,13 +390,18 @@ body {
   height: 401px;
 }
 
-/* Six cards ride five ... six slots: three on screen exactly where the frame
-   puts them, and three parked off it. A step moves every card one slot to the
-   left; the one that runs off the far end jumps back to the far right while it
-   is out of sight, so the run never ends.
+/* Six cards over six slots: three on screen exactly where the frame puts
+   them, and three parked off it. A step moves every card one slot to the
+   left; the one that runs off the far end jumps back to the far right while
+   it is out of sight, so the run never ends.
 
-   Each slot's transform is translate(unrotated left, unrotated top) followed by
-   its turn, which lands the *rotated* bounding box on the frame's numbers. */
+   Each slot's transform is translate(unrotated left, unrotated top) followed
+   by its turn, which lands the *rotated* bounding box on the frame's numbers.
+
+   The outer cards are opaque rather than set to 70% opacity. The frame's 70%
+   over white is reproduced exactly — the black becomes #4e4d52 and the
+   picture is faded over a white plate — but nothing behind them shows
+   through, which is what was letting the dashed circle draw over them. */
 .card {
   position: absolute;
   left: 0;
@@ -387,8 +410,7 @@ body {
   width: 390px;
   height: 284px;
   border-radius: 6px;
-  opacity: 0.7;
-  background: #020108;
+  background: #4e4d52;
   overflow: hidden;
   transform-origin: 50% 50%;
   will-change: transform;
@@ -397,21 +419,38 @@ body {
     width var(--step) var(--ease-step),
     height var(--step) var(--ease-step),
     border-radius var(--step) var(--ease-step),
-    opacity var(--step) var(--ease-step);
+    background-color var(--step) var(--ease-step);
 }
-.card img {
+
+/* The plate. Opaque white, so the faded picture over it lands on exactly the
+   colour the frame composites against. */
+.card__frame {
   position: absolute;
   left: 4px;
   top: 4px;
   width: 382px;
   height: 232px;
   border-radius: 4px;
-  object-fit: cover;
+  overflow: hidden;
+  background: #ffffff;
   transition:
     width var(--step) var(--ease-step),
     height var(--step) var(--ease-step),
     border-radius var(--step) var(--ease-step);
 }
+.card__frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity var(--step) var(--ease-step);
+}
+/* Outer: the drawing, faded. Middle: the colour, full. The two cross over as
+   a card takes the middle slot. */
+.card__bw     { opacity: 0.7; }
+.card__colour { opacity: 0; }
+
 .card figcaption {
   position: absolute;
   left: 26.163px;
@@ -436,19 +475,22 @@ body {
 /* 228:2292 — rotated bounding box at (-45.479, 100.24) */
 .card[data-slot="2"] { transform: translate(-11.1425px, 153.5485px) rotate(-18deg); }
 
-/* 228:2294 — x476 y0, 487.5x354, r10, square to the page */
+/* 228:2294 — x476 y0, 487.5x354, r10, square to the page, and the one in
+   colour: this is the active card. */
 .card[data-slot="3"] {
   transform: translate(476px, 0) rotate(0deg);
   width: 487.5px;
   height: 354px;
   border-radius: 10px;
-  opacity: 1;
+  background: #020108;
 }
-.card[data-slot="3"] img {
+.card[data-slot="3"] .card__frame {
   width: 479.5px;
   height: 290px;
   border-radius: 6px;
 }
+.card[data-slot="3"] .card__bw     { opacity: 0; }
+.card[data-slot="3"] .card__colour { opacity: 1; }
 .card[data-slot="3"] figcaption { left: 24px; top: 310px; }
 
 /* 228:2296 — rotated bounding box at (1026.471, 90) */
@@ -461,8 +503,8 @@ body {
 .card[data-slot="5"] figcaption { left: 22.146px; top: 246.294px; }
 
 /* A card jumping from one end of the run to the other must not travel. */
-.card.is-jumping { transition: none !important; }
-
+.card.is-jumping,
+.card.is-jumping * { transition: none !important; }
 
 /* ================================================================ motion ==
    Osmo's house curve is a hard expo out — everything covers most of its
@@ -488,52 +530,251 @@ body {
   will-change: transform;
 }
 
-/* --------------------------------------------------------- menu panel ----
-   The panel is inside the bar, so opening it is the bar growing. */
+/* The page, dimmed, behind the panel. Clicking it closes the menu. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+  background: rgba(2, 1, 8, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s var(--ease-out);
+}
+.hero.menu-open .scrim {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------- the mega panel ----
+   Three columns in the frame's own black: two lists, and a card for whatever
+   is worth pointing at. The first and third sit on a plate a shade lighter
+   than the panel; the middle one sits straight on it. */
 .menu__panel {
   position: absolute;
-  left: 0;
-  top: 64px;
-  width: 568px;
-  padding: 4px 12px 20px;
+  left: 20px;
+  top: 84px;
+  width: 1360px;
+  height: 715px;
+  display: grid;
+  grid-template-columns: 500px 380px 440px;
+  gap: 20px;
 }
-.menu__nav {
+
+.mm__col {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 32px 32px;
+  border-radius: 12px;
+}
+/* Flat, not translucent: the promoted card layers behind the panel left a
+   one-level ghost when anything blended over them. #0d0c13 is what 4.5%
+   white over the frame black comes to. */
+.mm__col--card { background: #0d0c13; }
+
+.mm__label {
+  margin: 0 0 26px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.mm__list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
-/* The link's own 9px of padding is all the slack the mask needs, so the row
-   can clip on its own box. */
-.menu__nav li { overflow: hidden; }
-.menu__nav a {
-  display: block;
-  padding: 9px 8px;
+.mm__list li { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.mm__list a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 17px 0;
   font-family: "SF Pro Display", sans-serif;
-  font-weight: 500;
-  font-size: 28px;
-  line-height: 1.2;
-  letter-spacing: -0.56px;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.25;
+  letter-spacing: -0.6px;
   color: #ffffff;
   text-decoration: none;
-  border-radius: 2px;
-  transition: color 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
+  /* The row slides over as the label swaps — the two together are what make
+     the hover read as one movement rather than two effects. */
+  transition: padding-left 0.5s var(--ease-out), color 0.4s var(--ease-out);
 }
-.menu__nav a:hover { color: #ff5e00; }
-.menu__nav a span {
-  display: block;
-  transform: translateY(115%);
-  opacity: 0;
+.mm__list a:hover { padding-left: 12px; color: #ff5e00; }
+
+.mm__badge {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 3px;
+  background: #ff5e00;
+  color: #ffffff;
+}
+
+.mm__foot {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 28px;
+}
+.mm__foot a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  transition: color 0.35s var(--ease-out);
+}
+.mm__foot a:hover { color: #ffffff; }
+
+.mm__social {
+  display: flex;
+  gap: 10px;
+  margin: auto 0 0;
+  padding: 0;
+  list-style: none;
+}
+.mm__social a {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 1000px;
+  background: #1e1d23;
+  color: #ffffff;
   transition:
-    transform 0.7s var(--ease-out),
-    opacity 0.5s linear;
+    background-color 0.4s var(--ease-out),
+    transform 0.4s var(--ease-out);
 }
-/* Each line comes up a beat after the one above it, and on the way out they
-   leave together — closing should feel quicker than opening. */
-.menu.is-open .menu__nav a span {
-  transform: translateY(0);
+.mm__social a:hover { background: #ff5e00; transform: translateY(-3px); }
+.mm__social svg { width: 20px; height: 20px; }
+
+/* The card on the right */
+.mm__feature {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 32px 32px;
+  border-radius: 12px;
+  background: #0d0c13;
+  text-align: center;
+}
+.mm__eyebrow {
+  margin: 0 0 22px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.mm__eyebrow i {
+  font-style: normal;
+  margin-left: 6px;
+  padding: 4px 9px;
+  border-radius: 1000px;
+  background: #ff5e00;
+  color: #ffffff;
+}
+.mm__title {
+  margin: 0 0 26px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.15;
+  letter-spacing: -1.6px;
+  color: #ffffff;
+}
+.mm__shot {
+  display: block;
+  width: 320px;
+  height: 220px;
+  border-radius: 1000px / 500px;
+  overflow: hidden;
+  background: #1e1d23;
+}
+.mm__shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.9s var(--ease-out);
+}
+.mm__feature:hover .mm__shot img { transform: scale(1.05); }
+.mm__more {
+  margin-top: -26px;
+  padding: 14px 26px;
+  border-radius: 4px;
+  background: #ffffff;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -0.16px;
+  color: #020108;
+  text-decoration: none;
+  transition:
+    transform 0.45s var(--ease-out),
+    background-color 0.4s var(--ease-out),
+    color 0.4s var(--ease-out);
+}
+.mm__more:hover {
+  transform: translateY(-3px);
+  background: #ff5e00;
+  color: #ffffff;
+}
+
+/* The panel's contents come up out of their own masks once the bar has room
+   for them, each a beat after the one above it. */
+.menu__panel > * {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.5s linear,
+    transform 0.8s var(--ease-out);
+}
+.menu.is-open .menu__panel > * {
   opacity: 1;
-  transition-delay: calc(0.12s + var(--i) * 0.055s);
+  transform: none;
 }
+.menu.is-open .menu__panel > :nth-child(1) { transition-delay: 0.22s; }
+.menu.is-open .menu__panel > :nth-child(2) { transition-delay: 0.29s; }
+.menu.is-open .menu__panel > :nth-child(3) { transition-delay: 0.36s; }
+
+.mm__list li,
+.mm__foot a,
+.mm__social li {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.45s linear,
+    transform 0.7s var(--ease-out);
+}
+.menu.is-open .mm__list li,
+.menu.is-open .mm__foot a,
+.menu.is-open .mm__social li {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(0.3s + var(--i) * 0.05s);
+}
+.mm__list li,
+.mm__foot a,
+.mm__social li { --i: 0; }
+.mm__list li:nth-child(2), .mm__foot a:nth-child(2), .mm__social li:nth-child(2) { --i: 1; }
+.mm__list li:nth-child(3), .mm__social li:nth-child(3) { --i: 2; }
+.mm__list li:nth-child(4) { --i: 3; }
 
 /* ------------------------------------------------------------- intro -----
    Everything is written so its finished state is no transform at all, which
@@ -593,7 +834,10 @@ body {
   animation: none !important;
   transition: none !important;
 }
-.hero.no-motion .menu__nav a span { transform: none; opacity: 1; }
+.hero.no-motion .menu__panel > *,
+.hero.no-motion .mm__list li,
+.hero.no-motion .mm__foot a,
+.hero.no-motion .mm__social li { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero *,
@@ -602,5 +846,91 @@ body {
     animation: none !important;
     transition-duration: 0.01ms !important;
   }
-  .hero .menu__nav a span { transform: none; opacity: 1; }
+  .hero .menu__panel > *,
+  .hero .mm__list li,
+  .hero .mm__foot a,
+  .hero .mm__social li { opacity: 1; transform: none; }
 }
+
+
+/* ================================================================ hover ==
+   One idea, used on every button: the label is in a mask with a copy of
+   itself waiting underneath. On hover the two travel together — the visible
+   one leaves upwards as its twin arrives — and the control it sits in moves
+   at the same time, so the whole thing reads as a single gesture rather than
+   a text effect bolted onto a colour change. */
+.swap {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+.swap__in {
+  display: block;
+  white-space: nowrap;
+  transition: transform 0.55s var(--ease-out);
+}
+.swap__dup {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  transform: translateY(112%);
+}
+a:hover > .swap > .swap__in,
+a:hover .swap > .swap__in,
+button:hover .swap > .swap__in { transform: translateY(-112%); }
+a:hover > .swap > .swap__dup,
+a:hover .swap > .swap__dup,
+button:hover .swap > .swap__dup { transform: translateY(0); }
+/* The copy sets off a hair after the original so they read as one strip of
+   text moving, not two words trading places. */
+.swap__dup { transition-delay: 0.02s; }
+
+/* Book a Demo — 222:2888 */
+.menu__cta {
+  text-decoration: none;
+  transition:
+    transform 0.45s var(--ease-out),
+    background-color 0.4s var(--ease-out);
+}
+.menu__cta:hover {
+  transform: translateY(-2px);
+  background: #ff7a26;
+}
+
+/* See Our Works — 223:3801. The arrow leaves to the right and its twin
+   arrives from the left, the horizontal answer to what the label does. */
+.cta {
+  text-decoration: none;
+  transition:
+    transform 0.45s var(--ease-out),
+    background-color 0.4s var(--ease-out);
+}
+.cta:hover {
+  transform: translateY(-2px);
+  background: #1b1a24;
+}
+.cta__icon {
+  position: absolute;
+  left: 20px;
+  top: 14px;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+}
+.cta__icon img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform 0.55s var(--ease-out);
+}
+.cta__icon-dup { transform: translateX(-135%); }
+.cta:hover .cta__icon img { transform: translateX(135%); }
+.cta:hover .cta__icon .cta__icon-dup { transform: translateX(0); }
+
+.menu__left:hover .menu__brackets { transform: scaleX(1.12); }
+.menu__moon {
+  transition: background-color 0.4s var(--ease-out), border-color 0.4s var(--ease-out);
+}
+.menu__left:hover ~ .menu__right .menu__moon,
+.menu__moon:hover { border-color: rgba(255, 255, 255, 0.45); }
