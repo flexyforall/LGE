@@ -73,7 +73,7 @@ const got = await page.evaluate(() => {
       ticker: box('.ticker'),
       headline: box('.headline'), divider: box('.divider'), lede: box('.lede'),
       button: box('.cta'), 'button label': box('.cta > .btn-label'), 'button arrow': box('.cta img'),
-      ellipse: box('.ellipse'), images: box('.images'),
+      ellipse: box('.ellipse'), 'ellipse lit': box('.ellipse-lit'), images: box('.images'),
       'card left': box('.card[data-slot="2"]'), 'card middle': box('.card[data-slot="3"]'), 'card right': box('.card[data-slot="4"]'),
 
       // Trusted By — 231:2525
@@ -124,7 +124,7 @@ const FIGMA_BOXES = {
   headline: [80, 226, 648, 172.8], divider: [873.5, 122, 1, 336], lede: [944, 238, 400, 84],
   button: [944, 346, 190, 52], 'button label': [996, 361, 114, 21.6],
   'button arrow': [964, 360, 24, 24],
-  ellipse: [-12, 548, 1464, 1464], images: [0, 458, 1440, 401],
+  ellipse: [-12, 548, 1464, 1464], 'ellipse lit': [-12, 548, 1464, 1464], images: [0, 458, 1440, 401],
   'card left': [-45.48, 558.24, 458.67, 390.62],
   'card middle': [476, 458, 487.5, 354],
   'card right': [1026.47, 548, 458.67, 390.62],

@@ -547,6 +547,7 @@ body {
      starting only once the width is under way rather than alongside it. */
   --ease-menu-x: cubic-bezier(0.2, 0.9, 0.25, 1);
   --ease-menu-y: cubic-bezier(0.55, 0, 0.1, 1);
+  --ease-ring: cubic-bezier(0.45, 0, 0.55, 1);
   --ease-step: cubic-bezier(0.76, 0, 0.24, 1);
   --step: 0.95s;          /* one carousel move */
   --ticker-period: 34s;   /* one full run of the strip */
@@ -1226,3 +1227,89 @@ body {
   .page .proof .stat__value,
   .page .proof .stat__desc { opacity: var(--rest, 1); transform: none; filter: none; }
 }
+
+
+/* ============================================================== the ring ==
+   A highlight crosses the ring's visible arc every so often: each tick
+   deepens as it is reached and goes straight back as it is passed, so once
+   the pass is over the ring is exactly what it was. Nothing accumulates —
+   both layers are always there, and all that changes is how much of the
+   deeper one is shown.
+
+   The wedge that shows it is a conic gradient, not a linear one, so the ticks
+   light in order *around* the ring rather than left to right across the
+   screen. It is swept by turning the masked wrapper while the artwork inside
+   turns back by the same angle: the mask travels, the ticks do not move. Both
+   halves share a duration and a timing function, so they cancel at every
+   instant and not merely at the ends.
+
+   The wedge sits at 180 degrees — pointing down, off the bottom of the frame —
+   so at rest, and wherever the mask is not supported, none of it shows. */
+.ellipse-lit {
+  position: absolute;
+  left: -12px;
+  top: 548px;
+  width: 1464px;
+  height: 1464px;
+  pointer-events: none;
+  /* Off unless there is a mask to hold it back: an unmasked second ring would
+     be worse than no animation at all. */
+  opacity: 0;
+}
+.ellipse-lit__art {
+  display: block;
+  width: 1464px;
+  height: 1464px;
+}
+.ellipse-lit__art circle {
+  stroke: #020108;
+  /* Over the frame's own 8%, a lit tick comes to about a quarter black. */
+  stroke-opacity: 0.18;
+}
+
+@supports (mask-image: conic-gradient(#000, #fff)) or (-webkit-mask-image: conic-gradient(#000, #fff)) {
+  .ellipse-lit {
+    opacity: 1;
+    --wedge: conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg 168deg,
+      rgba(0, 0, 0, 0.5) 176deg,
+      #000 179deg 181deg,
+      rgba(0, 0, 0, 0.5) 184deg,
+      transparent 192deg 360deg);
+    -webkit-mask-image: var(--wedge);
+    mask-image: var(--wedge);
+    animation: lge-ring-sweep var(--ring-period, 14s) var(--ease-ring) infinite;
+    will-change: transform;
+  }
+  .ellipse-lit__art {
+    animation: lge-ring-sweep-back var(--ring-period, 14s) var(--ease-ring) infinite;
+    will-change: transform;
+  }
+}
+
+/* 105deg puts the wedge past the left end of the visible arc and 255deg past
+   the right, so it enters and leaves out of sight and the jump back at the end
+   of the cycle is never seen. The sweep takes a fifth of the period; the rest
+   of it the ring simply sits there. */
+@keyframes lge-ring-sweep {
+  0%   { transform: rotate(105deg); }
+  20%  { transform: rotate(255deg); }
+  100% { transform: rotate(255deg); }
+}
+@keyframes lge-ring-sweep-back {
+  0%   { transform: rotate(-105deg); }
+  20%  { transform: rotate(-255deg); }
+  100% { transform: rotate(-255deg); }
+}
+
+/* --------------------------------------------------------- theme button --
+   222:3513. It answers with movement first — the moon turns — and the ring
+   it sits in comes up a little behind it. */
+.menu__moon {
+  transition: border-color 0.4s var(--ease-out);
+}
+.menu__moon img {
+  transition: transform 0.5s var(--ease-out);
+}
+.menu__moon:hover { border-color: rgba(255, 255, 255, 0.45); }
+.menu__moon:hover img { transform: rotate(-28deg); }

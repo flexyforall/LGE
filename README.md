@@ -214,6 +214,25 @@ the second row slides in underneath, and the figure, the rule and the copy all
 go white. The icons are flat fills in the shape of the glyph for the same
 reason the logos are — so their colour can travel with the row.
 
+**The ring.** Every fourteen seconds a highlight crosses the dashed circle's
+visible arc: each tick deepens from the frame's 8% to about a quarter black as
+it is reached, and goes straight back as it is passed. Nothing accumulates —
+the ring after a pass is pixel-for-pixel the ring before it.
+
+It is a second copy of the ring in the deeper grey, sitting exactly on the
+first, shown only through a narrow wedge. The wedge is a *conic* gradient
+rather than a linear one, so the ticks light in order around the ring instead
+of left to right across the screen, and it is swept by turning the masked
+wrapper while the artwork inside turns back by the same angle: the mask
+travels, the ticks never move. Both halves share a duration and a timing
+function, so they cancel at every instant and not merely at the ends.
+
+The wedge rests at 180 degrees — pointing down, off the bottom of the frame —
+which is what makes the jump back at the end of each cycle invisible, and what
+leaves nothing showing at all where masks are not supported. The whole layer is
+held at zero opacity outside a `@supports` test for exactly that reason: an
+unmasked second ring would be worse than no animation.
+
 **The buttons.** Every control does one thing under the pointer: its label is
 enciphered and then deciphers itself. Nothing changes colour — the reference recording keeps the button exactly as it was and lets
 the text do all the work.
@@ -229,6 +248,9 @@ Ours is proportional, and a random glyph is rarely the width of the one it
 stands in for — so each character is given its own cell at the position
 measured off the real text, the same Range measuring the headings use. That is
 what keeps the line from jittering.
+
+The theme button has no label to encipher, so it answers with movement — the
+moon turns — and its ring comes up a little behind it.
 
 Two controls sit outside that. *See Our Works* also sends its arrow travelling —
 it leaves to the right as its twin arrives from the left, the horizontal answer
